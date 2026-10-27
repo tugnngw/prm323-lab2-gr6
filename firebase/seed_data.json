@@ -1,0 +1,73 @@
+{
+  "courses": [
+    {
+      "id": "PRM323",
+      "code": "PRM323",
+      "name": "Mobile Programming with Flutter",
+      "credits": 3,
+      "semester": 5,
+      "major": "SE",
+      "prerequisites": ["CSD201", "PRO192"],
+      "syllabus": {
+        "totalSlots": 30,
+        "completedSlots": 12,
+        "currentSprint": "Lab 3 — Firebase & Testing"
+      }
+    },
+    {
+      "id": "SWP391",
+      "code": "SWP391",
+      "name": "Software Development Project",
+      "credits": 5,
+      "semester": 5,
+      "major": "SE",
+      "prerequisites": ["SWT301", "SWE201c"],
+      "syllabus": {
+        "totalSlots": 30,
+        "completedSlots": 15,
+        "currentSprint": "Sprint 2 / 4"
+      }
+    },
+    {
+      "id": "SWR302",
+      "code": "SWR302",
+      "name": "Software Requirement",
+      "credits": 3,
+      "semester": 5,
+      "major": "SE",
+      "prerequisites": ["CSD201"],
+      "syllabus": {
+        "totalSlots": 30,
+        "completedSlots": 10,
+        "currentSprint": "Assignment 2"
+      }
+    }
+  ],
+  "sample_tasks": [
+    {
+      "id": "task_01",
+      "title": "Hoàn thành Lab 3 PRM323 (Firebase & MVVM)",
+      "courseId": "PRM323",
+      "dueDate": "2024-12-15T23:59:59Z",
+      "isCompleted": false,
+      "priority": "high"
+    },
+    {
+      "id": "task_02",
+      "title": "Nộp Sprint 2 Retrospective SWP391",
+      "courseId": "SWP391",
+      "dueDate": "2024-12-18T17:00:00Z",
+      "isCompleted": false,
+      "priority": "medium"
+    }
+  ],
+  "sample_notes": [
+    {
+      "id": "note_01",
+      "title": "Kiến trúc MVVM trong Flutter cho PRM323",
+      "content": "View quan sát ViewModel thông qua ChangeNotifier / Provider. ViewModel giao tiếp với FirestoreService, không gọi trực tiếp Firebase SDK trong Widget.",
+      "courseId": "PRM323",
+      "tags": ["flutter", "mvvm", "firebase"]
+    }
+  ]
+}

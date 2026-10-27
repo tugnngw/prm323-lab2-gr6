@@ -1,0 +1,47 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidSize() {
+      // Limit file upload to 10MB
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+
+    function isValidImageOrPdf() {
+      return request.resource.contentType.matches('image/.*')
+          || request.resource.contentType == 'application/pdf'
+          || request.resource.contentType == 'text/plain';
+    }
+
+    // ──────────────────────── User Notes Attachments ────────────────────────
+    // Path: notes/{userId}/{fileName}
+    match /notes/{userId}/{fileName} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isValidSize() && isValidImageOrPdf();
+      allow delete: if isOwner(userId);
+    }
+
+    // ──────────────────────── User Academic Reports / Artifacts ────────────────────────
+    // Path: reports/{userId}/{allPaths=**}
+    match /reports/{userId}/{allPaths=**} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isValidSize();
+      allow delete: if isOwner(userId);
+    }
+
+    // Default deny all other storage access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,61 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // ──────────────────────── User Profile & Private Data ────────────────────────
+    match /users/{userId} {
+      // User can only read and write their own profile
+      allow read, write: if isOwner(userId);
+
+      // Tasks subcollection — owner only
+      match /tasks/{taskId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Notes subcollection — owner only
+      match /notes/{noteId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Sync metadata subcollection — owner only
+      match /sync/{syncId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // ──────────────────────── Public Academic Catalog (Read-Only) ────────────────────────
+    // Courses collection — all authenticated students can read course information
+    match /courses/{courseId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only admin via Firebase Admin SDK / Console
+    }
+
+    // Curriculums collection — all authenticated students can read curriculum data
+    match /curriculums/{curriculumId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Admin only
+    }
+
+    // ──────────────────────── Audit & System Logs ────────────────────────
+    // Audit logs can be written by authenticated users (append only)
+    match /audit_logs/{logId} {
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if false;
+    }
+
+    // Default deny all other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
