@@ -20,10 +20,10 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyPlaceholderAndroidKeyForLab3PRM323',
-    appId: '1:123456789000:android:abcdef1234567890abcdef',
-    messagingSenderId: '123456789000',
-    projectId: 'prm323-lab3-fptu-brain',
-    storageBucket: 'prm323-lab3-fptu-brain.appspot.com',
+    apiKey: 'AIzaSyDV1qOOU77kxoE_eOrDZgKf2Sqr_qWwvr4',
+    appId: '1:510519082861:android:4cf5b64c4e2e4487c46464',
+    messagingSenderId: '510519082861',
+    projectId: 'prm323-lab2-gr6',
+    storageBucket: 'prm323-lab2-gr6.firebasestorage.app',
   );
 }
