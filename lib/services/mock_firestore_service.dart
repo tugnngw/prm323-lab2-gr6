@@ -53,7 +53,7 @@ class MockFirestoreService implements FirestoreService {
   }
 
   @override
-  Future<void> deleteTask(String taskId) async {
+  Future<void> deleteTask(String userId, String taskId) async {
     _tasks.removeWhere((t) => t['id'] == taskId);
   }
 
@@ -75,7 +75,7 @@ class MockFirestoreService implements FirestoreService {
   }
 
   @override
-  Future<void> deleteNote(String noteId) async {
+  Future<void> deleteNote(String userId, String noteId) async {
     _notes.removeWhere((n) => n['id'] == noteId);
   }
 }

@@ -10,10 +10,15 @@ abstract class FirestoreService {
   Future<List<Map<String, dynamic>>> getTasks(String userId);
   Future<void> addTask(Map<String, dynamic> task);
   Future<void> updateTask(String taskId, Map<String, dynamic> data);
-  Future<void> deleteTask(String taskId);
+  /// Deletes [taskId] from [userId]'s subcollection. Fails if the item is
+  /// missing or the remote write is rejected.
+  Future<void> deleteTask(String userId, String taskId);
 
   // ── Notes ──
   Future<List<Map<String, dynamic>>> getNotes(String userId);
   Future<void> saveNote(Map<String, dynamic> note);
-  Future<void> deleteNote(String noteId);
+
+  /// Deletes [noteId] from [userId]'s subcollection. Fails if the item is
+  /// missing or the remote write is rejected.
+  Future<void> deleteNote(String userId, String noteId);
 }

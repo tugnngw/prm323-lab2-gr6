@@ -59,7 +59,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     super.dispose();
   }
 
-  void _saveNote() {
+  Future<void> _saveNote() async {
     final title = _titleController.text.trim();
     final content = _contentController.text.trim();
     final course = _courseController.text.trim();
@@ -72,7 +72,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     }
 
     final notesVm = context.read<NotesViewModel>();
-    notesVm.saveNote(
+    final ok = await notesVm.saveNote(
       id: _existingNoteId,
       title: title,
       content: content,
@@ -81,13 +81,28 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       tags: [course.toLowerCase()],
     );
 
+    if (!mounted) return;
+    if (!ok) {
+      // Failed persistence is never reported as success. The ViewModel has
+      // already reverted its optimistic change; stay in the editor.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(notesVm.lastError ?? 'Không thể lưu ghi chú.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Đã lưu ghi chú vào Vault thành công!'),
         backgroundColor: AppColors.success,
       ),
     );
-    Navigator.pop(context);
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
   }
 
   void _simulateAttachFile() {
@@ -102,6 +117,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   @override
   Widget build(BuildContext context) {
     final isEditing = _existingNoteId != null;
+    final isSaving = context.watch<NotesViewModel>().isSaving;
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -116,7 +132,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
           IconButton(
             icon: const Icon(Icons.check),
             tooltip: 'Lưu ghi chú',
-            onPressed: _saveNote,
+            onPressed: isSaving ? null : _saveNote,
           ),
         ],
       ),
@@ -210,6 +226,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
               label: isEditing ? 'Cập nhật ghi chú' : 'Lưu vào Notes Vault',
               icon: Icons.save_outlined,
               isExpanded: true,
+              isLoading: isSaving,
               onPressed: _saveNote,
             ),
           ],

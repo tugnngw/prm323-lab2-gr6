@@ -27,21 +27,31 @@ class _SyncVaultScreenState extends State<SyncVaultScreen> {
   bool _isSyncing = false;
   String? _syncResult;
 
-  Future<void> _testFirestore(FirestoreService firestore) async {
+  Future<void> _testFirestore(FirestoreService firestore, String? uid) async {
     setState(() {
       _isTestingFirestore = true;
       _firestoreTestResult = null;
     });
+
+    if (uid == null || uid.isEmpty) {
+      // Never write under a fabricated identity when unauthenticated.
+      setState(() {
+        _firestoreTestResult =
+            'Chưa đăng nhập — không thể chạy test đọc/ghi Firestore.';
+      });
+      _isTestingFirestore = false;
+      return;
+    }
 
     try {
       final testTask = {
         'title': 'Test Sync Roundtrip ${DateTime.now().second}',
         'courseCode': 'PRM323',
         'dueDate': '15/12/2024',
-        'userId': 'user_p02',
+        'userId': uid,
       };
       await firestore.addTask(testTask);
-      final tasks = await firestore.getTasks('user_p02');
+      final tasks = await firestore.getTasks(uid);
 
       setState(() {
         _firestoreTestResult = 'Thành công! Firestore đã đọc/ghi ${tasks.length} mục.';
@@ -303,7 +313,8 @@ class _SyncVaultScreenState extends State<SyncVaultScreen> {
                 ],
                 const SizedBox(height: AppSpacing.sm),
                 OutlinedButton.icon(
-                  onPressed: _isTestingFirestore ? null : () => _testFirestore(firestore),
+                  onPressed:
+                      _isTestingFirestore ? null : () => _testFirestore(firestore, authVm.currentUserId),
                   icon: const Icon(Icons.cloud_sync_outlined),
                   label: const Text('Chạy Test Đọc/Ghi Firestore'),
                 ),

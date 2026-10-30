@@ -1,20 +1,30 @@
 import '../models/app_state.dart';
 import '../models/course_model.dart';
 import '../services/analytics_service.dart';
+import '../services/auth_service.dart';
 import '../services/firebase_analytics_service.dart';
 import '../services/firestore_service.dart';
 import 'base_viewmodel.dart';
 
 class RoadmapViewModel extends BaseViewModel<List<CourseModel>> {
   RoadmapViewModel({
+    this.authService,
     this.firestoreService,
     this.analyticsService,
   }) {
     loadData();
   }
 
+  final AuthService? authService;
   final FirestoreService? firestoreService;
   final AnalyticsService? analyticsService;
+
+  /// Authenticated UID, or null when no identity is available. Used for the
+  /// user-owned course read; never falls back to a persona ID or constant.
+  String? get currentUserId {
+    final uid = authService?.currentUserId;
+    return (uid == null || uid.isEmpty) ? null : uid;
+  }
 
   List<CourseModel> _allCourses = [];
   String _searchQuery = '';
@@ -171,11 +181,18 @@ class RoadmapViewModel extends BaseViewModel<List<CourseModel>> {
 
     try {
       final firestore = firestoreService;
+      final uid = currentUserId;
       if (firestore != null) {
-        final docs = await firestore.getCourses('user_p02');
-        if (docs.isNotEmpty) {
-          _allCourses = docs.map(CourseModel.fromMap).toList();
+        if (uid != null) {
+          final docs = await firestore.getCourses(uid);
+          if (docs.isNotEmpty) {
+            _allCourses = docs.map(CourseModel.fromMap).toList();
+          } else {
+            _allCourses = List.from(_defaultCourses);
+          }
         } else {
+          // Demo/mock mode: no authenticated identity — keep seeded defaults
+          // instead of fabricating one.
           _allCourses = List.from(_defaultCourses);
         }
       } else {

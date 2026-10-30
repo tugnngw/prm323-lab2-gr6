@@ -76,6 +76,24 @@ class _NotesScreenState extends State<NotesScreen> {
     );
   }
 
+  /// Runs the delete and, if the remote write failed, reports it. The
+  /// ViewModel restores the note so the list never shows a silent success.
+  Future<void> _deleteNoteWithFeedback(
+    BuildContext context,
+    NotesViewModel vm,
+    String noteId,
+  ) async {
+    final ok = await vm.deleteNote(noteId);
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(vm.lastError ?? 'Không thể xóa ghi chú.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
   Widget _buildNoteList(
     BuildContext context,
     NotesViewModel vm,
@@ -109,7 +127,7 @@ class _NotesScreenState extends State<NotesScreen> {
               color: AppColors.errorContainer,
               child: const Icon(Icons.delete_outline, color: AppColors.error),
             ),
-            onDismissed: (_) => vm.deleteNote(note.id),
+            onDismissed: (_) => _deleteNoteWithFeedback(context, vm, note.id),
             child: AppCard(
               onTap: () => Navigator.pushNamed(
                 context,
@@ -146,7 +164,7 @@ class _NotesScreenState extends State<NotesScreen> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete_outline, size: 20, color: AppColors.onSurfaceVariant),
-                        onPressed: () => vm.deleteNote(note.id),
+                        onPressed: () => _deleteNoteWithFeedback(context, vm, note.id),
                       ),
                     ],
                   ),

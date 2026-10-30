@@ -1,20 +1,30 @@
 import '../models/app_state.dart';
 import '../models/task_model.dart';
 import '../services/analytics_service.dart';
+import '../services/auth_service.dart';
 import '../services/firebase_analytics_service.dart';
 import '../services/firestore_service.dart';
 import 'base_viewmodel.dart';
 
 class TasksViewModel extends BaseViewModel<List<TaskModel>> {
   TasksViewModel({
+    this.authService,
     this.firestoreService,
     this.analyticsService,
   }) {
     loadData();
   }
 
+  final AuthService? authService;
   final FirestoreService? firestoreService;
   final AnalyticsService? analyticsService;
+
+  /// Authenticated UID, or null when no identity is available. Used for all
+  /// user-owned reads/writes; never falls back to a persona ID or constant.
+  String? get currentUserId {
+    final uid = authService?.currentUserId;
+    return (uid == null || uid.isEmpty) ? null : uid;
+  }
 
   List<TaskModel> _allTasks = [];
   String _filter = 'all'; // 'all', 'pending', 'completed'
@@ -77,11 +87,18 @@ class TasksViewModel extends BaseViewModel<List<TaskModel>> {
 
     try {
       final firestore = firestoreService;
+      final uid = currentUserId;
       if (firestore != null) {
-        final docs = await firestore.getTasks('user_p02');
-        if (docs.isNotEmpty) {
-          _allTasks = docs.map(TaskModel.fromMap).toList();
+        if (uid != null) {
+          final docs = await firestore.getTasks(uid);
+          if (docs.isNotEmpty) {
+            _allTasks = docs.map(TaskModel.fromMap).toList();
+          } else {
+            _allTasks = List.from(_defaultTasks);
+          }
         } else {
+          // Demo/mock mode: no authenticated identity — keep seeded defaults
+          // instead of fabricating one.
           _allTasks = List.from(_defaultTasks);
         }
       } else {
@@ -104,12 +121,20 @@ class TasksViewModel extends BaseViewModel<List<TaskModel>> {
     setState(AsyncViewState.data(filteredTasks));
   }
 
-  Future<void> addTask({
+  /// Adds a task and persists it. Returns true on success; on failure the
+  /// optimistic insert is reverted, [lastError] is set, and false is returned.
+  Future<bool> addTask({
     required String title,
     required String courseCode,
     required String dueDate,
     String priority = 'medium',
   }) async {
+    final uid = currentUserId;
+    if (firestoreService != null && uid == null) {
+      setLastError('Bạn chưa đăng nhập — không thể lưu việc cần làm.');
+      return false;
+    }
+
     final newTask = TaskModel(
       id: 'task_${DateTime.now().millisecondsSinceEpoch}',
       title: title,
@@ -121,26 +146,40 @@ class TasksViewModel extends BaseViewModel<List<TaskModel>> {
     _allTasks.insert(0, newTask);
     setState(AsyncViewState.data(filteredTasks));
 
-    // Async save to firestore
     final firestore = firestoreService;
     if (firestore != null) {
       try {
         await firestore.addTask({
           ...newTask.toMap(),
-          'userId': 'user_p02',
+          'userId': uid!,
         });
-      } catch (_) {}
+      } catch (e) {
+        _allTasks.removeWhere((t) => t.id == newTask.id);
+        setState(AsyncViewState.data(filteredTasks));
+        setLastError('Không thể lưu việc cần làm. Kiểm tra kết nối và thử lại.');
+        return false;
+      }
     }
+    clearLastError();
 
     final analytics = analyticsService;
     if (analytics is FirebaseAnalyticsService) {
       analytics.logTaskCreate(category: courseCode);
     }
+    return true;
   }
 
-  Future<void> toggleTask(String taskId) async {
+  /// Toggles completion and persists the change. Reverts the toggle and sets
+  /// [lastError] if the write fails.
+  Future<bool> toggleTask(String taskId) async {
+    final uid = currentUserId;
+    if (firestoreService != null && uid == null) {
+      setLastError('Bạn chưa đăng nhập — không thể cập nhật việc cần làm.');
+      return false;
+    }
+
     final index = _allTasks.indexWhere((t) => t.id == taskId);
-    if (index == -1) return;
+    if (index == -1) return false;
 
     final task = _allTasks[index];
     final updated = task.copyWith(isCompleted: !task.isCompleted);
@@ -152,26 +191,52 @@ class TasksViewModel extends BaseViewModel<List<TaskModel>> {
       try {
         await firestore.updateTask(taskId, {
           'isCompleted': updated.isCompleted,
-          'userId': 'user_p02',
+          'userId': uid!,
         });
-      } catch (_) {}
+      } catch (e) {
+        _allTasks[index] = task;
+        setState(AsyncViewState.data(filteredTasks));
+        setLastError('Không thể cập nhật việc cần làm. Kiểm tra kết nối và thử lại.');
+        return false;
+      }
     }
+    clearLastError();
 
     final analytics = analyticsService;
     if (updated.isCompleted && analytics is FirebaseAnalyticsService) {
       analytics.logTaskComplete(taskId: taskId);
     }
+    return true;
   }
 
-  Future<void> deleteTask(String taskId) async {
-    _allTasks.removeWhere((t) => t.id == taskId);
+  /// Deletes a task through the service. On failure the item is restored to
+  /// the list, [lastError] is set, and false is returned so the UI never
+  /// reports a delete that did not happen.
+  Future<bool> deleteTask(String taskId) async {
+    final uid = currentUserId;
+    if (firestoreService != null && uid == null) {
+      setLastError('Bạn chưa đăng nhập — không thể xóa việc cần làm.');
+      return false;
+    }
+
+    final index = _allTasks.indexWhere((t) => t.id == taskId);
+    if (index == -1) return false;
+    final removed = _allTasks[index];
+    _allTasks.removeAt(index);
     setState(AsyncViewState.data(filteredTasks));
 
     final firestore = firestoreService;
     if (firestore != null) {
       try {
-        await firestore.deleteTask(taskId);
-      } catch (_) {}
+        await firestore.deleteTask(uid!, taskId);
+      } catch (e) {
+        _allTasks.insert(index, removed);
+        setState(AsyncViewState.data(filteredTasks));
+        setLastError('Không thể xóa việc cần làm. Kiểm tra kết nối và thử lại.');
+        return false;
+      }
     }
+    clearLastError();
+    return true;
   }
 }

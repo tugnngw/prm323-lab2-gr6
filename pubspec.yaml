@@ -19,7 +19,10 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.13.5
+  # Lowered from ^3.13.5: no dependency requires it. The highest SDK floor among
+  # resolved packages is `web` (^3.13.0). ^3.13.5 only excluded the installed
+  # Dart 3.13.4 and added nothing. See docs/t01-build-recovery.md.
+  sdk: ^3.13.0
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions

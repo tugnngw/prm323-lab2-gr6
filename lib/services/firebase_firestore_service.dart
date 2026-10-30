@@ -119,12 +119,7 @@ class FirebaseFirestoreService implements FirestoreService {
   }
 
   @override
-  Future<void> deleteTask(String taskId) async {
-    // Note: requires knowing userId to delete from user's subcollection
-    debugPrint('[Firestore] deleteTask called for $taskId');
-  }
-
-  Future<void> deleteTaskForUser(String userId, String taskId) async {
+  Future<void> deleteTask(String userId, String taskId) async {
     try {
       await _firestore
           .collection('users')
@@ -133,7 +128,7 @@ class FirebaseFirestoreService implements FirestoreService {
           .doc(taskId)
           .delete();
     } catch (e) {
-      debugPrint('[Firestore] deleteTaskForUser error: $e');
+      debugPrint('[Firestore] deleteTask error: $e');
       rethrow;
     }
   }
@@ -180,11 +175,7 @@ class FirebaseFirestoreService implements FirestoreService {
   }
 
   @override
-  Future<void> deleteNote(String noteId) async {
-    debugPrint('[Firestore] deleteNote called for $noteId');
-  }
-
-  Future<void> deleteNoteForUser(String userId, String noteId) async {
+  Future<void> deleteNote(String userId, String noteId) async {
     try {
       await _firestore
           .collection('users')
@@ -193,7 +184,7 @@ class FirebaseFirestoreService implements FirestoreService {
           .doc(noteId)
           .delete();
     } catch (e) {
-      debugPrint('[Firestore] deleteNoteForUser error: $e');
+      debugPrint('[Firestore] deleteNote error: $e');
       rethrow;
     }
   }

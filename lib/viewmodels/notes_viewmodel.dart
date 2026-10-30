@@ -1,6 +1,7 @@
 import '../models/app_state.dart';
 import '../models/note_model.dart';
 import '../services/analytics_service.dart';
+import '../services/auth_service.dart';
 import '../services/firebase_analytics_service.dart';
 import '../services/firestore_service.dart';
 import '../services/storage_service.dart';
@@ -8,6 +9,7 @@ import 'base_viewmodel.dart';
 
 class NotesViewModel extends BaseViewModel<List<NoteModel>> {
   NotesViewModel({
+    this.authService,
     this.firestoreService,
     this.storageService,
     this.analyticsService,
@@ -15,9 +17,20 @@ class NotesViewModel extends BaseViewModel<List<NoteModel>> {
     loadData();
   }
 
+  final AuthService? authService;
   final FirestoreService? firestoreService;
   final StorageService? storageService;
   final AnalyticsService? analyticsService;
+
+  /// Authenticated UID, or null when no identity is available. Used for all
+  /// user-owned reads/writes; never falls back to a persona ID or constant.
+  String? get currentUserId {
+    final uid = authService?.currentUserId;
+    return (uid == null || uid.isEmpty) ? null : uid;
+  }
+
+  bool _isSaving = false;
+  bool get isSaving => _isSaving;
 
   List<NoteModel> _allNotes = [];
   String _searchQuery = '';
@@ -62,11 +75,18 @@ class NotesViewModel extends BaseViewModel<List<NoteModel>> {
 
     try {
       final firestore = firestoreService;
+      final uid = currentUserId;
       if (firestore != null) {
-        final docs = await firestore.getNotes('user_p02');
-        if (docs.isNotEmpty) {
-          _allNotes = docs.map(NoteModel.fromMap).toList();
+        if (uid != null) {
+          final docs = await firestore.getNotes(uid);
+          if (docs.isNotEmpty) {
+            _allNotes = docs.map(NoteModel.fromMap).toList();
+          } else {
+            _allNotes = List.from(_defaultNotes);
+          }
         } else {
+          // Demo/mock mode: no authenticated identity — keep seeded defaults
+          // instead of fabricating one.
           _allNotes = List.from(_defaultNotes);
         }
       } else {
@@ -97,7 +117,10 @@ class NotesViewModel extends BaseViewModel<List<NoteModel>> {
     }
   }
 
-  Future<void> saveNote({
+  /// Saves a note and persists it. Returns true on success; on failure the
+  /// optimistic local change is reverted, [lastError] is set, and false is
+  /// returned so the editor never shows success for a failed save.
+  Future<bool> saveNote({
     String? id,
     required String title,
     required String content,
@@ -105,6 +128,13 @@ class NotesViewModel extends BaseViewModel<List<NoteModel>> {
     String? attachmentUrl,
     List<String> tags = const [],
   }) async {
+    if (_isSaving) return false;
+    final uid = currentUserId;
+    if (firestoreService != null && uid == null) {
+      setLastError('Bạn chưa đăng nhập — không thể lưu ghi chú.');
+      return false;
+    }
+
     final isNew = id == null || id.isEmpty;
     final noteId = isNew ? 'note_${DateTime.now().millisecondsSinceEpoch}' : id;
 
@@ -118,28 +148,45 @@ class NotesViewModel extends BaseViewModel<List<NoteModel>> {
       tags: tags,
     );
 
+    // Capture the previous state so a failed write can be reverted exactly.
+    final oldIndex = isNew ? -1 : _allNotes.indexWhere((n) => n.id == id);
+    final oldNote = oldIndex != -1 ? _allNotes[oldIndex] : null;
+
     if (isNew) {
       _allNotes.insert(0, note);
+    } else if (oldIndex != -1) {
+      _allNotes[oldIndex] = note;
     } else {
-      final index = _allNotes.indexWhere((n) => n.id == id);
-      if (index != -1) {
-        _allNotes[index] = note;
-      } else {
-        _allNotes.insert(0, note);
-      }
+      _allNotes.insert(0, note);
     }
-
     setState(AsyncViewState.data(filteredNotes));
 
     final firestore = firestoreService;
     if (firestore != null) {
+      _isSaving = true;
+      notifyListeners();
       try {
         await firestore.saveNote({
           ...note.toMap(),
-          'userId': 'user_p02',
+          'userId': uid!,
         });
-      } catch (_) {}
+      } catch (e) {
+        if (isNew) {
+          _allNotes.removeWhere((n) => n.id == noteId);
+        } else if (oldNote != null) {
+          _allNotes[oldIndex] = oldNote;
+        } else {
+          _allNotes.removeWhere((n) => n.id == noteId);
+        }
+        setState(AsyncViewState.data(filteredNotes));
+        setLastError('Không thể lưu ghi chú. Kiểm tra kết nối và thử lại.');
+        return false;
+      } finally {
+        _isSaving = false;
+        notifyListeners();
+      }
     }
+    clearLastError();
 
     final analytics = analyticsService;
     if (analytics is FirebaseAnalyticsService) {
@@ -147,17 +194,37 @@ class NotesViewModel extends BaseViewModel<List<NoteModel>> {
         contentLength: content.length,
       );
     }
+    return true;
   }
 
-  Future<void> deleteNote(String noteId) async {
-    _allNotes.removeWhere((n) => n.id == noteId);
+  /// Deletes a note through the service. On failure the item is restored to
+  /// the list, [lastError] is set, and false is returned so the UI never
+  /// reports a delete that did not happen.
+  Future<bool> deleteNote(String noteId) async {
+    final uid = currentUserId;
+    if (firestoreService != null && uid == null) {
+      setLastError('Bạn chưa đăng nhập — không thể xóa ghi chú.');
+      return false;
+    }
+
+    final index = _allNotes.indexWhere((n) => n.id == noteId);
+    if (index == -1) return false;
+    final removed = _allNotes[index];
+    _allNotes.removeAt(index);
     setState(AsyncViewState.data(filteredNotes));
 
     final firestore = firestoreService;
     if (firestore != null) {
       try {
-        await firestore.deleteNote(noteId);
-      } catch (_) {}
+        await firestore.deleteNote(uid!, noteId);
+      } catch (e) {
+        _allNotes.insert(index, removed);
+        setState(AsyncViewState.data(filteredNotes));
+        setLastError('Không thể xóa ghi chú. Kiểm tra kết nối và thử lại.');
+        return false;
+      }
     }
+    clearLastError();
+    return true;
   }
 }

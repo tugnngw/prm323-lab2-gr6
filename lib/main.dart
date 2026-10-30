@@ -113,18 +113,21 @@ class FptuSecondBrainApp extends StatelessWidget {
           ChangeNotifierProvider<HomeViewModel>(create: (_) => HomeViewModel()),
           ChangeNotifierProvider<RoadmapViewModel>(
             create: (ctx) => RoadmapViewModel(
+              authService: ctx.read<AuthService>(),
               firestoreService: ctx.read<FirestoreService>(),
               analyticsService: ctx.read<AnalyticsService>(),
             ),
           ),
           ChangeNotifierProvider<TasksViewModel>(
             create: (ctx) => TasksViewModel(
+              authService: ctx.read<AuthService>(),
               firestoreService: ctx.read<FirestoreService>(),
               analyticsService: ctx.read<AnalyticsService>(),
             ),
           ),
           ChangeNotifierProvider<NotesViewModel>(
             create: (ctx) => NotesViewModel(
+              authService: ctx.read<AuthService>(),
               firestoreService: ctx.read<FirestoreService>(),
               storageService: ctx.read<StorageService>(),
               analyticsService: ctx.read<AnalyticsService>(),

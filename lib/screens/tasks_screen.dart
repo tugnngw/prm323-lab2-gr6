@@ -157,6 +157,24 @@ class TasksScreen extends StatelessWidget {
     );
   }
 
+  /// Runs the delete and, if the remote write failed, reports it. The
+  /// ViewModel restores the item so the list never shows a silent success.
+  Future<void> _deleteTaskWithFeedback(
+    BuildContext context,
+    TasksViewModel vm,
+    String taskId,
+  ) async {
+    final ok = await vm.deleteTask(taskId);
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(vm.lastError ?? 'Không thể xóa việc cần làm.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
   Widget _buildTaskList(
     BuildContext context,
     TasksViewModel vm,
@@ -188,7 +206,7 @@ class TasksScreen extends StatelessWidget {
               color: AppColors.errorContainer,
               child: const Icon(Icons.delete_outline, color: AppColors.error),
             ),
-            onDismissed: (_) => vm.deleteTask(task.id),
+            onDismissed: (_) => _deleteTaskWithFeedback(context, vm, task.id),
             child: AppCard(
               onTap: () => vm.toggleTask(task.id),
               child: ListTile(
@@ -235,7 +253,7 @@ class TasksScreen extends StatelessWidget {
                 ),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20, color: AppColors.onSurfaceVariant),
-                  onPressed: () => vm.deleteTask(task.id),
+                  onPressed: () => _deleteTaskWithFeedback(context, vm, task.id),
                 ),
               ),
             ),
