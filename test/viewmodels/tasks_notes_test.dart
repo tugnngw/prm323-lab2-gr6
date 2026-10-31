@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prm323_lab3/services/mock_auth_service.dart';
+import '../helpers/mock_auth_service.dart';
+import '../helpers/mock_firestore_service.dart';
 import 'package:prm323_lab3/viewmodels/notes_viewmodel.dart';
 import 'package:prm323_lab3/viewmodels/tasks_viewmodel.dart';
 
@@ -10,7 +11,12 @@ void main() {
     late TasksViewModel tasksVm;
 
     setUp(() {
-      tasksVm = TasksViewModel();
+      final auth = MockAuthService(initialUserId: 'user_default_01');
+      final firestore = MockFirestoreService();
+      tasksVm = TasksViewModel(
+        authService: auth,
+        firestoreService: firestore,
+      );
     });
 
     test('Initializes default study tasks', () async {
@@ -151,7 +157,12 @@ void main() {
     late NotesViewModel notesVm;
 
     setUp(() {
-      notesVm = NotesViewModel();
+      final auth = MockAuthService(initialUserId: 'user_default_01');
+      final firestore = MockFirestoreService();
+      notesVm = NotesViewModel(
+        authService: auth,
+        firestoreService: firestore,
+      );
     });
 
     test('Initializes with default study notes', () async {

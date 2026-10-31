@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 
 import 'package:prm323_lab3/main.dart';
 import 'package:prm323_lab3/screens/note_editor_screen.dart';
-import 'package:prm323_lab3/services/mock_auth_service.dart';
-import 'package:prm323_lab3/services/mock_firestore_service.dart';
+import 'helpers/mock_auth_service.dart';
+import 'helpers/mock_firestore_service.dart';
 import 'package:prm323_lab3/viewmodels/notes_viewmodel.dart';
 
 import 'helpers/fake_firestore_service.dart';

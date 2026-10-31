@@ -2,12 +2,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:prm323_lab3/models/course_model.dart';
 import 'package:prm323_lab3/viewmodels/roadmap_viewmodel.dart';
 
+import '../helpers/mock_auth_service.dart';
+import '../helpers/mock_firestore_service.dart';
+
 void main() {
   group('RoadmapViewModel Tests', () {
     late RoadmapViewModel viewModel;
 
     setUp(() {
-      viewModel = RoadmapViewModel();
+      final auth = MockAuthService();
+      final firestore = MockFirestoreService();
+      viewModel = RoadmapViewModel(
+        authService: auth,
+        firestoreService: firestore,
+      );
     });
 
     test('Loads default semester 5 courses on initialization', () async {

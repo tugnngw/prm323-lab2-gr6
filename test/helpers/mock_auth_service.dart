@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'auth_service.dart';
+import 'package:prm323_lab3/services/auth_service.dart';
 
 /// In-memory Mock implementation of [AuthService] for testing and offline demo.
 class MockAuthService implements AuthService {

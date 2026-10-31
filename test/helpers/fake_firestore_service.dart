@@ -8,18 +8,27 @@ class FakeFirestoreService implements FirestoreService {
   final List<Map<String, dynamic>> notes = [];
   final List<String> deletedTaskCalls = [];
   final List<String> deletedNoteCalls = [];
+  final List<String> savedReportMetadataCalls = [];
+  final List<String> savedNotificationCalls = [];
+  final List<String> markedNotificationReadCalls = [];
+  final List<String> registeredTokenCalls = [];
 
   bool shouldFailTaskAdd = false;
   bool shouldFailTaskUpdate = false;
   bool shouldFailTaskDelete = false;
   bool shouldFailNoteSave = false;
   bool shouldFailNoteDelete = false;
+  bool shouldFailSaveReportMetadata = false;
+  bool shouldFailSaveNotification = false;
 
   @override
   Future<List<Map<String, dynamic>>> getCourses(String userId) async => [];
 
   @override
   Future<Map<String, dynamic>?> getCourse(String courseId) async => null;
+
+  @override
+  Future<Map<String, dynamic>?> getUserProfile(String userId) async => null;
 
   @override
   Future<List<Map<String, dynamic>>> getTasks(String userId) async =>
@@ -77,5 +86,37 @@ class FakeFirestoreService implements FirestoreService {
     }
     deletedNoteCalls.add('$userId:$noteId');
     notes.removeWhere((n) => n['id'] == noteId);
+  }
+
+  @override
+  Future<void> saveReportMetadata(
+      String userId, Map<String, dynamic> metadata) async {
+    if (shouldFailSaveReportMetadata) {
+      throw Exception('Simulated remote saveReportMetadata failure');
+    }
+    savedReportMetadataCalls.add('$userId:${metadata['fileName']}');
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getNotifications(String userId) async =>
+      const [];
+
+  @override
+  Future<void> saveNotification(String userId, Map<String, dynamic> data) async {
+    if (shouldFailSaveNotification) {
+      throw Exception('Simulated remote saveNotification failure');
+    }
+    savedNotificationCalls.add(userId);
+  }
+
+  @override
+  Future<void> markNotificationRead(
+      String userId, String notificationId) async {
+    markedNotificationReadCalls.add('$userId:$notificationId');
+  }
+
+  @override
+  Future<void> registerToken(String userId, String token) async {
+    registeredTokenCalls.add('$userId:$token');
   }
 }
