@@ -15,17 +15,26 @@ class FirebaseStorageService implements StorageService {
 
   final FirebaseStorage? _storage;
 
+  /// Fail loud (T04 / guide v5 §1.4): an unconfigured Storage must surface as
+  /// an error, never as a fabricated mock URL.
+  FirebaseStorage get _client {
+    final client = _storage;
+    if (client == null) {
+      throw StateError(
+          'Cloud Storage chưa được khởi tạo (thiếu google-services.json / '
+          'Firebase.initializeApp thất bại). Từ chối trả về URL giả lập.');
+    }
+    return client;
+  }
+
   @override
   Future<String> uploadFile(
     String path,
     List<int> bytes, {
     String? contentType,
+    void Function(double progress)? onProgress,
   }) async {
-    final client = _storage;
-    if (client == null) {
-      debugPrint('[Storage Mock] uploadFile to $path (${bytes.length} bytes)');
-      return 'https://storage.googleapis.com/mock-bucket/$path';
-    }
+    final client = _client;
 
     try {
       final ref = client.ref().child(path);
@@ -34,8 +43,18 @@ class FirebaseStorageService implements StorageService {
         customMetadata: {'uploadedAt': DateTime.now().toIso8601String()},
       );
 
-      final uploadTask = await ref.putData(Uint8List.fromList(bytes), metadata);
-      final downloadUrl = await uploadTask.ref.getDownloadURL();
+      final uploadTask = ref.putData(Uint8List.fromList(bytes), metadata);
+      if (onProgress != null) {
+        uploadTask.snapshotEvents.listen((event) {
+          final total = event.totalBytes;
+          if (total > 0) {
+            onProgress((event.bytesTransferred / total).clamp(0.0, 1.0));
+          }
+        });
+      }
+
+      final completed = await uploadTask;
+      final downloadUrl = await completed.ref.getDownloadURL();
       debugPrint('[Storage] Uploaded successfully to $path');
       return downloadUrl;
     } catch (e) {
@@ -46,12 +65,7 @@ class FirebaseStorageService implements StorageService {
 
   @override
   Future<List<int>> downloadFile(String path) async {
-    final client = _storage;
-    if (client == null) {
-      debugPrint('[Storage Mock] downloadFile from $path');
-      return Uint8List(0);
-    }
-
+    final client = _client;
     try {
       final ref = client.ref().child(path);
       // Limit download size to 10MB as safety constraint
@@ -69,12 +83,7 @@ class FirebaseStorageService implements StorageService {
 
   @override
   Future<void> deleteFile(String path) async {
-    final client = _storage;
-    if (client == null) {
-      debugPrint('[Storage Mock] deleteFile at $path');
-      return;
-    }
-
+    final client = _client;
     try {
       final ref = client.ref().child(path);
       await ref.delete();
@@ -87,11 +96,7 @@ class FirebaseStorageService implements StorageService {
 
   @override
   Future<String> getDownloadUrl(String path) async {
-    final client = _storage;
-    if (client == null) {
-      return 'https://storage.googleapis.com/mock-bucket/$path';
-    }
-
+    final client = _client;
     try {
       final ref = client.ref().child(path);
       return await ref.getDownloadURL();

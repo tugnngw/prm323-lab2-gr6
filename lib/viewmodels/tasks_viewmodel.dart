@@ -2,7 +2,6 @@ import '../models/app_state.dart';
 import '../models/task_model.dart';
 import '../services/analytics_service.dart';
 import '../services/auth_service.dart';
-import '../services/firebase_analytics_service.dart';
 import '../services/firestore_service.dart';
 import 'base_viewmodel.dart';
 
@@ -29,41 +28,6 @@ class TasksViewModel extends BaseViewModel<List<TaskModel>> {
   List<TaskModel> _allTasks = [];
   String _filter = 'all'; // 'all', 'pending', 'completed'
 
-  static final List<TaskModel> _defaultTasks = [
-    const TaskModel(
-      id: 'task_01',
-      title: 'Hoàn thành Lab 3 PRM323 (Firebase & MVVM)',
-      courseCode: 'PRM323',
-      dueDate: '15/12/2024',
-      isCompleted: false,
-      priority: 'high',
-    ),
-    const TaskModel(
-      id: 'task_02',
-      title: 'Đọc Chapter 5 Kiến trúc phần mềm SWP391',
-      courseCode: 'SWP391',
-      dueDate: '12/12/2024',
-      isCompleted: false,
-      priority: 'medium',
-    ),
-    const TaskModel(
-      id: 'task_03',
-      title: 'Nộp Sprint 2 Retrospective SWP391',
-      courseCode: 'SWP391',
-      dueDate: '18/12/2024',
-      isCompleted: false,
-      priority: 'medium',
-    ),
-    const TaskModel(
-      id: 'task_04',
-      title: 'Nộp bài Lab 2 PRM323 (Figma Prototype)',
-      courseCode: 'PRM323',
-      dueDate: '05/11/2024',
-      isCompleted: true,
-      priority: 'high',
-    ),
-  ];
-
   String get currentFilter => _filter;
   List<TaskModel> get allTasks => List.unmodifiable(_allTasks);
 
@@ -88,23 +52,14 @@ class TasksViewModel extends BaseViewModel<List<TaskModel>> {
     try {
       final firestore = firestoreService;
       final uid = currentUserId;
-      if (firestore != null) {
-        if (uid != null) {
-          final docs = await firestore.getTasks(uid);
-          if (docs.isNotEmpty) {
-            _allTasks = docs.map(TaskModel.fromMap).toList();
-          } else {
-            _allTasks = List.from(_defaultTasks);
-          }
-        } else {
-          // Demo/mock mode: no authenticated identity — keep seeded defaults
-          // instead of fabricating one.
-          _allTasks = List.from(_defaultTasks);
-        }
-      } else {
-        await Future<void>.delayed(const Duration(milliseconds: 150));
-        _allTasks = List.from(_defaultTasks);
+      if (firestore == null || uid == null) {
+        // No backend / no identity: empty state — never seeded mock tasks.
+        _allTasks = [];
+        setState(const AsyncViewState.empty());
+        return;
       }
+      final docs = await firestore.getTasks(uid);
+      _allTasks = docs.map(TaskModel.fromMap).toList();
 
       if (_allTasks.isEmpty) {
         setState(const AsyncViewState.empty());
@@ -162,10 +117,7 @@ class TasksViewModel extends BaseViewModel<List<TaskModel>> {
     }
     clearLastError();
 
-    final analytics = analyticsService;
-    if (analytics is FirebaseAnalyticsService) {
-      analytics.logTaskCreate(category: courseCode);
-    }
+    analyticsService?.logTaskCreate(category: courseCode);
     return true;
   }
 
@@ -202,10 +154,54 @@ class TasksViewModel extends BaseViewModel<List<TaskModel>> {
     }
     clearLastError();
 
-    final analytics = analyticsService;
-    if (updated.isCompleted && analytics is FirebaseAnalyticsService) {
-      analytics.logTaskComplete(taskId: taskId);
+    if (updated.isCompleted) {
+      analyticsService?.logTaskComplete(taskId: taskId);
     }
+    return true;
+  }
+
+  /// Edits title/course/due date and persists. On failure the old values are
+  /// restored, [lastError] is set, and false is returned.
+  Future<bool> editTask(
+    String taskId, {
+    required String title,
+    required String courseCode,
+    required String dueDate,
+  }) async {
+    final uid = currentUserId;
+    if (firestoreService != null && uid == null) {
+      setLastError('Bạn chưa đăng nhập — không thể sửa việc cần làm.');
+      return false;
+    }
+
+    final index = _allTasks.indexWhere((t) => t.id == taskId);
+    if (index == -1) return false;
+    final oldTask = _allTasks[index];
+    final updated = oldTask.copyWith(
+      title: title,
+      courseCode: courseCode,
+      dueDate: dueDate,
+    );
+    _allTasks[index] = updated;
+    setState(AsyncViewState.data(filteredTasks));
+
+    final firestore = firestoreService;
+    if (firestore != null) {
+      try {
+        await firestore.updateTask(taskId, {
+          'title': updated.title,
+          'courseCode': updated.courseCode,
+          'dueDate': updated.dueDate,
+          'userId': uid!,
+        });
+      } catch (e) {
+        _allTasks[index] = oldTask;
+        setState(AsyncViewState.data(filteredTasks));
+        setLastError('Không thể sửa việc cần làm. Kiểm tra kết nối và thử lại.');
+        return false;
+      }
+    }
+    clearLastError();
     return true;
   }
 

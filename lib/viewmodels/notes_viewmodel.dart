@@ -1,8 +1,9 @@
+import 'package:flutter/foundation.dart';
+
 import '../models/app_state.dart';
 import '../models/note_model.dart';
 import '../services/analytics_service.dart';
 import '../services/auth_service.dart';
-import '../services/firebase_analytics_service.dart';
 import '../services/firestore_service.dart';
 import '../services/storage_service.dart';
 import 'base_viewmodel.dart';
@@ -35,27 +36,6 @@ class NotesViewModel extends BaseViewModel<List<NoteModel>> {
   List<NoteModel> _allNotes = [];
   String _searchQuery = '';
 
-  static final List<NoteModel> _defaultNotes = [
-    const NoteModel(
-      id: 'note_01',
-      title: 'Kiến trúc MVVM & Design Tokens PRM323',
-      courseCode: 'PRM323',
-      content:
-          '1. View chỉ phụ trách giao diện và quan sát state qua Provider.\n2. ViewModel quản lý logic và gọi Service.\n3. Service tương tác với Firestore & Storage với bảo mật theo UID.\n4. Design Tokens tập trung tại lib/theme/.',
-      updatedAt: 'Hôm nay, 14:30',
-      tags: ['PRM323', 'Flutter', 'MVVM'],
-    ),
-    const NoteModel(
-      id: 'note_02',
-      title: 'Yêu cầu kiến trúc đồ án SWP391',
-      courseCode: 'SWP391',
-      content:
-          'Sprint 2 tập trung vào MVP cho core features. Cần chuẩn bị tài liệu SRS, kiến trúc cơ sở dữ liệu và kịch bản test.',
-      updatedAt: 'Hôm qua, 09:15',
-      tags: ['SWP391', 'Sprint2'],
-    ),
-  ];
-
   String get searchQuery => _searchQuery;
   List<NoteModel> get allNotes => List.unmodifiable(_allNotes);
 
@@ -76,23 +56,14 @@ class NotesViewModel extends BaseViewModel<List<NoteModel>> {
     try {
       final firestore = firestoreService;
       final uid = currentUserId;
-      if (firestore != null) {
-        if (uid != null) {
-          final docs = await firestore.getNotes(uid);
-          if (docs.isNotEmpty) {
-            _allNotes = docs.map(NoteModel.fromMap).toList();
-          } else {
-            _allNotes = List.from(_defaultNotes);
-          }
-        } else {
-          // Demo/mock mode: no authenticated identity — keep seeded defaults
-          // instead of fabricating one.
-          _allNotes = List.from(_defaultNotes);
-        }
-      } else {
-        await Future<void>.delayed(const Duration(milliseconds: 150));
-        _allNotes = List.from(_defaultNotes);
+      if (firestore == null || uid == null) {
+        // No backend / no identity: empty state — never seeded mock notes.
+        _allNotes = [];
+        setState(const AsyncViewState.empty());
+        return;
       }
+      final docs = await firestore.getNotes(uid);
+      _allNotes = docs.map(NoteModel.fromMap).toList();
 
       if (_allNotes.isEmpty) {
         setState(const AsyncViewState.empty());
@@ -115,6 +86,65 @@ class NotesViewModel extends BaseViewModel<List<NoteModel>> {
     } catch (_) {
       return null;
     }
+  }
+
+  /// Uploads a note attachment to Cloud Storage and returns its real
+  /// download URL (Lab 3 §2.3). Storage rules cap uploads at 10 MB; a larger
+  /// file, a missing identity, or any transport failure returns null and sets
+  /// [lastError] — the caller must not persist a fabricated URL.
+  Future<String?> uploadAttachment({
+    required String fileName,
+    required List<int> bytes,
+  }) async {
+    final storage = storageService;
+    final uid = currentUserId;
+    if (storage == null) {
+      setLastError('Cloud Storage chưa sẵn sàng — không thể đính kèm tệp.');
+      return null;
+    }
+    if (uid == null) {
+      setLastError('Bạn chưa đăng nhập — không thể tải tệp lên.');
+      return null;
+    }
+    if (bytes.isEmpty) {
+      setLastError('Tệp rỗng — không thể tải lên.');
+      return null;
+    }
+    if (bytes.length > 10 * 1024 * 1024) {
+      setLastError('Tệp vượt 10 MB — quy định Storage từ chối.');
+      return null;
+    }
+    final contentType = _contentTypeFor(fileName);
+    // Storage rules only accept image/*, application/pdf, text/plain —
+    // reject others here with a clear message instead of PERMISSION_DENIED.
+    if (contentType == 'application/octet-stream') {
+      setLastError(
+          'Định dạng tệp chưa được hỗ trợ (chỉ nhận PDF, ảnh, .txt).');
+      return null;
+    }
+
+    final sanitizedName =
+        fileName.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
+    final path =
+        'notes/$uid/${DateTime.now().millisecondsSinceEpoch}_$sanitizedName';
+    try {
+      final url = await storage.uploadFile(path, bytes,
+          contentType: contentType);
+      debugPrint('[Notes] Attachment uploaded to $path');
+      return url;
+    } catch (e) {
+      setLastError('Tải tệp lên thất bại. Kiểm tra kết nối và thử lại.');
+      return null;
+    }
+  }
+
+  static String _contentTypeFor(String name) {
+    final lower = name.toLowerCase();
+    if (lower.endsWith('.pdf')) return 'application/pdf';
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+    if (lower.endsWith('.txt')) return 'text/plain';
+    return 'application/octet-stream';
   }
 
   /// Saves a note and persists it. Returns true on success; on failure the
@@ -188,12 +218,7 @@ class NotesViewModel extends BaseViewModel<List<NoteModel>> {
     }
     clearLastError();
 
-    final analytics = analyticsService;
-    if (analytics is FirebaseAnalyticsService) {
-      analytics.logNoteCreate(
-        contentLength: content.length,
-      );
-    }
+    analyticsService?.logNoteCreate(contentLength: content.length);
     return true;
   }
 

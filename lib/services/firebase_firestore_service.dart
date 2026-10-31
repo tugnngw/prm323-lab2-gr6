@@ -57,6 +57,21 @@ class FirebaseFirestoreService implements FirestoreService {
     }
   }
 
+  @override
+  Future<Map<String, dynamic>?> getUserProfile(String userId) async {
+    try {
+      final doc = await _firestore
+          .collection('users')
+          .doc(userId)
+          .get(const GetOptions(source: Source.serverAndCache));
+      if (!doc.exists) return null;
+      return {'id': doc.id, ...doc.data()!};
+    } catch (e) {
+      debugPrint('[Firestore] getUserProfile error: $e');
+      rethrow;
+    }
+  }
+
   // ──────────────────────── Tasks ────────────────────────
 
   @override
@@ -185,6 +200,103 @@ class FirebaseFirestoreService implements FirestoreService {
           .delete();
     } catch (e) {
       debugPrint('[Firestore] deleteNote error: $e');
+      rethrow;
+    }
+  }
+
+  // ──────────────────────── Report metadata ────────────────────────
+
+  @override
+  Future<void> saveReportMetadata(
+      String userId, Map<String, dynamic> metadata) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('sync')
+          .doc('report_${DateTime.now().millisecondsSinceEpoch}')
+          .set({
+        ...metadata,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      debugPrint('[Firestore] Saved report metadata for $userId');
+    } catch (e) {
+      debugPrint('[Firestore] saveReportMetadata error: $e');
+      rethrow;
+    }
+  }
+
+  // ──────────────────────── Notification Center ────────────────────────
+
+  @override
+  Future<List<Map<String, dynamic>>> getNotifications(String userId) async {
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('notifications')
+          .orderBy('receivedAt', descending: true)
+          .limit(50)
+          .get(const GetOptions(source: Source.serverAndCache));
+      return snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+    } catch (e) {
+      debugPrint('[Firestore] getNotifications error: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> saveNotification(
+      String userId, Map<String, dynamic> data) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('notifications')
+          .add({
+        ...data,
+        'receivedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('[Firestore] saveNotification error: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> markNotificationRead(String userId, String notificationId) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('notifications')
+          .doc(notificationId)
+          .update({'read': true});
+    } catch (e) {
+      debugPrint('[Firestore] markNotificationRead error: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> registerToken(String userId, String token) async {
+    try {
+      // Deterministic doc id (hash of token) keeps one row per device token.
+      final tokenId = token.length > 24
+          ? token.substring(0, 24)
+          : token;
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('tokens')
+          .doc(tokenId)
+          .set({
+        'token': token,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      debugPrint('[Firestore] Registered FCM token for $userId');
+    } catch (e) {
+      debugPrint('[Firestore] registerToken error: $e');
       rethrow;
     }
   }

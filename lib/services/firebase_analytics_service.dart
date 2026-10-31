@@ -1,22 +1,28 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show NavigatorObserver;
 
 import 'analytics_service.dart';
 
 /// Firebase Analytics implementation with strict PII filtering.
 ///
-/// Lab 3 Requirement: Track ≥7 custom events.
+/// Lab 3 Requirement: Track ≥7 custom events (defined on [AnalyticsService]).
 /// Security Rule: Do NOT log personal data (real name, personal email, phone).
-class FirebaseAnalyticsService implements AnalyticsService {
+/// Extends (not implements) [AnalyticsService] to inherit the 9 named Lab 3
+/// event helpers; every one funnels into [logEvent] below.
+class FirebaseAnalyticsService extends AnalyticsService {
   FirebaseAnalyticsService({FirebaseAnalytics? analytics})
       : _analytics = analytics ??
             (Firebase.apps.isNotEmpty ? FirebaseAnalytics.instance : null);
 
   final FirebaseAnalytics? _analytics;
 
-  FirebaseAnalyticsObserver? get navigationObserver =>
-      _analytics != null ? FirebaseAnalyticsObserver(analytics: _analytics) : null;
+  @override
+  List<NavigatorObserver> get navigatorObservers {
+    final client = _analytics;
+    return client != null ? [FirebaseAnalyticsObserver(analytics: client)] : const [];
+  }
 
   // Blacklist of forbidden PII parameter keys
   static const _piiKeys = {
@@ -51,7 +57,9 @@ class FirebaseAnalyticsService implements AnalyticsService {
     final client = _analytics;
     final sanitized = _sanitizeParameters(parameters);
     if (client == null) {
-      debugPrint('[Analytics Mock] Logged event: $name with params: $sanitized');
+      // Fail-LOUD-adjacent: production never reaches here (main() gates on
+      // Firebase init). If it does, the drop is explicit — never a fake log.
+      debugPrint('[Analytics] Firebase not initialized — event DROPPED: $name');
       return;
     }
 
@@ -67,7 +75,7 @@ class FirebaseAnalyticsService implements AnalyticsService {
   Future<void> setUserId(String id) async {
     final client = _analytics;
     if (client == null) {
-      debugPrint('[Analytics Mock] setUserId: $id');
+      debugPrint('[Analytics] Firebase not initialized — setUserId skipped.');
       return;
     }
 
@@ -82,7 +90,7 @@ class FirebaseAnalyticsService implements AnalyticsService {
   Future<void> setCurrentScreen(String screenName) async {
     final client = _analytics;
     if (client == null) {
-      debugPrint('[Analytics Mock] ScreenView: $screenName');
+      debugPrint('[Analytics] Firebase not initialized — screen view skipped.');
       return;
     }
 
@@ -94,43 +102,6 @@ class FirebaseAnalyticsService implements AnalyticsService {
     }
   }
 
-  // ──────────────────────── 8 Predefined Lab 3 Events ────────────────────────
-
-  /// Event 1: Login success
-  Future<void> logLoginSuccess({required String method}) =>
-      logEvent('login_success', parameters: {'method': method});
-
-  /// Event 2: Course view
-  Future<void> logCourseView({required String courseId, required String code}) =>
-      logEvent('course_view', parameters: {'course_id': courseId, 'code': code});
-
-  /// Event 3: Prerequisite check
-  Future<void> logPrerequisiteCheck({
-    required String courseId,
-    required bool isEligible,
-  }) =>
-      logEvent('prerequisite_check', parameters: {
-        'course_id': courseId,
-        'is_eligible': isEligible ? 1 : 0,
-      });
-
-  /// Event 4: Task create
-  Future<void> logTaskCreate({required String category}) =>
-      logEvent('task_create', parameters: {'category': category});
-
-  /// Event 5: Task complete
-  Future<void> logTaskComplete({required String taskId}) =>
-      logEvent('task_complete', parameters: {'task_id': taskId});
-
-  /// Event 6: Note create
-  Future<void> logNoteCreate({required int contentLength}) =>
-      logEvent('note_create', parameters: {'content_length': contentLength});
-
-  /// Event 7: Advisor query
-  Future<void> logAdvisorQuery({required String topic}) =>
-      logEvent('advisor_query', parameters: {'topic': topic});
-
-  /// Event 8: Sync triggered
-  Future<void> logSyncTriggered({required String triggerType}) =>
-      logEvent('sync_triggered', parameters: {'trigger_type': triggerType});
+  // The 9 named Lab 3 events are inherited from [AnalyticsService] and all
+  // funnel through [logEvent] above, keeping PII sanitization in one place.
 }

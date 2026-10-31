@@ -47,7 +47,7 @@ class CrashlyticsService {
   }) async {
     final client = _crashlytics;
     if (client == null) {
-      debugPrint('[Crashlytics Mock] recordError: $exception, reason: $reason');
+      debugPrint('[Crashlytics] Firebase not initialized — skipped recordError: $exception, reason: $reason');
       return;
     }
 
@@ -67,7 +67,7 @@ class CrashlyticsService {
   Future<void> log(String message) async {
     final client = _crashlytics;
     if (client == null) {
-      debugPrint('[Crashlytics Mock] log: $message');
+      debugPrint('[Crashlytics] Firebase not initialized — skipped log: $message');
       return;
     }
 
@@ -82,7 +82,7 @@ class CrashlyticsService {
   Future<void> setUserId(String userId) async {
     final client = _crashlytics;
     if (client == null) {
-      debugPrint('[Crashlytics Mock] setUserId: $userId');
+      debugPrint('[Crashlytics] Firebase not initialized — skipped setUserId: $userId');
       return;
     }
 
@@ -90,6 +90,22 @@ class CrashlyticsService {
       await client.setUserIdentifier(userId);
     } catch (e) {
       debugPrint('[Crashlytics] setUserId error: $e');
+    }
+  }
+
+  /// Attaches a custom key/value to subsequent crash reports (Lab 3 §4.2
+  /// requires ≥1 custom key — used for `auth_method` after sign-in).
+  Future<void> setCustomKey(String key, Object value) async {
+    final client = _crashlytics;
+    if (client == null) {
+      debugPrint('[Crashlytics] Firebase not initialized — skipped setCustomKey: $key=$value');
+      return;
+    }
+
+    try {
+      await client.setCustomKey(key, value);
+    } catch (e) {
+      debugPrint('[Crashlytics] setCustomKey error: $e');
     }
   }
 }
