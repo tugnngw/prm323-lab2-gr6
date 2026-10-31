@@ -96,9 +96,9 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
                     children: [
                       const Icon(Icons.auto_awesome, size: 18, color: AppColors.primary),
                       const SizedBox(width: AppSpacing.xs),
-                      Expanded(
+                      const Expanded(
                         child: Text(
-                          'Mục tiêu kỳ 5: GPA ≥ 8.0 (Hiện tại: 7.95)',
+                          'Mốc Sinh viên Giỏi: GPA tích lũy ≥ 8.0',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -186,6 +186,33 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
                         ),
                         SizedBox(width: AppSpacing.sm),
                         Text('AI đang suy nghĩ...', style: TextStyle(fontSize: 12)),
+                      ],
+                    ),
+                  ),
+
+                // Error branch (D3): retry the last question instead of
+                // silently swallowing the failure.
+                if (advisorVm.errorMessage != null && !advisorVm.isLoading)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline,
+                            size: 18, color: AppColors.error),
+                        const SizedBox(width: AppSpacing.xs),
+                        Expanded(
+                          child: Text(
+                            advisorVm.errorMessage!,
+                            style: const TextStyle(
+                                fontSize: 12, color: AppColors.error),
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: advisorVm.retryLastQuestion,
+                          icon: const Icon(Icons.refresh, size: 16),
+                          label: const Text('Thử lại'),
+                        ),
                       ],
                     ),
                   ),

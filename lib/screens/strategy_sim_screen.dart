@@ -14,7 +14,6 @@ class StrategySimScreen extends StatelessWidget {
     final advisorVm = context.watch<AdvisorViewModel>();
 
     final semGpa = advisorVm.predictedSemesterGpa;
-    final cumGpa = advisorVm.predictedCumulativeGpa;
     final isHonors = advisorVm.reachesHonorsTarget;
 
     return Scaffold(
@@ -33,7 +32,7 @@ class StrategySimScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Mục tiêu học tập', style: Theme.of(context).textTheme.titleLarge),
+                    Text('Mục tiêu học tập (kịch bản mô phỏng)', style: Theme.of(context).textTheme.titleLarge),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.xs,
@@ -60,19 +59,9 @@ class StrategySimScreen extends StatelessWidget {
                     Expanded(
                       child: _buildMetricTile(
                         context,
-                        title: 'GPA Kỳ 5',
+                        title: 'GPA kỳ 5 (kịch bản)',
                         value: semGpa.toStringAsFixed(2),
-                        subtitle: '11 tín chỉ',
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: _buildMetricTile(
-                        context,
-                        title: 'GPA Tích lũy mới',
-                        value: cumGpa.toStringAsFixed(2),
-                        subtitle: 'Mục tiêu: ≥ 8.00',
+                        subtitle: '11 tín chỉ · Mốc Giỏi: ≥ 8.00',
                         color: isHonors ? AppColors.success : AppColors.warning,
                       ),
                     ),
@@ -81,8 +70,8 @@ class StrategySimScreen extends StatelessWidget {
                 const SizedBox(height: AppSpacing.md),
                 Text(
                   isHonors
-                      ? '✓ Kịch bản này giúp bạn vượt ngưỡng GPA 8.0 để đạt danh hiệu Sinh viên Giỏi kỳ Fall 2024!'
-                      : '⚠️ Kịch bản này chưa đủ để kéo GPA tích lũy lên 8.0. Bạn cần tăng điểm môn SWP391 (5 tín chỉ trọng số cao).',
+                      ? '✓ Kịch bản này đạt ngưỡng 8.0 — đủ điều kiện điểm cho danh hiệu Sinh viên Giỏi.'
+                      : '⚠️ Kịch bản này dưới ngưỡng 8.0. Tăng điểm môn SWP391 (5 tín chỉ trọng số cao) sẽ kéo GPA kỳ lên mạnh nhất.',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -94,7 +83,7 @@ class StrategySimScreen extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
 
-          Text('Điều chỉnh điểm số giả định kỳ 5', style: Theme.of(context).textTheme.titleLarge),
+          Text('Điều chỉnh điểm số dự kiến kỳ 5', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: AppSpacing.sm),
 
           // Course 1: PRM323

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../viewmodels/auth_viewmodel.dart';
+import '../viewmodels/notifications_viewmodel.dart';
 import '../widgets/app_components.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -28,11 +29,22 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authVm = context.watch<AuthViewModel>();
+    final notificationsVm = context.watch<NotificationsViewModel>();
+    final unread = notificationsVm.unreadCount;
 
     return Scaffold(
       appBar: CustomAppBar(
         title: 'FPTU Second Brain',
         actions: [
+          IconButton(
+            icon: Badge(
+              isLabelVisible: unread > 0,
+              label: Text('$unread'),
+              child: const Icon(Icons.notifications_outlined),
+            ),
+            tooltip: 'Trung tâm thông báo',
+            onPressed: () => Navigator.pushNamed(context, '/notifications'),
+          ),
           IconButton(
             icon: const Icon(Icons.sync_outlined),
             tooltip: 'Đồng bộ Vault',
