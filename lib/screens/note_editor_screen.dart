@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -24,6 +25,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   bool _isInitialized = false;
   String? _existingNoteId;
   String? _attachmentName;
+  String? _attachmentUrl;
+  bool _uploading = false;
 
   @override
   void didChangeDependencies() {
@@ -40,6 +43,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
           _courseController.text = existing.courseCode;
           _contentController.text = existing.content;
           if (existing.attachmentUrl != null) {
+            _attachmentUrl = existing.attachmentUrl;
             _attachmentName = 'Tệp đính kèm đã tải lên';
           }
         } else if (arg.startsWith('PRM') || arg.startsWith('SWP') || arg.startsWith('SWR')) {
@@ -77,7 +81,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       title: title,
       content: content,
       courseCode: course.isEmpty ? 'Chung' : course,
-      attachmentUrl: _attachmentName != null ? 'https://storage/sample.pdf' : null,
+      attachmentUrl: _attachmentUrl,
       tags: [course.toLowerCase()],
     );
 
@@ -105,12 +109,49 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     }
   }
 
-  void _simulateAttachFile() {
+  /// Real attachment flow (no mockdata): pick a file, upload its bytes to
+  /// Cloud Storage via NotesViewModel, keep the returned download URL. The
+  /// note only references the file after the upload actually succeeded.
+  Future<void> _attachFile() async {
+    if (_uploading) return;
+    final notesVm = context.read<NotesViewModel>();
+    // file_picker 13: static API, returns empty list on cancel.
+    final files = await FilePicker.pickFiles();
+    if (files.isEmpty) return;
+    final file = files.first;
+    final bytes = await file.readAsBytes();
+    if (bytes.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tệp rỗng — không thể tải lên.')),
+        );
+      }
+      return;
+    }
+
+    setState(() => _uploading = true);
+    final url = await notesVm.uploadAttachment(
+      fileName: file.name,
+      bytes: bytes,
+    );
+    if (!mounted) return;
+    setState(() => _uploading = false);
+
+    if (url == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(notesVm.lastError ?? 'Tải tệp lên thất bại.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
     setState(() {
-      _attachmentName = 'baitap_lab3_flutter_mvvm.pdf (2.4 MB)';
+      _attachmentUrl = url;
+      _attachmentName = '${file.name} (${(bytes.length / 1024).ceil()} KB)';
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Đã chọn tệp đính kèm')),
+      const SnackBar(content: Text('Đã tải tệp lên Cloud Storage')),
     );
   }
 
@@ -125,9 +166,13 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
         onBack: () => Navigator.pop(context),
         actions: [
           IconButton(
-            icon: const Icon(Icons.attach_file),
-            tooltip: 'Đính kèm tệp tin',
-            onPressed: _simulateAttachFile,
+            icon: _uploading
+                ? const SizedBox(
+                    width: 18, height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.attach_file),
+            tooltip: 'Đính kèm tệp tin (tải lên Cloud Storage)',
+            onPressed: _uploading ? null : _attachFile,
           ),
           IconButton(
             icon: const Icon(Icons.check),
@@ -187,7 +232,10 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                       ),
                     ),
                     InkWell(
-                      onTap: () => setState(() => _attachmentName = null),
+                      onTap: () => setState(() {
+                        _attachmentName = null;
+                        _attachmentUrl = null;
+                      }),
                       child: const Icon(Icons.close, size: 16, color: AppColors.onPrimaryContainer),
                     ),
                   ],

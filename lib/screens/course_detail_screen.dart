@@ -7,15 +7,35 @@ import '../viewmodels/roadmap_viewmodel.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_components.dart';
 
-class CourseDetailScreen extends StatelessWidget {
+class CourseDetailScreen extends StatefulWidget {
   const CourseDetailScreen({super.key, required this.courseId});
 
   final String courseId;
 
   @override
+  State<CourseDetailScreen> createState() => _CourseDetailScreenState();
+}
+
+class _CourseDetailScreenState extends State<CourseDetailScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // course_view + prerequisite_check fire exactly once per screen open —
+    // never from build().
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final vm = context.read<RoadmapViewModel>();
+      vm.logCourseOpened(widget.courseId);
+      final course = vm.findCourseById(widget.courseId);
+      if (course != null && course.prerequisites.isNotEmpty) {
+        vm.checkEligibilityForCourse(course);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final roadmapVm = context.watch<RoadmapViewModel>();
-    final course = roadmapVm.findCourseById(courseId);
+    final course = roadmapVm.findCourseById(widget.courseId);
 
     if (course == null) {
       return Scaffold(
