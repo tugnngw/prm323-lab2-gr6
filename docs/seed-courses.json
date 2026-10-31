@@ -1,0 +1,79 @@
+{
+  "courses": [
+    {
+      "id": "PRM323",
+      "code": "PRM323",
+      "name": "Lập trình Di động với Flutter",
+      "credits": 3,
+      "semester": 5,
+      "major": "SE",
+      "prerequisites": ["CSD201", "PRO192"],
+      "totalSlots": 30,
+      "completedSlots": 12,
+      "currentGrade": 8.5,
+      "lecturer": "ThS. Nguyễn Văn A",
+      "status": "enrolled",
+      "labs": [
+        {"id": "lab1", "title": "Lab 1 — Flutter Basics & M3 Design Tokens", "deadline": "15/10/2024", "score": 9.0, "status": "graded"},
+        {"id": "lab2", "title": "Lab 2 — Figma UI Design & Prototypes", "deadline": "05/11/2024", "score": 8.5, "status": "graded"},
+        {"id": "lab3", "title": "Lab 3 — Firebase Cloud & ARTEMIS Test", "deadline": "15/12/2024", "status": "pending"}
+      ]
+    },
+    {
+      "id": "SWP391",
+      "code": "SWP391",
+      "name": "Dự án Phát triển Phần mềm",
+      "credits": 5,
+      "semester": 5,
+      "major": "SE",
+      "prerequisites": ["SWT301", "SWE201c"],
+      "totalSlots": 30,
+      "completedSlots": 15,
+      "currentGrade": 7.8,
+      "lecturer": "TS. Trần Thị B",
+      "status": "enrolled",
+      "labs": [
+        {"id": "swp_sprint1", "title": "Sprint 1 — Inception & Architecture Spec", "deadline": "20/10/2024", "score": 8.0, "status": "graded"},
+        {"id": "swp_sprint2", "title": "Sprint 2 — Core Features MVP", "deadline": "20/11/2024", "status": "pending"}
+      ]
+    },
+    {
+      "id": "SWR302",
+      "code": "SWR302",
+      "name": "Kỹ thuật Yêu cầu Phần mềm",
+      "credits": 3,
+      "semester": 5,
+      "major": "SE",
+      "prerequisites": ["CSD201"],
+      "totalSlots": 30,
+      "completedSlots": 10,
+      "currentGrade": 8.0,
+      "lecturer": "ThS. Lê Hoàng C",
+      "status": "enrolled",
+      "labs": [
+        {"id": "swr_a1", "title": "Assignment 1 — SRS Document Review", "deadline": "12/10/2024", "score": 8.5, "status": "graded"}
+      ]
+    },
+    {
+      "id": "SWT301",
+      "code": "SWT301",
+      "name": "Kiểm thử Phần mềm",
+      "credits": 3,
+      "semester": 4,
+      "major": "SE",
+      "prerequisites": ["PRO192"],
+      "totalSlots": 30,
+      "completedSlots": 30,
+      "currentGrade": 8.2,
+      "status": "completed"
+    }
+  ],
+  "userProfileTemplate": {
+    "_comment": "Sau khi đăng nhập Google trên thiết bị, lấy UID từ Authentication → Users, tạo doc users/{uid} với nội dung bên dưới.",
+    "users/{uid}": {
+      "passedCourses": ["PRO192", "CSD201", "MAD101", "OSG202", "NWC203c", "SSG104", "SWT301"],
+      "major": "SE",
+      "expectedGraduation": "2026"
+    }
+  }
+}

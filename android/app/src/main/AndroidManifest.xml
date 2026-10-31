@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required for Firebase (Auth, Firestore, Storage, Analytics, FCM) in all build types. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Android 13+ runtime permission for FCM notification display. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
         android:label="prm323_lab3"
         android:name="${applicationName}"

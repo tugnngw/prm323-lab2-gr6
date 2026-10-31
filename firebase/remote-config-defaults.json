@@ -1,0 +1,6 @@
+{
+  "feature_ai_advisor_enabled": true,
+  "maintenance_mode": false,
+  "min_app_version": "1.0.0",
+  "vault_sync_interval_mins": 30
+}

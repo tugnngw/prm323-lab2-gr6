@@ -31,6 +31,16 @@ service cloud.firestore {
       match /sync/{syncId} {
         allow read, write: if isOwner(userId);
       }
+
+      // Notification Center store — owner only
+      match /notifications/{notificationId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // FCM device tokens — owner only
+      match /tokens/{tokenId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     // ──────────────────────── Public Academic Catalog (Read-Only) ────────────────────────

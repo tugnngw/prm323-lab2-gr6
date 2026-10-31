@@ -46,6 +46,11 @@ dependencies:
   firebase_crashlytics: ^6.0.1
   firebase_remote_config: ^7.0.1
   google_sign_in: 6.2.2
+  pdf: ^3.13.1
+  printing: ^5.15.1
+  file_picker: ^13.3.0
+  firebase_messaging: ^17.0.1
+  intl: ^0.20.3
 
 dev_dependencies:
   flutter_test:
@@ -68,6 +73,10 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/fonts/DejaVuSans.ttf
+    - assets/fonts/DejaVuSans-Bold.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

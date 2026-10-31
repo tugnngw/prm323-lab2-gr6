@@ -24,18 +24,19 @@ service firebase.storage {
     }
 
     // ──────────────────────── User Notes Attachments ────────────────────────
-    // Path: notes/{userId}/{fileName}
-    match /notes/{userId}/{fileName} {
+    // Path: notes/{userId}/{allPaths=**} — recursive so nested folders are allowed.
+    match /notes/{userId}/{allPaths=**} {
       allow read: if isOwner(userId);
       allow write: if isOwner(userId) && isValidSize() && isValidImageOrPdf();
       allow delete: if isOwner(userId);
     }
 
     // ──────────────────────── User Academic Reports / Artifacts ────────────────────────
-    // Path: reports/{userId}/{allPaths=**}
+    // Path: reports/{userId}/{allPaths=**} — PDF-only.
     match /reports/{userId}/{allPaths=**} {
       allow read: if isOwner(userId);
-      allow write: if isOwner(userId) && isValidSize();
+      allow write: if isOwner(userId) && isValidSize()
+          && request.resource.contentType == 'application/pdf';
       allow delete: if isOwner(userId);
     }
 
