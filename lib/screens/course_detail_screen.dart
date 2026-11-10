@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/academic_profile.dart';
 import '../models/app_state.dart';
 import '../models/course_model.dart';
 import '../viewmodels/academic_viewmodel.dart';
@@ -318,8 +319,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     CourseModel course,
     AcademicViewModel academic,
   ) {
+    // Stored codes are upper-cased; the catalog code may not be.
     final entries = academic.profile.timetable
-        .where((e) => e.courseCode == course.code)
+        .where((e) => e.courseCode.toUpperCase() == course.code.toUpperCase())
         .toList();
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -352,18 +354,24 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         if (entries.isEmpty)
           const Text('Chưa có lịch cá nhân cho môn này.')
         else
-          ...entries.map(
-            (e) => ListTile(
+          ...entries.map((e) {
+            final detail = [
+              if (e.room.isNotEmpty) 'Phòng ${e.room}',
+              if (e.lecturer.isNotEmpty) e.lecturer,
+            ].join(' · ');
+            return ListTile(
               leading: const Icon(Icons.schedule),
               title: Text(
-                '${e.weekday == 7 ? 'Chủ nhật' : 'Thứ ${e.weekday + 1}'} · Slot ${e.startSlot}–${e.endSlot}',
+                '${ScheduleConflict.weekdayLabel(e.weekday)} · '
+                '${e.startTime}–${e.endTime}',
               ),
-            ),
-          ),
+              subtitle: detail.isEmpty ? null : Text(detail),
+            );
+          }),
         OutlinedButton.icon(
-          onPressed: () => Navigator.pushNamed(context, '/academic-profile'),
+          onPressed: () => Navigator.pushNamed(context, '/schedule'),
           icon: const Icon(Icons.edit_note),
-          label: const Text('Nhập bảng điểm & lịch học'),
+          label: const Text('Quản lý thời khóa biểu'),
         ),
       ],
     );

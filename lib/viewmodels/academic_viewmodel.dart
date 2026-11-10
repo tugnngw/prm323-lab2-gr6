@@ -3,6 +3,8 @@ import 'dart:async';
 import '../models/academic_profile.dart';
 import '../models/app_state.dart';
 import '../models/course_model.dart';
+import '../models/schedule_rules.dart';
+import '../models/slot_catalog.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import 'base_viewmodel.dart';
@@ -81,19 +83,161 @@ class AcademicViewModel extends BaseViewModel<AcademicProfile> {
         (entry) => entry.courseCode == course.code && !entry.passed,
       ) &&
       !_profile.completedCodes.contains(course.code);
+
+  // ── Class schedule ──────────────────────────────────────────────────────
+
+  /// Central slot catalogue used by the editor and the weekly view.
+  SlotCatalog get slotCatalog => SlotCatalog.sampleDefault;
+
+  List<TimetableEntry> get timetable => _profile.timetable;
+
+  List<TimetableEntry> sessionsFor(String courseCode) => _profile.timetable
+      .where((e) => e.courseCode.toUpperCase() == courseCode.toUpperCase())
+      .toList();
+
+  /// Every overlap in the saved schedule, across all courses.
+  List<ScheduleConflict> get allScheduleConflicts =>
+      ScheduleRules.allConflicts(_profile.timetable);
+
+  /// Overlaps that involve a course planned for [selectedSemester] — the check
+  /// the strategy screen shows.
   List<String> get conflicts {
-    final codes = plannedCourses.map((c) => c.code).toSet();
-    final entries = _profile.timetable
-        .where((e) => codes.contains(e.courseCode))
-        .toList();
+    final codes = plannedCourses.map((c) => c.code.toUpperCase()).toSet();
     return [
-      for (var i = 0; i < entries.length; i++)
-        for (var j = i + 1; j < entries.length; j++)
-          if (entries[i].courseCode != entries[j].courseCode &&
-              entries[i].overlaps(entries[j]))
-            '${entries[i].courseCode} / ${entries[j].courseCode}: thứ ${entries[i].weekday + 1}, slot ${entries[i].startSlot}–${entries[i].endSlot}',
+      for (final conflict in allScheduleConflicts)
+        if (codes.contains(conflict.first.courseCode.toUpperCase()) ||
+            codes.contains(conflict.second.courseCode.toUpperCase()))
+          conflict.description,
     ];
   }
+
+  /// Checks a candidate session against the persisted schedule without saving.
+  List<ScheduleConflict> conflictsFor(TimetableEntry candidate) =>
+      ScheduleRules.conflictsWith(candidate, _profile.timetable);
+
+  bool isDuplicateSession(TimetableEntry candidate) =>
+      ScheduleRules.isDuplicate(candidate, _profile.timetable);
+
+  /// Adds one weekly session. Returns false (with [lastError]) when invalid,
+  /// duplicated or persisted unsuccessfully.
+  Future<bool> addSession(TimetableEntry entry) =>
+      _mutateSchedule((list) => [...list, _withId(entry)]);
+
+  Future<bool> updateSession(TimetableEntry entry) => _mutateSchedule(
+    (list) => [
+      for (final e in list)
+        if (e.id == entry.id) entry else e,
+    ],
+  );
+
+  Future<bool> deleteSession(String sessionId) => _mutateSchedule(
+    (list) => [
+      for (final e in list)
+        if (e.id != sessionId) e,
+    ],
+  );
+
+  /// Copies a session to the same course with a fresh id; the caller edits the
+  /// copy's day/slot afterwards.
+  Future<bool> duplicateSession(String sessionId) {
+    TimetableEntry? source;
+    for (final e in _profile.timetable) {
+      if (e.id == sessionId) source = e;
+    }
+    if (source == null) {
+      setLastError('Không tìm thấy buổi học để nhân bản.');
+      return Future.value(false);
+    }
+    return _mutateSchedule((list) => [...list, _withId(source!.copyWith(id: ''))]);
+  }
+
+  /// Persists the whole timetable list after running [transform], so one
+  /// session edit can never drop unrelated sessions.
+  Future<bool> _mutateSchedule(
+    List<TimetableEntry> Function(List<TimetableEntry>) transform,
+  ) async {
+    if (_saving) return false;
+    final uid = authService.currentUserId;
+    if (uid == null) {
+      setLastError('Chưa đăng nhập.');
+      return false;
+    }
+    final next = transform(_profile.timetable).map(_normalized).toList();
+    for (final entry in next) {
+      final errors = ScheduleRules.validate(
+        courseCode: entry.courseCode,
+        courseName: entry.courseName,
+        weekday: entry.weekday,
+        slotNumber: entry.slotNumber,
+        startTime: entry.startTime,
+        endTime: entry.endTime,
+        catalog: slotCatalog,
+        effectiveStart: entry.effectiveStart,
+        effectiveEnd: entry.effectiveEnd,
+        requireName: false,
+      );
+      if (errors.isNotEmpty) {
+        setLastError(errors.values.first);
+        return false;
+      }
+    }
+    _saving = true;
+    clearLastError();
+    notifyListeners();
+    try {
+      await firestoreService.saveAcademicProfile(uid, {
+        'timetable': next.map((e) => e.toMap()).toList(),
+        'scheduleUpdatedAt': DateTime.now().toIso8601String(),
+      });
+      if (isDisposed || uid != authService.currentUserId) return false;
+      _profile = AcademicProfile(
+        transcript: _profile.transcript,
+        timetable: next,
+        passedCourses: _profile.passedCourses,
+        currentSemester: _profile.currentSemester,
+        targetGpa: _profile.targetGpa,
+      );
+      return true;
+    } catch (e) {
+      setLastError('Không lưu được thời khóa biểu. Kiểm tra kết nối và thử lại.');
+      return false;
+    } finally {
+      _saving = false;
+      notifyListeners();
+    }
+  }
+
+  /// Ids are assigned in memory (never written on load) so legacy sessions
+  /// become editable/deletable; the next schedule write persists them.
+  AcademicProfile _withMigratedIds(AcademicProfile profile) {
+    if (profile.timetable.every((e) => e.id.isNotEmpty)) return profile;
+    return AcademicProfile(
+      transcript: profile.transcript,
+      timetable: [for (final e in profile.timetable) _withId(e)],
+      passedCourses: profile.passedCourses,
+      currentSemester: profile.currentSemester,
+      targetGpa: profile.targetGpa,
+    );
+  }
+
+  int _idSeed = 0;
+
+  /// Stores times as canonical 'HH:mm' (the editor accepts '9:10') so conflict
+  /// and duplicate checks compare one format.
+  static TimetableEntry _normalized(TimetableEntry entry) {
+    if (!entry.hasValidRange) return entry;
+    final start = TimetableEntry.formatClock(entry.startMinutes!);
+    final end = TimetableEntry.formatClock(entry.endMinutes!);
+    return start == entry.startTime && end == entry.endTime
+        ? entry
+        : entry.copyWith(startTime: start, endTime: end);
+  }
+
+  TimetableEntry _withId(TimetableEntry entry) => entry.id.isNotEmpty
+      ? entry
+      : entry.copyWith(
+          id: 's${DateTime.now().microsecondsSinceEpoch}_${_idSeed++}',
+        );
 
   @override
   Future<void> loadData() async {
@@ -115,7 +259,7 @@ class AcademicViewModel extends BaseViewModel<AcademicProfile> {
           uid != authService.currentUserId) {
         return;
       }
-      _profile = AcademicProfile.fromMap(profile);
+      _profile = _withMigratedIds(AcademicProfile.fromMap(profile));
       _courses = courses.map(CourseModel.fromMap).toList();
       setState(AsyncViewState.data(_profile));
     } catch (e) {
@@ -181,6 +325,8 @@ class AcademicViewModel extends BaseViewModel<AcademicProfile> {
   }
 
   /// Each timetable row: code,ISO weekday,startSlot,slotCount.
+  /// Superseded by the session editor; kept so old pasted schedules still parse
+  /// and migrate into [TimetableEntry]s with catalog-derived clock times.
   static List<TimetableEntry> parseTimetable(String input) {
     return input.split('\n').where((line) => line.trim().isNotEmpty).map((row) {
       final p = row.split(',').map((s) => s.trim()).toList();
@@ -204,12 +350,12 @@ class AcademicViewModel extends BaseViewModel<AcademicProfile> {
           'Lịch học không hợp lệ. Thứ ISO 1–7; slot và số slot là số nguyên dương.',
         );
       }
-      return TimetableEntry(
-        courseCode: p[0].toUpperCase(),
-        weekday: day,
-        startSlot: start,
-        slotCount: count,
-      );
+      return TimetableEntry.fromMap({
+        'courseCode': p[0].toUpperCase(),
+        'weekday': day,
+        'startSlot': start,
+        'slotCount': count,
+      });
     }).toList();
   }
 
@@ -220,12 +366,17 @@ class AcademicViewModel extends BaseViewModel<AcademicProfile> {
       )
       .join('\n');
   String get timetableText => _profile.timetable
-      .map((e) => '${e.courseCode},${e.weekday},${e.startSlot},${e.slotCount}')
+      .map(
+        (e) =>
+            '${e.courseCode},${e.weekday},${e.startTime},${e.endTime}',
+      )
       .join('\n');
 
+  /// Saves transcript/goal only. The timetable has its own operations
+  /// ([addSession], [updateSession], [deleteSession]) so this write can never
+  /// overwrite schedule edits made in between.
   Future<bool> save({
     required String transcript,
-    required String timetable,
     required int semester,
     required double targetGpa,
   }) async {
@@ -237,7 +388,6 @@ class AcademicViewModel extends BaseViewModel<AcademicProfile> {
     }
     try {
       final grades = parseTranscript(transcript);
-      final schedule = parseTimetable(timetable);
       if (semester < 1 ||
           !targetGpa.isFinite ||
           targetGpa < 0 ||
@@ -249,7 +399,6 @@ class AcademicViewModel extends BaseViewModel<AcademicProfile> {
       notifyListeners();
       await firestoreService.saveAcademicProfile(uid, {
         'transcript': grades.map((e) => e.toMap()).toList(),
-        'timetable': schedule.map((e) => e.toMap()).toList(),
         'currentSemester': semester,
         'targetGpa': targetGpa,
         'academicDataSource': 'user_entered',

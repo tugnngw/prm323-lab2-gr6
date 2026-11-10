@@ -10,6 +10,7 @@ import '../widgets/app_components.dart';
 import '../widgets/app_states.dart';
 
 /// Explicit user entry, with no seeded transcript or external FAP credentials.
+/// The class schedule is managed on its own screen (`/schedule`).
 class AcademicProfileScreen extends StatefulWidget {
   const AcademicProfileScreen({super.key, this.showStudyPlan = false});
 
@@ -20,7 +21,6 @@ class AcademicProfileScreen extends StatefulWidget {
 
 class _AcademicProfileScreenState extends State<AcademicProfileScreen> {
   final _transcript = TextEditingController();
-  final _timetable = TextEditingController();
   final _semester = TextEditingController();
   final _target = TextEditingController();
   bool _initialized = false;
@@ -28,7 +28,6 @@ class _AcademicProfileScreenState extends State<AcademicProfileScreen> {
   @override
   void dispose() {
     _transcript.dispose();
-    _timetable.dispose();
     _semester.dispose();
     _target.dispose();
     super.dispose();
@@ -45,7 +44,6 @@ class _AcademicProfileScreenState extends State<AcademicProfileScreen> {
     }
     final ok = await vm.save(
       transcript: _transcript.text,
-      timetable: _timetable.text,
       semester: semester,
       targetGpa: target,
     );
@@ -70,7 +68,6 @@ class _AcademicProfileScreenState extends State<AcademicProfileScreen> {
     final vm = context.watch<AcademicViewModel>();
     if (!_initialized && vm.state.state == ViewState.data) {
       _transcript.text = vm.transcriptText;
-      _timetable.text = vm.timetableText;
       _semester.text = vm.selectedSemester?.toString() ?? '';
       _target.text = vm.profile.targetGpa.toString();
       _initialized = true;
@@ -102,6 +99,21 @@ class _AcademicProfileScreenState extends State<AcademicProfileScreen> {
             const AppCard(
               child: Text(
                 'Nhập dữ liệu thật từ bảng điểm và lịch học của bạn. Dữ liệu được lưu trong hồ sơ Firebase riêng theo tài khoản; không gửi bảng điểm, lịch học hay nội dung câu hỏi vào Analytics hoặc dịch vụ AI bên ngoài.',
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            AppCard(
+              onTap: () => Navigator.pushNamed(context, '/schedule'),
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.calendar_month_outlined),
+                title: const Text('Thời khóa biểu'),
+                subtitle: Text(
+                  vm.timetable.isEmpty
+                      ? 'Chưa có buổi học. Thêm buổi học theo FAP.'
+                      : '${vm.timetable.length} buổi học trong tuần',
+                ),
+                trailing: const Icon(Icons.chevron_right),
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -137,25 +149,6 @@ class _AcademicProfileScreenState extends State<AcademicProfileScreen> {
                 labelText: 'Bảng điểm của bạn',
                 alignLabelWithHint: true,
                 hintText: 'Mã môn,tín chỉ,điểm,kỳ,true/false',
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'Thời khóa biểu',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const Text(
-              'Mỗi dòng: mã môn,thứ ISO,slot đầu,số slot. Thứ ISO: 1 = thứ Hai, …, 7 = Chủ nhật. Không nhập tên/mật khẩu FAP.',
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            TextField(
-              controller: _timetable,
-              minLines: 4,
-              maxLines: 10,
-              decoration: const InputDecoration(
-                labelText: 'Lịch học của bạn',
-                alignLabelWithHint: true,
-                hintText: 'Mã môn,thứ ISO,slot đầu,số slot',
               ),
             ),
             const SizedBox(height: AppSpacing.md),

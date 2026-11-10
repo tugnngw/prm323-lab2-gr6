@@ -19,6 +19,7 @@ import 'screens/note_editor_screen.dart';
 import 'screens/notes_screen.dart';
 import 'screens/notifications_screen.dart';
 import 'screens/roadmap_screen.dart';
+import 'screens/schedule_screen.dart';
 import 'screens/sign_in_screen.dart';
 import 'screens/strategy_sim_screen.dart';
 import 'screens/sync_vault_screen.dart';
@@ -281,6 +282,7 @@ class FptuSecondBrainApp extends StatelessWidget {
               NoteEditorScreen(showLegacyMedia: _showLegacyMedia),
           '/academic-profile': (_) =>
               AcademicProfileScreen(showStudyPlan: _usesRealComposition),
+          '/schedule': (_) => const ScheduleScreen(),
           if (_usesRealComposition)
             '/study-plan': (context) {
               final uid = context.read<AuthViewModel>().currentUserId;

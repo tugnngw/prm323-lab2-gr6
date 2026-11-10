@@ -373,7 +373,9 @@ class AdvisorViewModel extends ChangeNotifier {
                     (e) => e.courseCode == course.code,
                   );
                   final schedule = profile.timetable.where(
-                    (e) => e.courseCode == course.code,
+                    (e) =>
+                        e.courseCode.toUpperCase() ==
+                        course.code.toUpperCase(),
                   );
                   return '${course.code} — ${course.name}: ${course.credits} tín chỉ.\n'
                       '${missing.isEmpty ? 'Các tiên quyết đã được xác nhận hoặc không yêu cầu.' : 'Chưa xác nhận tiên quyết: ${missing.join(', ')}.'}\n'

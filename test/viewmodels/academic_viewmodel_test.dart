@@ -104,24 +104,14 @@ void main() {
     final vm = AcademicViewModel(authService: auth, firestoreService: store);
     await vm.loadData();
     expect(
-      await vm.save(
-        transcript: 'A,3,8,1,true',
-        timetable: 'A,1,2,2',
-        semester: 2,
-        targetGpa: 8,
-      ),
+      await vm.save(transcript: 'A,3,8,1,true', semester: 2, targetGpa: 8),
       isTrue,
     );
     expect(store.userProfile!['major'], 'SE');
     expect(store.userProfile!['passedCourses'], ['PRE']);
     expect(vm.profile.transcript.single.courseCode, 'A');
     expect(
-      await vm.save(
-        transcript: 'bad',
-        timetable: '',
-        semester: 2,
-        targetGpa: 8,
-      ),
+      await vm.save(transcript: 'bad', semester: 2, targetGpa: 8),
       isFalse,
     );
     expect(vm.profile.transcript, hasLength(1));

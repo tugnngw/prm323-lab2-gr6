@@ -5,6 +5,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../viewmodels/advisor_viewmodel.dart';
 import '../viewmodels/academic_viewmodel.dart';
+import '../models/academic_profile.dart';
 import '../models/app_state.dart';
 import '../widgets/app_states.dart';
 import '../widgets/app_components.dart';
@@ -162,8 +163,13 @@ class StrategySimScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             for (final entry in vm.profile.timetable)
               Text(
-                '${entry.courseCode}: ${entry.weekday == 7 ? 'Chủ nhật' : 'Thứ ${entry.weekday + 1}'}, slot ${entry.startSlot}–${entry.endSlot}',
+                '${entry.courseCode}: ${ScheduleConflict.weekdayLabel(entry.weekday)}, ${entry.startTime}–${entry.endTime}',
               ),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.pushNamed(context, '/schedule'),
+              icon: const Icon(Icons.calendar_month_outlined),
+              label: const Text('Mở thời khóa biểu'),
+            ),
           ],
         ),
       },

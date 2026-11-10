@@ -28,6 +28,10 @@ class FakeFirestoreService implements FirestoreService {
   /// Returned by [getUserProfile]; null means "profile not provisioned".
   Map<String, dynamic>? userProfile;
 
+  /// Every profile document keyed by user id, so per-user isolation can be
+  /// asserted (production keeps one document per UID).
+  final Map<String, Map<String, dynamic>> userProfiles = {};
+
   bool shouldFailTaskAdd = false;
 
   @override
@@ -35,7 +39,9 @@ class FakeFirestoreService implements FirestoreService {
     String userId,
     Map<String, dynamic> data,
   ) async {
-    userProfile = {...?userProfile, ...data};
+    final merged = {...?userProfiles[userId], ...data};
+    userProfiles[userId] = merged;
+    userProfile = merged;
   }
 
   bool shouldFailTaskUpdate = false;
@@ -63,9 +69,18 @@ class FakeFirestoreService implements FirestoreService {
     return null;
   }
 
+  /// A seeded [userProfile] belongs to whichever UID reads it first, so later
+  /// reads and merge writes for other UIDs stay isolated.
   @override
-  Future<Map<String, dynamic>?> getUserProfile(String userId) async =>
-      userProfile;
+  Future<Map<String, dynamic>?> getUserProfile(String userId) async {
+    final existing = userProfiles[userId];
+    if (existing != null) return existing;
+    if (userProfiles.isEmpty && userProfile != null) {
+      userProfiles[userId] = userProfile!;
+      return userProfile;
+    }
+    return null;
+  }
 
   @override
   Future<List<Map<String, dynamic>>> getTasks(String userId) async {
