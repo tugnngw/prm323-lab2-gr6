@@ -1,0 +1,17 @@
+{
+  "case": "test_TC_08_advisor_course_question[run3]",
+  "trace_id": "989d3f52-f236-4fe3-8f16-b63b13ddbbe0",
+  "device": "GQDIV8HUPJWK79XC",
+  "started_at": "2026-11-10T16:42:10.787447+00:00",
+  "instruction": "From Home open Cố vấn học tập. Tap the 'Môn' level chip. Tap 'Hỏi nhanh trên thiết bị · không cần mạng', open the 'Chọn môn' dropdown and select 'PRM393 — Mobile Programming' (the only PRM course in the catalog), then tap 'Tóm tắt môn học'. Read the resulting card and report its literal answer and source line; it must ground credits/prerequisites in Firebase and disclose missing personal data.",
+  "status": "completed",
+  "error": null,
+  "output": null,
+  "duration_seconds": 175.875,
+  "output_source": "ARTEMIS session steps: final report_task_status",
+  "observation": {
+    "visible_text": "Tín chỉ: 3 · Kỳ: 8 · Ngành: BIT_SE_K19B\nTiên quyết: còn thiếu PRO192\nSlot đề cương: 60\nĐầu điểm: Practical Exam 25% · Progress Test 15% · Project 30% · Final exam 30%\nChuẩn đầu ra: 7 mục\nTài liệu: 4 đầu sách/giáo trình\nĐiểm đã nhập: chưa có trong bảng điểm\nNguồn: đề cương FLM và hồ sơ học tập trên thiết bị. Hỏi thêm \"bài kiểm tra\", \"nội dung slot\", \"tiên quyết\" hoặc \"điểm\".",
+    "reply": "• Tín chỉ: 3 · Kỳ: 8 · Ngành: BIT_SE_K19B\n• Tiên quyết: còn thiếu PRO192\n• Slot đề cương: 60\n• Đầu điểm: Practical Exam 25% · Progress Test 15% · Project 30% · Final exam 30%\n• Chuẩn đầu ra: 7 mục\n• Tài liệu: 4 đầu sách/giáo trình\n• Điểm đã nhập: chưa có trong bảng điểm\nNguồn: đề cương FLM và hồ sơ học tập trên thiết bị. Hỏi thêm \"bài kiểm tra\", \"nội dung slot\", \"tiên quyết\" hoặc \"điểm\".",
+    "native_visible_text": "Quay lại\n Cố vấn học tập\n Dữ liệu học tập\n Cố vấn làm được gì?\n AI chưa kiểm tra\n Hỏi một câu để kiểm tra Gemini (gemini-3.5-flash-lite). Nếu lỗi, app sẽ chuyển sang trả lời trên thiết bị.\n Chi tiết AI\n Chọn cấp tư vấn\n Môn\n Kỳ\n Chương trình\n Điểm\n \n \n Trên thiết bị\n•\n•\n•\n•\n•\n•\n•\nPRM393 — Mobile Programming \nTín chỉ: 3 · Kỳ: 8 · Ngành: BIT_SE_K19B \nTiên quyết: còn thiếu PRO192 \nSlot đề cương: 60 \nĐầu điểm: Practical Exam 25% · Progress Test 15% · Project 30% · Final exam 30% \nChuẩn đầu ra: 7 mục \nTài liệu: 4 đầu sách/giáo trình \nĐiểm đã nhập: chưa có trong bảng điểm \nNguồn: đề cương FLM và hồ sơ học tập trên thiết bị. Hỏi thêm \"bài kiểm tra\", \"nội dung slot\", \"tiên quyết\" hoặc \"điểm\". \n Hỏi nhanh trên thiết bị · không cần mạng\n \n Gửi câu hỏi"
+  }
+}

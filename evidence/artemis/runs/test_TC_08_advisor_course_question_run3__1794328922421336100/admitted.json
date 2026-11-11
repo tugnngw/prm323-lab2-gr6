@@ -1,0 +1,7 @@
+{
+  "case": "test_TC_08_advisor_course_question[run3]",
+  "trace_id": "989d3f52-f236-4fe3-8f16-b63b13ddbbe0",
+  "device": "GQDIV8HUPJWK79XC",
+  "started_at": "2026-11-10T16:42:10.787447+00:00",
+  "instruction": "From Home open Cố vấn học tập. Tap the 'Môn' level chip. Tap 'Hỏi nhanh trên thiết bị · không cần mạng', open the 'Chọn môn' dropdown and select 'PRM393 — Mobile Programming' (the only PRM course in the catalog), then tap 'Tóm tắt môn học'. Read the resulting card and report its literal answer and source line; it must ground credits/prerequisites in Firebase and disclose missing personal data."
+}

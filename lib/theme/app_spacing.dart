@@ -29,12 +29,12 @@ abstract final class AppElevation {
   static const overlay = 6.0;
 }
 
-/// Font sizes below the theme's `TextTheme` scale — captions, helper text and
-/// dense metadata. Anything at or above 14 sp must come from `TextTheme`.
+/// Secondary-text tokens (captions, helper text, dense metadata), floored at
+/// 14 sp to satisfy the Lab 3 accessibility minimum for readable text.
 abstract final class AppFontSize {
-  static const caption = 11.0;
-  static const label = 12.0;
-  static const dense = 13.0;
+  static const caption = 14.0;
+  static const label = 14.0;
+  static const dense = 14.0;
 
   /// Hero numerals (GPA figure, avatar initial) — display-only, never body.
   static const displaySmall = 18.0;

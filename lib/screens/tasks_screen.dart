@@ -124,6 +124,7 @@ class TasksScreen extends StatelessWidget {
       message: wasCompleted
           ? 'Đã chuyển về chưa xong.'
           : 'Đã đánh dấu hoàn thành công việc.',
+      duration: const Duration(seconds: 8),
       onAction: () async {
         if (uid != vm.currentUserId) return;
         final restored = await vm.setTaskCompletion(task.id, wasCompleted);

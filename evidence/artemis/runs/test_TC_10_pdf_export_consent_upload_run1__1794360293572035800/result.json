@@ -1,0 +1,11 @@
+{
+  "case": "test_TC_10_pdf_export_consent_upload[run1]",
+  "trace_id": "35284c16-d019-4c6b-8b3d-5cd442ccd976",
+  "device": "GQDIV8HUPJWK79XC",
+  "started_at": "2026-11-11T01:25:03.426650+00:00",
+  "instruction": "From Home tap the card labelled \"Firebase Cloud & Offline Vault\", scroll to Export & Upload PDF, tap Xuất & Tải PDF lên Cloud Storage. Verify consent appears BEFORE any upload, accept and wait for completion. Report actual status and download URL. An error is a FAILED upload, never substitute an error branch for success.",
+  "status": "failed",
+  "error": null,
+  "output": null,
+  "duration_seconds": 145.766
+}

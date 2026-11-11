@@ -28,7 +28,7 @@ async def test_TC_F2_02_undo_within_8s(artemis, auth_account, unique_name):
 async def test_TC_V1_update_existing_task(artemis, auth_account, unique_name, logcat):
     logcat.start('TC-V1')
     observed = await artemis.run(
-        'Create your own task {fixture}. Open its content/edit sheet, append EDITED, press Cập nhật việc cần làm, then reload through Sync Vault manual sync. Return to Tasks and report its literal persisted title.'.replace("{fixture}", unique_name),
+        'Create your own task {fixture}. Open its content/edit sheet, append EDITED, press Cập nhật việc cần làm, then reload through Sync Vault manual sync (tap Xác nhận on the sync confirmation dialog if prompted). Return to Tasks and report its literal persisted title.'.replace("{fixture}", unique_name),
         {'task_title': 'literal title after reload'},
     )
     equals(observed,'task_title',unique_name+' EDITED')

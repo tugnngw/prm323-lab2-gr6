@@ -1,0 +1,27 @@
+Quay lại
+ Sync Vault & Cài đặt
+ 
+ 
+ 
+ 
+ Firebase Crashlytics Test
+Ghi nhận non-fatal exception và breadcrumb log lên dashboard Crashlytics mà không làm crash ứng dụng.
+ Ghi nhận Test Exception vào Crashlytics
+ Gây test crash (đóng ứng dụng)
+ 
+ 
+ 
+ Firestore Read/Write Test
+Kiểm tra đọc và ghi dữ liệu mẫu qua FirestoreService (áp dụng Offline Persistence).
+ Chạy Test Đọc/Ghi Firestore
+ 
+ 
+ 
+ Export & Upload PDF
+Tạo PDF từ lộ trình, việc cần làm và ghi chú. Bạn có thể chia sẻ từ thiết bị hoặc chọn tải lên Firebase Cloud Storage cùng metadata Firestore.
+Đang tạo PDF…
+ Tạo PDF trên thiết bị
+ Tạo PDF trên thiết bị
+ Xuất & Tải PDF lên Cloud Storage
+ Xuất & Tải PDF lên Cloud Storage
+ Lịch sử báo cáo

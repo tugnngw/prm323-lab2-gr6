@@ -1,0 +1,19 @@
+{
+  "case": "test_TC_10_pdf_export_consent_upload[run1]",
+  "trace_id": "7421a189-a984-4383-afb5-84bb8b5537ee",
+  "device": "GQDIV8HUPJWK79XC",
+  "started_at": "2026-11-11T01:15:49.317130+00:00",
+  "instruction": "From Home tap the card labelled \"Firebase Cloud & Offline Vault\", scroll to Export & Upload PDF, tap Xuất & Tải PDF lên Cloud Storage. Verify consent appears BEFORE any upload, accept and wait for completion. Report actual status and download URL. An error is a FAILED upload, never substitute an error branch for success.",
+  "status": "completed",
+  "error": null,
+  "output": null,
+  "duration_seconds": 201.0,
+  "output_source": "ARTEMIS session steps: final report_task_status",
+  "observation": {
+    "visible_text": "Đang tạo PDF...",
+    "consent_before_upload": true,
+    "upload_status": "error",
+    "download_url": "",
+    "native_visible_text": "Quay lại\n Sync Vault & Cài đặt\n \n \n \n \n Firebase Crashlytics Test\nGhi nhận non-fatal exception và breadcrumb log lên dashboard Crashlytics mà không làm crash ứng dụng.\n Ghi nhận Test Exception vào Crashlytics\n Gây test crash (đóng ứng dụng)\n \n \n \n Firestore Read/Write Test\nKiểm tra đọc và ghi dữ liệu mẫu qua FirestoreService (áp dụng Offline Persistence).\n Chạy Test Đọc/Ghi Firestore\n \n \n \n Export & Upload PDF\nTạo PDF từ lộ trình, việc cần làm và ghi chú. Bạn có thể chia sẻ từ thiết bị hoặc chọn tải lên Firebase Cloud Storage cùng metadata Firestore.\nĐang tạo PDF…\n Tạo PDF trên thiết bị\n Tạo PDF trên thiết bị\n Xuất & Tải PDF lên Cloud Storage\n Xuất & Tải PDF lên Cloud Storage\n Lịch sử báo cáo"
+  }
+}

@@ -16,6 +16,7 @@ import {
   updateDoc,
   deleteDoc,
   addDoc,
+  setDoc,
   onSnapshot,
   query,
   where,
@@ -133,6 +134,7 @@ const state = {
   announcements: [],
   noteStatusFilter: 'pending',
   currentReviewNoteId: null,
+  currentReviewNote: null,
   majorDraft: null,
   editingMajorCode: null,
   courseEditDraft: null,
@@ -1719,6 +1721,7 @@ function openNoteModal(noteId) {
   const note = state.notes.find(item => item._docId === noteId);
   if (!note) return;
   state.currentReviewNoteId = noteId;
+  state.currentReviewNote = note;
 
   $('rev-note-course').textContent = `${note.courseCode || ''} — ${note.courseName || ''}`;
   $('rev-note-author').textContent = note.authorName || note.uid || 'Sinh viên';
@@ -1741,11 +1744,33 @@ function openNoteModal(noteId) {
   openModal('modal-review-note');
 }
 
+/// One inbox entry for the tip author. Firestore Rules lock the document
+/// shape (type, route, id prefix, actor) so a staff client cannot forge
+/// arbitrary messages into someone else's inbox.
+async function publishReviewNotification(note, status, reason) {
+  if (!note || !note.uid || !auth.currentUser) return;
+  const approved = status === 'approved';
+  const title = approved ? 'Bí kíp đã được duyệt' : 'Bí kíp bị từ chối';
+  const label = approved ? 'đã được duyệt' : 'bị từ chối';
+  const body = `${note.title || 'Bí kíp'} — ${label}. Lý do: ${reason}`.slice(0, 300);
+  await setDoc(doc(db, 'users', note.uid, 'notifications', `review_${note._docId}`), {
+    title,
+    body,
+    type: 'tip_review',
+    read: false,
+    receivedAt: serverTimestamp(),
+    route: '/my-tips',
+    recipientId: note.uid,
+    actorId: auth.currentUser.uid,
+  });
+}
+
 async function submitNoteDecision(status) {
   if (!['approved', 'rejected'].includes(status)) return;
   if (!state.currentReviewNoteId || !auth.currentUser) return;
 
   const reason = $('rev-note-reason').value.trim();
+  const note = state.currentReviewNote;
   if (!reason) {
     showToast('Vui lòng nhập lý do duyệt/từ chối.', 'warning');
     return;
@@ -1763,10 +1788,24 @@ async function submitNoteDecision(status) {
       reviewedBy: auth.currentUser.uid,
       reviewedAt: serverTimestamp(),
     });
+    let notified = true;
+    try {
+      await publishReviewNotification(note, status, reason);
+    } catch (error) {
+      notified = false;
+      console.error('publishReviewNotification', error);
+    }
     track('review_decision', { decision: status });
-    showToast(status === 'approved' ? 'Đã duyệt bí kíp.' : 'Đã từ chối bí kíp.', 'success');
+    showToast(
+      notified
+        ? (status === 'approved' ? 'Đã duyệt bí kíp và gửi thông báo tới hòm thư.' : 'Đã từ chối bí kíp và gửi thông báo tới hòm thư.')
+        : (status === 'approved' ? 'Đã duyệt bí kíp nhưng chưa gửi được thông báo hòm thư.' : 'Đã từ chối bí kíp nhưng chưa gửi được thông báo hòm thư.'),
+      notified ? 'success' : 'warning',
+      5200,
+    );
     closeModal('modal-review-note');
     state.currentReviewNoteId = null;
+    state.currentReviewNote = null;
   } catch (error) {
     console.error('submitNoteDecision', error);
     showToast(`Không cập nhật được: ${error.code || error.message}`, 'error', 5200);

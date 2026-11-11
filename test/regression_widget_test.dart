@@ -40,7 +40,7 @@ void main() {
     });
 
   testWidgets(
-    'task Undo is usable briefly and the toast dismisses itself by five seconds',
+    'task Undo is usable briefly and the toast dismisses itself by eight seconds',
     (tester) async {
       final store = seededStore();
       final vm = await taskScreen(tester, store);
@@ -56,13 +56,13 @@ void main() {
       expect(vm.allTasks.single.isCompleted, isFalse);
       expect(store.tasks.single['isCompleted'], isFalse);
 
-      // An untouched toast must hide itself at five seconds, not stay forever.
+      // An untouched toast must hide itself at eight seconds, not stay forever.
       await tester.tap(find.text('Đánh dấu đã xong'));
       await tester.pumpAndSettle();
       expect(find.text('Hoàn tác'), findsOneWidget);
-      await tester.pump(const Duration(milliseconds: 4000));
+      await tester.pump(const Duration(seconds: 6));
       expect(find.text('Hoàn tác'), findsOneWidget);
-      await tester.pump(const Duration(seconds: 2));
+      await tester.pump(const Duration(seconds: 3));
       await tester.pumpAndSettle();
       expect(find.text('Hoàn tác'), findsNothing);
       expect(vm.allTasks.single.isCompleted, isTrue);

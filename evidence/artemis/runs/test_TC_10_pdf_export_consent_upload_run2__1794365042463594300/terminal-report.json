@@ -1,0 +1,12 @@
+{
+  "session_id": "9cd6c881-0e25-447f-892b-81db19081694",
+  "step_id": "384be7ac-0ccd-4640-b55c-3e1fbf75cf30",
+  "step_number": 14,
+  "action_taken": {
+    "action": "report_task_status",
+    "args": {
+      "explanation": "{\"visible_text\": \"http://127.0.0.1:8788/api/reports/LERWvFiX1EhUahfAkwXD70TjTVx2/study_report_1794365405425.pdf\", \"consent_before_upload\": true, \"upload_status\": \"success\", \"download_url\": \"http://127.0.0.1:8788/api/reports/LERWvFiX1EhUahfAkwXD70TjTVx2/study_report_1794365405425.pdf\"}",
+      "status": "completed"
+    }
+  }
+}

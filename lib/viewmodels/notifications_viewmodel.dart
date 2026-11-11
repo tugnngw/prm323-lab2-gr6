@@ -38,6 +38,7 @@ class NotificationsViewModel extends BaseViewModel<List<NotificationModel>> {
   StreamSubscription<Map<String, dynamic>>? _tapSub;
   StreamSubscription<bool>? _authSub;
   StreamSubscription<List<Map<String, dynamic>>>? _announcementSub;
+  StreamSubscription<List<Map<String, dynamic>>>? _notificationSub;
   int _loadVersion = 0;
   String? _loadedUid;
 
@@ -116,6 +117,7 @@ class NotificationsViewModel extends BaseViewModel<List<NotificationModel>> {
         // Keep whatever we already had instead of clearing the bell.
       }
       _subscribeAnnouncements(uid, version);
+      _subscribeNotifications(uid, version);
 
       if (_items.isEmpty && _announcements.isEmpty) {
         setState(const AsyncViewState.empty());
@@ -153,6 +155,28 @@ class NotificationsViewModel extends BaseViewModel<List<NotificationModel>> {
           return;
         }
         _setAnnouncements(rows);
+        setState(
+          _items.isEmpty && _announcements.isEmpty
+              ? const AsyncViewState.empty()
+              : AsyncViewState.data(_items),
+        );
+      }, onError: (_) {});
+    } catch (_) {}
+  }
+
+  /// Cross-role: staff approval writes an inbox entry into this
+  /// subcollection, so the student's center updates without a reload.
+  void _subscribeNotifications(String uid, int version) {
+    _notificationSub?.cancel();
+    _notificationSub = null;
+    final firestore = firestoreService;
+    if (firestore == null) return;
+    try {
+      _notificationSub = firestore.watchNotifications(uid).listen((rows) {
+        if (isDisposed || version != _loadVersion || uid != currentUserId) {
+          return;
+        }
+        _items = rows.map(NotificationModel.fromMap).toList();
         setState(
           _items.isEmpty && _announcements.isEmpty
               ? const AsyncViewState.empty()
@@ -330,6 +354,7 @@ class NotificationsViewModel extends BaseViewModel<List<NotificationModel>> {
     _tapSub?.cancel();
     _authSub?.cancel();
     _announcementSub?.cancel();
+    _notificationSub?.cancel();
     super.dispose();
   }
 }

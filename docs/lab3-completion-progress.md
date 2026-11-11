@@ -103,5 +103,5 @@ Mã nguồn local: `flutter test` gần nhất pass 89/89; analyzer vừa phát 
 
 ## Submission gaps
 
-- `report/Lab03_STUDENT_ID.pdf` (10 trang) và `slides/Lab03_STUDENT_ID_slides.pdf` (15 trang) đã được kết xuất thành công và xác minh đạt chuẩn độ dài rubric (8–12 trang và 12–15 slide), với các ô chờ rõ ràng `[CHỜ ĐIỀN STUDENT ID]` và `[⏳ CHỜ ẢNH RUNTIME]`.
-- Còn thiếu: Student ID của sinh viên, 6 ảnh chụp Firebase Console thật, chạy đợt test ARTEMIS khi có quota, quay video demo 5–10 phút theo kịch bản `docs/lab3-video-script.md`, và đổi tên repo thành `PRM393_Lab03_<StudentID>` khi nộp bài.
+- `report/PRM393_LAB3_GR6.pdf` (10 trang) và `slides/PRM393_LAB3_GR6.pdf` (14 slide) đáp ứng giới hạn độ dài rubric (8–12 trang và 12–15 slide).
+- Định danh nộp bài dùng nhóm GR6: repo `PRM393_Final_GR6`, báo cáo `report/PRM393_LAB3_GR6.pdf`, slide `slides/PRM393_LAB3_GR6.pdf`.

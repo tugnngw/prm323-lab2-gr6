@@ -1,0 +1,8 @@
+[
+  {
+    "case": "test_advisor_error_flow.py::test_TC_08_advisor_course_question[run1]",
+    "outcome": "passed",
+    "seconds": 92.158,
+    "reason": ""
+  }
+]

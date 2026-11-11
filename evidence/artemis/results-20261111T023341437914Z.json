@@ -1,0 +1,8 @@
+[
+  {
+    "case": "test_export_profile.py::test_TC_10_pdf_export_consent_upload[run1]",
+    "outcome": "failed",
+    "seconds": 133.867,
+    "reason": "artemis = <conftest.ObservedClient object at 0x000001CEB0B168A0>\nauth_account = '[redacted]'\nlogcat = <conftest.logcat.<locals>.Capture object at 0x000001CEB0B16B40>\n\n    @require_artemis\n    async def test_TC_10_pdf_export_consent_upload(artemis, auth_account, logcat):\n        logcat.start('TC-10')\n>       observed = await artemis.run(\n            'From Home tap the card labelled \"Firebase Cloud & Offline Vault\", scroll to Export & Upload PDF, '\n            'tap the button starting \"Xuất & Tải PDF lên\" (its suffix names the configured provider: Cloud Storage or Cloudinary). '\n            'Verify consent appears BEFORE any upload, accept and wait until the button stops loading. '\n            'Report the actual status and the literal download URL shown on screen. '\n            'An error is a FAILED upload, never substitute an error branch for success.',\n            {'consent_before_upload': 'boolean', 'upload_status': 'success or error', 'download_url': 'literal URL or empty'},\n        )\n\ne2e_test\\test_export_profile.py:11: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\nself = <conftest.ObservedClient object at 0x000001CEB0B168A0>\nins"
+  }
+]

@@ -50,7 +50,7 @@ The audit reflects current source and emulator observations through 2026-11-03. 
 | **S-09** | Storage rules deny nested note attachments (medium) | `RESOLVED IN CODE` | `firebase/storage.rules:27` uses recursive `{allPaths=**}` for note attachments and reports. |
 | **S-10** | Enforce FPT email domain (medium, compliance) | `RESOLVED IN CODE` | `GoogleSignIn(hostedDomain: 'fpt.edu.vn')` filters picker; post-sign-in check rejects non-`@fpt.edu.vn` and signs out. Runtime rejection branch remains unverified. |
 | **S-11** | Test suite cannot catch defects (medium) | `IMPROVED IN CODE` | Current tests cover UID propagation, rollback, delete persistence calls, analytics wiring, PDF export, and FCM token/notification flows. Live Firebase Rules and device delivery still need external verification. |
-| **S-12** | Repository name mismatch with rubric (low) | `CONFIRMED` | Checklist §2.1 requires a public repo named `PRM393_Lab03_<StudentID>`. Current repo is `prm323-lab2-gr6`. Checklist does not require changing `applicationId`; report/slides filenames are specified separately in the submission section. Rename the repo on GitHub at submission. |
+| **S-12** | Repository name mismatch with rubric (low) | `CONFIRMED` | Checklist §2.1 requires a public repo named `PRM393_Final_GR6`. Current repo is `prm323-lab2-gr6`. Checklist does not require changing `applicationId`; report/slides filenames are specified separately in the submission section. Rename the repo on GitHub at submission. |
 
 ### 1.3 Feature Gaps
 
@@ -179,8 +179,8 @@ The T03-M11E legacy task document compatibility fix is **verified and complete**
 ### Submission gaps (not Firebase blockers)
 
 - `evidence/README.md` is a matrix, not a set of screenshots/traces. Checklist requires at least 10 ARTEMIS tests, each run 3 times; the 89 Flutter tests do not count as ARTEMIS runs.
-- Draft sources now exist at `report/Lab03_DRAFT.md` and `slides/Lab03_DRAFT.md`. Final report PDF (8–12 pages), slide PDF (12–15 pages), and 5–10 minute demo video are not present. Final versions need Student ID and genuine runtime evidence.
+- Report source is `report/Lab03_DRAFT.md`; final report `report/PRM393_LAB3_GR6.pdf` (10 pages), slide `slides/PRM393_LAB3_GR6.pdf` (14 slides), and the 8–12 minute demo video are present. Artifacts use the group identifier GR6.
 - AI review must be genuine: at least five findings and three separate fix commits per checklist. No review output or matching commit evidence exists in this pass; do not fabricate it.
-- Rubric requires repository name `PRM393_Lab03_<StudentID>` at submission, not an application ID change. The app remains `com.example.prm323_lab3`.
+- Rubric requires repository name `PRM393_Final_GR6` at submission, not an application ID change. The app remains `com.example.prm323_lab3`.
 
 The ignored `android/app/google-services.json` was available out-of-band for the verified emulator build/runtime. Do not print or commit it; a clean checkout must supply a matching file. No Rules deployment, billing change, Git operation, or cloud-data mutation was performed by this audit update.

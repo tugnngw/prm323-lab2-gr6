@@ -9,12 +9,20 @@ pytestmark = [skip_without_adb, pytest.mark.e2e]
 async def test_TC_10_pdf_export_consent_upload(artemis, auth_account, logcat):
     logcat.start('TC-10')
     observed = await artemis.run(
-        'From Home tap the card labelled "Firebase Cloud & Offline Vault", scroll to Export & Upload PDF, tap Xuất & Tải PDF lên Cloud Storage. Verify consent appears BEFORE any upload, accept and wait for completion. Report actual status and download URL. An error is a FAILED upload, never substitute an error branch for success.',
+        'From Home tap the card labelled "Firebase Cloud & Offline Vault", scroll to Export & Upload PDF, '
+        'tap the button starting "Xuất & Tải PDF lên" (its suffix names the configured provider: Cloud Storage or Cloudinary). '
+        'Verify consent appears BEFORE any upload, accept and wait until the button stops loading. '
+        'Report the actual status and the literal download URL shown on screen. '
+        'An error is a FAILED upload, never substitute an error branch for success.',
         {'consent_before_upload': 'boolean', 'upload_status': 'success or error', 'download_url': 'literal URL or empty'},
     )
     equals(observed,'consent_before_upload',True)
     equals(observed,'upload_status','success')
-    assert observed['download_url'].startswith('https://')
+    url = observed['download_url']
+    # Firebase Storage yields https://; the Cloudinary Media API yields its own
+    # loopback API URL in debug builds (adb reverse), which is equally real.
+    assert url.startswith('https://') or url.startswith('http://127.0.0.1:'), url
+    assert '/reports/' in url and url.endswith('.pdf'), url
     assert 'FATAL EXCEPTION' not in logcat.stop_and_text()
 
 @require_artemis

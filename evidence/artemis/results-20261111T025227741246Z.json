@@ -1,0 +1,20 @@
+[
+  {
+    "case": "test_export_profile.py::test_TC_10_pdf_export_consent_upload[run1]",
+    "outcome": "passed",
+    "seconds": 166.803,
+    "reason": ""
+  },
+  {
+    "case": "test_export_profile.py::test_TC_10_pdf_export_consent_upload[run2]",
+    "outcome": "passed",
+    "seconds": 397.423,
+    "reason": ""
+  },
+  {
+    "case": "test_export_profile.py::test_TC_10_pdf_export_consent_upload[run3]",
+    "outcome": "passed",
+    "seconds": 107.84,
+    "reason": ""
+  }
+]

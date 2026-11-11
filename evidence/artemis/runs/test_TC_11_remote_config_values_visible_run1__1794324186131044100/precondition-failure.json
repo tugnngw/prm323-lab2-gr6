@@ -1,0 +1,6 @@
+{
+  "phase": "native startup wait",
+  "error": "Home/sign-in not ready within 60s; no UI action was issued during startup",
+  "device": "GQDIV8HUPJWK79XC",
+  "artemis_task_submitted": false
+}

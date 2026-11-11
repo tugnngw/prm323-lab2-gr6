@@ -120,11 +120,11 @@ FCM 3 trạng thái + tap · PDF consent→progress→metadata · `evidence/fire
 | G3 | Slides 12–15 tr — **outline xong** `docs/lab3-slides-outline.md`; **kịch bản video 7′30″ xong** `docs/lab3-video-script.md`; bản final chờ evidence + quay |
 | G4 | README: bổ link video + mô tả evidence khi có (draft + 3 mục mới 03/11) |
 | G5 | Checklist tự đánh giá 12 dòng guide §10 + re-tick `LAB3_CHECKLIST.md` — ✅ **rev re-tick 03/11** (theo thực tế, ⏳ đánh dấu rõ) |
-| G6 | Cắt `google-services.json`/project number khỏi mọi screenshot (§9.3) + **quyết định rename repo** `PRM393_Lab03_<StudentID>` (S-12) |
+| G6 | Cắt `google-services.json`/project number khỏi mọi screenshot (§9.3) + **quyết định rename repo** `PRM393_Final_GR6` (S-12) |
 
 ### N-0 · Việc hành chính
 - ~~Commit working tree~~ ✅ **XONG 03/11** — 8 commit `277f475..7d201f5` đã push `origin/main`, tree sạch.
-- Còn treo: Student ID (trống ở bìa report/checklist) + quyết định rename repo khi nộp (G6).
+- Định danh nộp bài: nhóm GR6; repo `PRM393_Final_GR6`.
 
 ---
 
@@ -177,4 +177,4 @@ Rubric gốc chấm trực tiếp theo tám tiêu chí. Report là tài liệu b
 | Demo video | 1.00 | Có kịch bản demo | Chưa có video 5–10 phút |
 | **Tổng** | **10.00** |  | **Chưa chốt điểm; không tính các mục chưa xác minh là đã đạt.** |
 
-Report PDF 10 trang và Slides PDF 15 trang đáp ứng giới hạn độ dài theo `pdfinfo`; placeholder Student ID và runtime evidence phải được thay bằng thông tin/evidence thật trước khi nộp.
+Báo cáo `report/PRM393_LAB3_GR6.pdf` 10 trang và slide `slides/PRM393_LAB3_GR6.pdf` 14 slide đáp ứng giới hạn độ dài rubric; định danh nhóm GR6 đã áp dụng trên bìa và footer.

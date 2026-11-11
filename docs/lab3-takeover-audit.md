@@ -232,7 +232,7 @@ Events fire from getters called during `build`: `isEligibleForCourse` (`roadmap_
 All 12 tests construct ViewModels with `null` services (`advisor_viewmodel_test.dart:9`, `roadmap_viewmodel_test.dart:8`, `tasks_notes_test.dart:8,55`) or pass mocks that ignore uid (`widget_test.dart:10-12`). `widget_test` uses `'user_123'` while the ViewModels hard-code `'user_p02'` — the discrepancy is untested. Several tests sleep on wall-clock delays (`Future.delayed(200ms)`) instead of `pumpAndSettle`/fake async, so they are latency-flaky. No test touches `FirebaseFirestoreService`, `FirebaseStorageService`, rules, or the analytics facade.
 
 **S-12 — Repository identity mismatch with rubric (low, but blocks grading).**
-Checklist requires repo `PRM393_Lab03_<StudentID>`, package/app name to be chosen and pinned; current repo is `prm323-lab2-gr6`, `applicationId = com.example.prm323_lab3` (with a `TODO:` at `android/app/build.gradle.kts:18`), `pubspec.yaml name: prm323_lab3`. Firebase app registration depends on the final application ID — fix before B-02.
+Checklist requires repo `PRM393_Final_GR6`, package/app name to be chosen and pinned; current repo is `prm323-lab2-gr6`, `applicationId = com.example.prm323_lab3` (with a `TODO:` at `android/app/build.gradle.kts:18`), `pubspec.yaml name: prm323_lab3`. Firebase app registration depends on the final application ID — fix before B-02.
 
 ---
 

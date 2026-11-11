@@ -48,10 +48,10 @@ async def test_TC_S_07_fcm_native_notification_settings(artemis):
 async def test_TC_14_analytics_events_log(artemis, logcat):
     logcat.start('TC-14')
     observed = await artemis.run(
-        'From Home open Lộ trình. Tap the search field before typing PRM. Wait until the field visibly contains PRM and the list shows only matching courses. If the field still shows its placeholder, tap and type again. Open PRM323 only after verifying the filter. Report the shown course code and final screen title. The runner checks the actual logs for search_course and course_view.',
+        'From Home open Lộ trình. Tap the search field before typing PRM. Wait until the field visibly contains PRM and the list shows only matching courses. If the field still shows its placeholder, tap and type again. Open PRM393 only after verifying the filter. Report the shown course code and final screen title. The runner checks the actual logs for search_course and course_view.',
         {'course_code': 'literal course code'},
     )
-    equals(observed,'course_code','PRM323')
+    equals(observed,'course_code','PRM393')
     text=logcat.stop_and_text()
     assert 'Logged event: search_course' in text
     assert 'Logged event: course_view' in text

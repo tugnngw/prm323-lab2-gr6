@@ -5,9 +5,14 @@ import '../theme/app_spacing.dart';
 import '../widgets/app_components.dart';
 
 class SyncErrorScreen extends StatelessWidget {
-  const SyncErrorScreen({super.key, required this.errorMessage});
+  const SyncErrorScreen({
+    super.key,
+    required this.errorMessage,
+    required this.onRetry,
+  });
 
   final String errorMessage;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -33,9 +38,15 @@ class SyncErrorScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'Dữ liệu cục bộ được giữ nguyên — ghi chú và đề cương đã lưu vẫn dùng được khi ngoại tuyến.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: AppSpacing.xl),
               FilledButton.icon(
-                onPressed: () {},
+                onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
                 label: const Text('Thử lại'),
               ),

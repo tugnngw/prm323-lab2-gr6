@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../models/course_model.dart';
@@ -15,11 +17,18 @@ class ReportExportResult {
     required this.storagePath,
     required this.downloadUrl,
     required this.pdfBytes,
+    this.metadataSynced = true,
   });
 
   final String storagePath;
   final String downloadUrl;
   final Uint8List pdfBytes;
+
+  /// False when the cloud upload finished but the Firestore metadata write was
+  /// still unacknowledged after the deadline (offline/DNS failure). The write
+  /// stays queued in Firestore's local cache and lands when connectivity
+  /// returns, so this is a warning rather than a failed export.
+  final bool metadataSynced;
   int get bytes => pdfBytes.length;
 }
 
@@ -52,6 +61,7 @@ class ReportExportService {
     StorageService? firebaseStorageService,
     CrashlyticsService? crashlyticsService,
     this.storageProvider = 'Firebase Cloud Storage',
+    this.metadataTimeout = const Duration(seconds: 12),
   }) : _pdf = pdfService ?? ReportPdfService(),
        _storage = storageService,
        _firebaseStorage = firebaseStorageService,
@@ -60,6 +70,7 @@ class ReportExportService {
        _crashlytics = crashlyticsService;
 
   final String storageProvider;
+  final Duration metadataTimeout;
   final ReportPdfService _pdf;
   final StorageService _storage;
   final StorageService? _firebaseStorage;
@@ -173,18 +184,29 @@ class ReportExportService {
         onProgress: onProgress,
       );
 
-      await _firestore.saveReportMetadata(userId, {
-        'fileName': fileName,
-        'storagePath': path,
-        'storageProvider': storageProvider,
-        'downloadUrl': downloadUrl,
-        'sizeBytes': bytes.length,
-        'generatedAt': timestamp.toIso8601String(),
-        'courseCount': courses.length,
-        'taskCount': tasks.length,
-        'noteCount': notes.length,
-        'source': 'firebase_demo_area',
-      });
+      var metadataSynced = true;
+      try {
+        await _firestore
+            .saveReportMetadata(userId, {
+              'fileName': fileName,
+              'storagePath': path,
+              'storageProvider': storageProvider,
+              'downloadUrl': downloadUrl,
+              'sizeBytes': bytes.length,
+              'generatedAt': timestamp.toIso8601String(),
+              'courseCount': courses.length,
+              'taskCount': tasks.length,
+              'noteCount': notes.length,
+              'source': 'firebase_demo_area',
+            })
+            .timeout(metadataTimeout);
+      } on TimeoutException {
+        metadataSynced = false;
+        debugPrint(
+          '[ReportExport] Firestore metadata not acknowledged within 12s; '
+          'write stays queued in the local cache.',
+        );
+      }
 
       await _logExport(
         status: 'success',
@@ -197,6 +219,7 @@ class ReportExportService {
         storagePath: path,
         downloadUrl: downloadUrl,
         pdfBytes: Uint8List.fromList(bytes),
+        metadataSynced: metadataSynced,
       );
     } catch (e, stack) {
       try {

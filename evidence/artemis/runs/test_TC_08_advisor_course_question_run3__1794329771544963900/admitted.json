@@ -1,0 +1,7 @@
+{
+  "case": "test_TC_08_advisor_course_question[run3]",
+  "trace_id": "dbc84c60-1145-4082-afda-531014709092",
+  "device": "GQDIV8HUPJWK79XC",
+  "started_at": "2026-11-10T16:56:19.026092+00:00",
+  "instruction": "From Home open Cố vấn học tập. Tap the 'Môn' level chip. Tap 'Hỏi nhanh trên thiết bị · không cần mạng' to open the quick-question sheet. Tap the 'Chọn môn' dropdown once to open its course list; 'PRM393 — Mobile Programming' is a row near the top of that list. Tap that PRM393 row directly by its visible text to select it — do not tap the dropdown field again while the list is open, and do not use element-index clicks. Then tap 'Tóm tắt môn học'. Read the resulting card and report its literal answer and source line; it must ground credits/prerequisites in Firebase and disclose missing personal data."
+}

@@ -1,0 +1,2 @@
+11-11 08:50:57.438 I/flutter (15463): [Analytics] Logged event: export_report with params: {status: success, file_size_kb: 37, duration_ms: 2738}
+11-11 08:50:57.438 I/flutter (15463): [ReportExport] Uploaded reports/LERWvFiX1EhUahfAkwXD70TjTVx2/study_report_1794361854698.pdf (37273 bytes)

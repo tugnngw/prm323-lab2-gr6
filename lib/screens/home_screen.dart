@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/app_state.dart';
 import '../models/task_model.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
@@ -83,14 +84,61 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
 
-              // Deadlines due within three days.
-              if (dueSoonTasks.isNotEmpty) ...[
-                _DueSoonCard(
-                  tasks: dueSoonTasks,
-                  onView: () => onNavigate(2),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-              ],
+              // Deadlines due within three days — explicit load states.
+              switch (tasks.state.state) {
+                ViewState.loading => const AppCard(
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        SizedBox(width: AppSpacing.sm),
+                        Expanded(child: Text('Đang tải việc cần làm…')),
+                      ],
+                    ),
+                  ),
+                ViewState.error => AppCard(
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: AppColors.error,
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            tasks.state.message ?? 'Lỗi tải việc cần làm.',
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: tasks.loadData,
+                          child: const Text('Thử lại'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ViewState.empty || ViewState.data when dueSoonTasks.isEmpty =>
+                  const AppCard(
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(
+                        Icons.event_available_outlined,
+                        color: AppColors.success,
+                      ),
+                      title: Text('Không có deadline trong 3 ngày tới'),
+                      subtitle: Text(
+                        'Xem danh sách đầy đủ ở tab Việc cần làm.',
+                      ),
+                    ),
+                  ),
+                _ => _DueSoonCard(
+                    tasks: dueSoonTasks,
+                    onView: () => onNavigate(2),
+                  ),
+              },
+              const SizedBox(height: AppSpacing.sm),
 
               // Firebase Vault status card
               AppCard(

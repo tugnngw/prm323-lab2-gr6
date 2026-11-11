@@ -1,0 +1,19 @@
+{
+  "case": "test_TC_11_remote_config_values_visible[run1]",
+  "trace_id": "c860e8a9-bc4a-4620-95df-dcbdfd0fd0c8",
+  "device": "GQDIV8HUPJWK79XC",
+  "started_at": "2026-11-10T16:30:57.940777+00:00",
+  "instruction": "From Home tap the card labelled \"Firebase Cloud & Offline Vault\" (do not tap the arrow). On the Sync Vault screen scroll until the \"Firebase Remote Config\" card is fully visible near the top and read it. Report exact maintenance_mode boolean, min_app_version string and AI feature flag. Do not infer from defaults and do not claim Console before/after verification.",
+  "status": "completed",
+  "error": null,
+  "output": null,
+  "duration_seconds": 30.422,
+  "output_source": "ARTEMIS session steps: final report_task_status",
+  "observation": {
+    "visible_text": "Firebase Remote Config\nmaintenance_mode\nfalse\nfeature_ai_advisor_enabled\ntrue\nmin_app_version\n1.0.0\nvault_sync_interval_mins\n30 phút",
+    "maintenance_mode": false,
+    "min_app_version": "1.0.0",
+    "feature_ai_advisor_enabled": true,
+    "native_visible_text": "Quay lại\n Sync Vault & Cài đặt\n \n \n \n \n H\nhaduong2222222\n[email redacted]\nDữ liệu đồng bộ theo UID Firebase của bạn\n \n Trạng thái Vault & Đồng bộ\n \n \n \n \n Đồng bộ Cloud Firestore\nOffline persistence: Hoạt động (Unlimited cache)\n Kích hoạt đồng bộ Vault ngay\n Kích hoạt đồng bộ Vault ngay\n \n Firebase Demo Area (PRM323 Lab 3)\n \n Khu vực kiểm thử tính năng của đề bài Lab 3: Remote Config, Crashlytics, Firestore read/write.\n \n \n \n Firebase Remote Config\nmaintenance_mode\nfalse\nfeature_ai_advisor_enabled\ntrue\nmin_app_version\n1.0.0\nvault_sync_interval_mins\n30 phút\n Tải lại config\n \n \n \n Firebase Crashlytics Test\nGhi nhận non-fatal exception và breadcrumb log lên dashboard Crashlytics mà không làm crash ứng dụng."
+  }
+}

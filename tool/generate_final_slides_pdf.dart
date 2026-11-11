@@ -575,7 +575,7 @@ void main() async {
           pw.SizedBox(width: 8),
           pw.Expanded(
             child: box('Kết quả', [
-              '15/15 test pass',
+              '17/17 test pass',
               'Mỗi collection có allow + deny',
               'Emulator tách khỏi dữ liệu thật',
             ], color: PdfColors.green50),
@@ -583,7 +583,7 @@ void main() async {
         ],
       ),
       pw.Text(
-        'Bản rules 04/11 đã deploy; bản siết 10/11 mới kiểm thử emulator — cần deploy lại cùng Hosting (G-09).',
+        'Rules siết 10/11 đã deploy live (logic khớp repo, G-09 đóng); Hosting live (G-01).',
         style: t(8.5, color: PdfColors.brown900),
       ),
     ]),
@@ -692,7 +692,7 @@ void main() async {
         [
           ['flutter analyze', '0 issue', 'Toàn repo'],
           ['flutter test', '159/159 pass', 'Hermetic'],
-          ['Rules emulator', '15/15 pass', 'Allow + deny theo vai trò'],
+          ['Rules emulator', '17/17 pass', 'Allow + deny theo vai trò'],
           ['Web Node', '14/14 pass', 'Parser + API'],
           ['ARTEMIS', '10 ca × 3 lượt', 'Giả lập; TC_14 fail'],
           ['AI model', '3 valid + 1 lỗi', 'evidence/ai'],

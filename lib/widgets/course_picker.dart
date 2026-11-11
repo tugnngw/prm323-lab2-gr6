@@ -200,7 +200,7 @@ class _CoursePickerDialogState extends State<_CoursePickerDialog> {
                             child: Text(
                               course.semester.toString(),
                               style: const TextStyle(
-                                fontSize: 11,
+                                fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.primary,
                               ),

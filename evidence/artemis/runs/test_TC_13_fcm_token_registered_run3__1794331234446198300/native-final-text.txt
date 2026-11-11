@@ -1,0 +1,40 @@
+StudyPilot
+ Trung tâm thông báo
+ Đồng bộ Vault
+ Đăng xuất
+ 
+ 
+ Chào haduong2222222 👋
+ 
+ Học tập hiệu quả, kể cả khi ngoại tuyến.
+ 
+ 
+ 
+ Firebase Cloud & Offline Vault
+Đồng bộ Firestore và xuất tài liệu lên Storage.
+ 
+ Truy cập nhanh
+ 
+ 
+ 
+ Ngành học & Dữ liệu học tập
+Xem ngành đang học và nhập bảng điểm để tính GPA.
+ 
+ 
+ 
+ Mô phỏng GPA
+Thử kịch bản điểm — sandbox, không lưu và không sửa bảng điểm thật.
+ 
+ 
+ 
+ Lộ trình môn học
+Xem danh mục môn và kiểm tra môn tiên quyết.
+ 
+ Trang chủ
+Tab 1 of 4
+ Lộ trình
+Tab 2 of 4
+ Việc cần làm
+Tab 3 of 4
+ Ghi chú
+Tab 4 of 4

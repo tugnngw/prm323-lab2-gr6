@@ -46,6 +46,31 @@ void main() {
       expect(vm.notifications.first.title, 'Deadline Lab 3');
     });
 
+    test('staff review message reaches the inbox without a reload', () async {
+      final firestore = FakeFirestoreService();
+      final vm = NotificationsViewModel(
+        authService: MockAuthService(initialUserId: 'u_1'),
+        firestoreService: firestore,
+      );
+      await vm.loadData();
+      expect(vm.notifications, isEmpty);
+
+      await firestore.saveNotification('u_1', {
+        'title': 'Bí kíp đã được duyệt',
+        'body': 'PRM393 — đã được duyệt. Lý do: Nội dung hữu ích',
+        'type': 'tip_review',
+        'read': false,
+        'route': '/my-tips',
+        'recipientId': 'u_1',
+        'actorId': 'staff',
+      }, notificationId: 'review_note-1');
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      expect(vm.notifications.single.type, 'tip_review');
+      expect(vm.notifications.single.title, 'Bí kíp đã được duyệt');
+      expect(vm.unreadCount, 1);
+    });
+
     test('foreground push persists to Firestore and appears in the list',
         () async {
       final firestore = FakeFirestoreService();

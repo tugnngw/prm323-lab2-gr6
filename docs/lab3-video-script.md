@@ -1,22 +1,19 @@
-# Kịch bản demo Lab 3 trên điện thoại thật
+# Kịch bản video demo Final — StudyPilot (GR6)
 
-Thời lượng mục tiêu 7 phút 55 giây. Chuẩn bị Android có Google Play Services, APK đúng Firebase project, tài khoản FPT demo, web admin chạy trên máy chấm và kết nối mạng. Bật ADB reverse và chạy Media API trước khi quay Cloudinary và Gemini.
+Thời lượng mục tiêu **8–12 phút** (kịch bản dưới khoảng 10 phút). Quay song song màn hình điện thoại thật và trình duyệt web để thấy dữ liệu cập nhật realtime. Chuẩn bị: APK đúng Firebase project `prm323-lab2-gr6`, tài khoản Google demo cho `user` và `staff`, web admin tại <https://prm323-lab2-gr6.web.app/>, điện thoại bật ADB (serial thật) và ARTEMIS đã cấu hình.
 
 | Cảnh | Thời lượng | Hành động và lời giải thích |
 |---|---:|---|
-| Mở đầu | 0:20 | Giới thiệu FPTU Second Brain, model điện thoại và Android version. |
-| Auth | 0:35 | Đăng nhập bằng tài khoản FPT demo. Giải thích UID từ Firebase Auth và Firestore Rules theo chủ tài khoản. |
-| Bắt đầu test crash | 0:45 | Web admin ghi số event hiện tại. Trong Sync Vault, bấm Gây test crash rồi mở app lại. SDK gửi báo cáo ở lần mở lại, Firebase xử lý bất đồng bộ. |
-| Lộ trình | 0:35 | Tìm PRM323, mở ba tab và kiểm tra dữ liệu thực. Giải thích lịch và đầu điểm chưa có thì app hiển thị trạng thái trống. |
-| Công việc và ghi chú | 0:50 | Tạo dữ liệu thử, hoàn thành task và bấm Hoàn tác. Mở ghi chú và giới thiệu cache Firestore. Chỉ nói đã thử offline nếu có kết quả thực. |
-| FCM | 0:55 | Mở code gửi trên server, chạy bằng UID tài khoản demo. Thử mở banner khi foreground, chạm notification khi background/cold start. Giải thích registration token và OAuth server. |
-| PDF | 0:50 | Mở hộp xác nhận, hủy một lần, đồng ý lần sau. Quay upload, metadata Firestore và tải lại từ Lịch sử báo cáo. |
-| Gemini | 0:30 | Mở Cố vấn, hỏi PRM323 có bao nhiêu tín chỉ, xác nhận gửi. Chỉ câu trả lời Gemini và phần đối chiếu trên thiết bị. |
-| Remote Config | 0:35 | Cho thấy giá trị 30 trong app và bằng chứng 31 → 30 cùng APK. Demo đổi live chỉ khi đã chuẩn bị cấu hình thử riêng. |
-| Web admin và Analytics | 0:55 | Tải lại dashboard web và chỉ nhóm crash vừa cập nhật nếu đã nhận. Dev mở Firebase Console để đối chiếu. Mở DebugView xem event và tham số có evidence. |
-| ARTEMIS và review | 0:40 | Chiếu report chạy máy thật khi có. Nêu kết quả theo số lượt thực, chỉ các finding và thay đổi đã xác minh. |
-| Kết | 0:25 | Chỉ README, evidence và các giới hạn còn lại. |
+| Mở đầu | 0:30 | Giới thiệu StudyPilot, nhóm GR6, hai client dùng chung một backend Firestore. Nêu cấu trúc repo: `lib/` mobile, `admin-web/` web, `packages/core/`, `firebase/`, `e2e_test/`. |
+| Mobile — luồng Lab 2 | 1:30 | Đăng nhập Google, trang chủ, lộ trình, tìm môn, chi tiết môn 3 tab, việc cần làm + Hoàn tác, ghi chú + tệp đính kèm. Dữ liệu môn lấy từ Firestore, không mock. |
+| Mobile — Vault, PDF, AI | 1:00 | Sync Vault, xuất PDF và upload Cloudinary (consent trước khi upload), mở Cố vấn AI. Chỉ nêu kết quả có trên màn hình. |
+| Hòm thư realtime | 0:40 | Mở **Hòm thư / Thông báo hệ thống**; để nguyên màn hình khi web đăng thông báo ở cảnh sau để thấy tin nhắn xuất hiện không cần reload. |
+| Web — đăng nhập và phân quyền | 1:00 | Mở URL Hosting, đăng nhập Google bằng tài khoản staff. Thử một tài khoản không phải staff/admin để thấy thông báo từ chối. |
+| Web — quản lý dữ liệu | 1:00 | Tìm kiếm, tạo mới, sửa và lưu trữ một ngành/môn; mở mobile kiểm tra dữ liệu vừa đổi. |
+| **Cross-role hai màn song song** | 2:00 | Mobile: gửi bí kíp (trạng thái *Chờ duyệt*). Web: mở **Duyệt yêu cầu**, thấy bản ghi pending, nhập lý do và bấm **Duyệt**. Mobile: trạng thái đổi ngay **không reload** và Hòm thư nhận tin nhắn `tip_review` kèm lý do. Lặp lại một lần với **Từ chối** nếu còn thời lượng. |
+| Web — dashboard và form thông báo | 1:00 | Chỉ 3 số liệu aggregation (tổng sinh viên, bí kíp chờ duyệt, bí kíp đã duyệt, ngành) và biểu đồ trạng thái. Soạn thông báo → mobile Hòm thư nhận realtime. |
+| AI Level 2 + Remote Config | 1:00 | Mở gợi ý kế hoạch học tập: JSON có cấu trúc được parse thành model, người dùng sửa rồi mới dùng. Mở Firebase Console tắt cờ `study_plan_ai_enabled` → tải lại app, nút AI tự ẩn và form nhập tay vẫn hoạt động, không sửa code. |
+| Rules + ARTEMIS trên máy thật | 1:00 | Chạy `npm run test:emulator` (17/17) và chiếu điện thoại thật đang chạy ARTEMIS. Nêu kết quả từng lượt trong `evidence/artemis/`. |
+| Kết | 0:20 | Chỉ README, `docs/`, `report/Final_GR6.pdf`, `slides/`, bằng chứng và link video. |
 
-Dùng cảnh quay điện thoại thật lúc chấm. Che email, UID, token và credential trong hình. Lấy kết quả crash trước/sau cùng khoảng lọc trên web admin. Nếu chưa thấy crash mới khi hết thời lượng, ghi nhận đang chờ và đối chiếu kết quả sau. Video chưa được quay khi chưa có thiết bị thật.
-
-Xem [cách chạy web và lệnh FCM](../admin-web/README.md) và [ghi chú trả lời khi chấm](lab3-oral-defense.md).
+Che email, UID, token và credential trong hình. Không nói "đã chạy" cho cảnh chưa quay được; cảnh nào chưa có kết quả thì bỏ khỏi video thay vì suy diễn. Xem thêm [cách chạy web](../admin-web/README.md) và [ghi chú trả lời khi chấm](lab3-oral-defense.md).

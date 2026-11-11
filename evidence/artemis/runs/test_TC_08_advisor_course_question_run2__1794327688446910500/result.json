@@ -1,0 +1,11 @@
+{
+  "case": "test_TC_08_advisor_course_question[run2]",
+  "trace_id": "19d60e55-7719-4661-ade0-2a21ce3d12ea",
+  "device": "GQDIV8HUPJWK79XC",
+  "started_at": "2026-11-10T16:21:36.112680+00:00",
+  "instruction": "From Home open Cố vấn học tập. Choose Môn học, ask 'Tư vấn môn PRM323', accept the question consent if shown. Wait for the real reply and report its exact text; it must ground credits/prerequisites in Firebase and disclose missing personal data.",
+  "status": "failed",
+  "error": null,
+  "output": null,
+  "duration_seconds": 215.781
+}

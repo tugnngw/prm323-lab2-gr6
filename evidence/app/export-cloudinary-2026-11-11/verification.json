@@ -1,0 +1,53 @@
+{
+  "date": "2026-11-11",
+  "device": "GQDIV8HUPJWK79XC",
+  "hardware_device_verified": true,
+  "build_flag": "REPORT_MEDIA_URL=http://127.0.0.1:8788",
+  "build_type": "debug",
+  "storage_provider": "Cloudinary",
+  "root_cause_of_previous_failure": {
+    "symptom": "[firebase_storage/object-not-found] No object exists at the desired reference.",
+    "native_log": "StorageException Code: -13010 HttpResult: 404 at UploadTask.beginResumableUpload",
+    "reason": "Bucket prm323-lab2-gr6.firebasestorage.app does not exist; Firebase console states 'Storage requires a billing account (Blaze)' while the project is on Spark.",
+    "evidence": "evidence/artemis/logs/TC-10-manual-repro-2026-11-11.log",
+    "resolution": "Cloudinary via admin-web Media API (deviation D-02, instructor-approved). No billing change made."
+  },
+  "cloud_upload": {
+    "consent_before_upload": true,
+    "consent_provider_label": "Cloudinary",
+    "button_label": "Xuất & Tải PDF lên Cloudinary",
+    "upload_status": "success",
+    "file_name": "study_report_1794361854698.pdf",
+    "storage_path": "reports/[uid]/study_report_1794361854698.pdf",
+    "size_bytes": 37273,
+    "duration_ms": 2738,
+    "analytics_event": "export_report {status: success, file_size_kb: 37, duration_ms: 2738}",
+    "download_url": "http://127.0.0.1:8788/api/reports/[uid]/study_report_1794361854698.pdf",
+    "screenshot": "upload-success.png"
+  },
+  "firestore_metadata_read_back": {
+    "verified": true,
+    "history_entry": "study_report_1794361854698.pdf — Nov 11, 2026 · Cloudinary",
+    "screenshot": "report-history.png"
+  },
+  "cloud_download_round_trip": {
+    "verified": true,
+    "action": "Tải lại PDF từ cloud",
+    "result": "PDF bytes fetched through Media API and handed to the Android system share sheet"
+  },
+  "local_pdf_branch": {
+    "verified": true,
+    "size_kb": 36.4,
+    "analytics_event": "export_report_local {file_size_kb: 37, course_count: 88, task_count: 0, note_count: 0}"
+  },
+  "media_api": {
+    "entry_point": "admin-web/media-server.mjs (npm run start:media)",
+    "bind": "127.0.0.1:8788",
+    "device_transport": "adb reverse tcp:8788 tcp:8788",
+    "unauthenticated_probe": "HTTP 401 {\"error\":\"Cần đăng nhập trong app.\"}",
+    "auth": "Firebase ID token verified server-side; Cloudinary assets stored as type=authenticated",
+    "credentials_location": "admin-web/.env (gitignored, values never printed)"
+  },
+  "app_log_excerpt": "app-log-excerpt.txt",
+  "pii_redaction": "UID replaced with [uid] in JSON and covered in upload-success.png before commit."
+}

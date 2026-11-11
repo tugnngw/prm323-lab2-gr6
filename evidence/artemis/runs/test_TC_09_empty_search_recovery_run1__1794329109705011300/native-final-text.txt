@@ -1,0 +1,35 @@
+Lộ trình học tập
+ Tải lại ngành & môn học
+ Hỏi cố vấn học tập
+ 
+ 
+ BIT_SE_K19B
+ The Bachelor Program of Information Technology, Software Engineering Major (BIT_SE_K19B) · 88 môn · Kỳ 5: 13 môn
+ 
+ Kiểm tra môn tiên quyết
+ Kỳ 1
+ Kỳ 2
+ 
+ 
+ 
+ 
+ 100, ECI101
+Introduction to Electronic Components and Circuits
+Kỳ 5 · 3 tín chỉ · Slot 60/60 (100%)
+Tự chọn: SE_COM*1
+ 
+ 
+ 100, FER202
+Front-End web development with React
+Kỳ 5 · 3 tín chỉ · Slot 60/60 (100%)
+Tự chọn: SE_COM*1
+Chưa đủ điều kiện: Cần học trước WED201c
+ 
+ Trang chủ
+Tab 1 of 4
+ Lộ trình
+Tab 2 of 4
+ Việc cần làm
+Tab 3 of 4
+ Ghi chú
+Tab 4 of 4

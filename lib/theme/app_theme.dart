@@ -63,7 +63,7 @@ abstract final class AppTheme {
       ),
       navigationBarTheme: const NavigationBarThemeData(
         height: 80,
-        labelTextStyle: WidgetStatePropertyAll(TextStyle(fontSize: 12)),
+        labelTextStyle: WidgetStatePropertyAll(TextStyle(fontSize: 14)),
       ),
     );
   }

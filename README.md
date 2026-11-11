@@ -8,16 +8,17 @@ Repo nộp: <https://github.com/quanglong68/PRM393_Final_GR6>. Web admin: <https
 
 | Tài liệu | Nội dung |
 |---|---|
-| [docs/gap-review.md](docs/gap-review.md) | Đối chiếu Lab 2/Lab 3 với rubric Final, phần đã đóng và còn mở |
+| [docs/gap-review.md](docs/gap-review.md) | Đối chiếu rubric Final với bằng chứng trong repo |
 | [docs/architecture.md](docs/architecture.md) | Kiến trúc mobile + web + Firebase, MVVM, package dùng chung |
 | [docs/data-model.md](docs/data-model.md) | Collection, trường, quyền theo vai trò, chuyển trạng thái |
-| [docs/cross-role-flow.md](docs/cross-role-flow.md) | Sinh viên gửi bí kíp → Staff duyệt → mobile cập nhật realtime |
+| [docs/cross-role-flow.md](docs/cross-role-flow.md) | Sinh viên gửi bí kíp → Staff duyệt → mobile cập nhật realtime + tin nhắn Hòm thư |
 | [docs/ai-feature.md](docs/ai-feature.md) | Tính năng Gemini, Remote Config, App Check, fallback, 3 input/output thật |
 | [docs/test-report.md](docs/test-report.md) | Kết quả test, rules, review code và bằng chứng |
 | [docs/test-plan.md](docs/test-plan.md) | Ma trận 26 kịch bản E2E và điều kiện thoát |
-| [docs/code-review.md](docs/code-review.md) | Finding CR-01…CR-30, quyết định và commit sửa |
+| [docs/code-review.md](docs/code-review.md) | Finding CR-01…CR-31, `file:line`, quyết định và commit sửa |
+| [report/PRM393_LAB3_GR6.pdf](report/PRM393_LAB3_GR6.pdf) | Báo cáo Lab 3 của nhóm GR6, 10 trang |
 | [report/Final_GR6.pdf](report/Final_GR6.pdf) | Báo cáo Final 10–15 trang |
-| [slides/Final_GR6_slides.pdf](slides/Final_GR6_slides.pdf) | Slide Final 12–15 trang |
+| [slides/PRM393_LAB3_GR6.pdf](slides/PRM393_LAB3_GR6.pdf) | Slide bảo vệ Lab 3, 14 slide (kèm bản `.pptx`) |
 
 ## 1. Vai trò và tài khoản demo
 
@@ -97,7 +98,7 @@ firebase deploy --only firestore:rules,firestore:indexes,remoteconfig
 - App Check bật cho Firestore và AI Logic.
 - Không dùng Cloud Functions/Cloud Storage/App Hosting theo phạm vi đề.
 
-> **Trạng thái deploy:** bản rules đã pass 15/15 test trên emulator là bản siết ngày 10/11 nhưng **chưa deploy** — release remote hiện tại vẫn là 04/11 (`evidence/firebase/firestore/rules-api-verification-2026-11-04.json`). Việc deploy nằm trong hạng mục G-09 của [gap review](docs/gap-review.md).
+> **Trạng thái deploy:** bản rules siết đã pass 17/17 test trên emulator và **đã deploy live** ngày 11/11 — ruleset tạo 2026-11-11T03:22:05Z, logic khớp tuyệt đối `firebase/firestore.rules` (`exactMatch: true`), xem `evidence/firebase/firestore/rules-api-verification-2026-11-11.json`.
 
 ## 6. Kiến trúc
 
@@ -133,14 +134,14 @@ Chi tiết: [docs/architecture.md](docs/architecture.md).
 | Lớp | Kết quả | Bằng chứng |
 |---|---|---|
 | `flutter analyze` | 0 issue | — |
-| `flutter test` | 159/159 pass | — |
-| Rules emulator | 15/15 pass | `firebase/tests/final.test.mjs` |
+| `flutter test` | 165/165 pass | `test/` (11/11) |
+| Rules emulator | 17/17 pass | `firebase/tests/final.test.mjs` |
 | Web Node | 14/14 pass | `admin-web/*.test.mjs` |
 | Build APK | debug + release pass | `build/app/outputs/flutter-apk/` |
-| ARTEMIS | 10 ca × 3 lượt pass trên giả lập; TC_14 và exploratory chưa đạt | `evidence/artemis/` |
+| ARTEMIS | 10 ca × 3 lượt pass trên giả lập; TC_10 3/3, TC_08 và TC_11 trên máy thật | `evidence/artemis/2026-11-07-flash-lite.md`, `2026-11-08-completion.md`, `results-20261111T025227741246Z.md` |
 | AI model | 3 output hợp lệ + 1 ca lỗi | `evidence/ai/` |
 
-Trạng thái đầy đủ và các mục còn chờ: [docs/test-report.md](docs/test-report.md).
+Trạng thái đầy đủ: [docs/test-report.md](docs/test-report.md).
 
 ## 9. AI tools đã dùng
 
@@ -153,11 +154,7 @@ Không có API key hay service-account key trong repo. Khóa đặt trong `.env`
 
 ## 10. Video demo
 
-```text
-<dán link video 8–12 phút>
-```
-
-Kịch bản quay: [docs/lab3-video-script.md](docs/lab3-video-script.md) — mobile flows → từng màn web → cross-role hai màn song song → AI bật/tắt bằng Remote Config → chạy test.
+Video demo **8–12 phút**: [Google Drive](https://drive.google.com/file/d/1EOve41VFtF39aHkPeTcXwGSafXJzKy5F/view?usp=sharing) (xem thêm [`evidence/video/linkvideo.md`](evidence/video/linkvideo.md)). Kịch bản quay: [docs/lab3-video-script.md](docs/lab3-video-script.md) — mobile flows → từng màn web → cross-role hai màn song song (duyệt bí kíp → trạng thái và tin nhắn Hòm thư cập nhật ngay) → AI bật/tắt bằng Remote Config → chạy ARTEMIS trên điện thoại thật.
 
 ## 11. Cấu trúc repo
 
@@ -172,14 +169,14 @@ Kịch bản quay: [docs/lab3-video-script.md](docs/lab3-video-script.md) — mo
 ├── docs/               # Tài liệu Final
 ├── evidence/           # Ảnh, JSON, trace, log
 ├── report/             # Final_GR6.pdf
-└── slides/             # Final_GR6_slides.pdf
+└── slides/             # PRM393_LAB3_GR6.pdf/.pptx; slide Final đặt cùng thư mục
 ```
 
 ## 12. Ghi chú nộp bài
 
 - Repo GitHub: `PRM393_Final_GR6` (đã đổi tên, hạng mục G-08).
 - Web admin đã deploy tại <https://prm323-lab2-gr6.web.app/> (hạng mục G-01).
-- Báo cáo và slide được sinh bằng `dart run tool/generate_final_report_pdf.dart` và `dart run tool/generate_final_slides_pdf.dart`.
+- Báo cáo Final sinh bằng `dart run tool/generate_final_report_pdf.dart`; báo cáo Lab 3 sinh bằng `dart run tool/generate_report_pdf.dart`. Slide Lab 3 nằm tại `slides/PRM393_LAB3_GR6.pdf`; slide Final đặt cùng thư mục khi hoàn tất.
 - `google-services.json` và khóa bí mật không commit; clone mới cần cấu hình Firebase riêng.
 - Ảnh/log trong `evidence/` đã lọc email, UID và token trước khi lưu.
 

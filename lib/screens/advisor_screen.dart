@@ -526,10 +526,9 @@ class _MessageBubble extends StatelessWidget {
                       icon: const Icon(Icons.copy_outlined, size: 16),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(
-                        minWidth: 30,
-                        minHeight: 30,
+                        minWidth: 48,
+                        minHeight: 48,
                       ),
-                      visualDensity: VisualDensity.compact,
                       tooltip: 'Sao chép',
                       onPressed: () {
                         Clipboard.setData(ClipboardData(text: message.text));
@@ -545,10 +544,9 @@ class _MessageBubble extends StatelessWidget {
                       icon: const Icon(Icons.edit_note_outlined, size: 18),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(
-                        minWidth: 30,
-                        minHeight: 30,
+                        minWidth: 48,
+                        minHeight: 48,
                       ),
-                      visualDensity: VisualDensity.compact,
                       tooltip: 'Tạo ghi chú từ tư vấn này',
                       onPressed: () {
                         Navigator.pushNamed(
@@ -613,7 +611,7 @@ class _MessageBubble extends StatelessWidget {
         listBullet: const TextStyle(color: AppColors.onSurface, fontSize: 14),
         blockquote: const TextStyle(
           color: AppColors.onSurfaceVariant,
-          fontSize: 13,
+          fontSize: 14,
           height: 1.4,
         ),
         blockquoteDecoration: BoxDecoration(

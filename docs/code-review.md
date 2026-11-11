@@ -2,36 +2,37 @@
 
 Tài liệu ghi lại các vòng review thực tế trên mã nguồn, quyết định xử lý và commit sửa. Review do AI hỗ trợ (Codex ở các vòng trước, Qoder ở vòng 10/11/2026), thực hiện trên working tree và lịch sử Git của nhánh `main`. Không có reviewer bên ngoài hay PR review độc lập; báo cáo không giả lập kết quả đó.
 
-## 1. Vòng review 10/11/2026 (bàn giao Lab 3 + Final)
+## 1. Vòng review 10–11/11/2026 (bàn giao Lab 3 + Final)
 
-Phạm vi: toàn bộ thay đổi so với baseline `aebf28a`, tập trung vào tuân thủ MVVM, toàn vẹn dữ liệu, bảo mật rules và trạng thái lỗi của web.
+Phạm vi: toàn bộ thay đổi so với baseline `aebf28a`, tập trung vào tuân thủ MVVM, toàn vẹn dữ liệu, bảo mật rules và trạng thái lỗi của web. Cột **Vị trí** trỏ tới code hiện tại (đã sửa) để đối chiếu nhanh; số dòng đo trên cây làm việc ngày 11/11/2026.
 
-| ID | Mức | Phát hiện | Quyết định | Sửa và kiểm chứng | Commit |
-|---|---|---|---|---|---|
-| CR-15 | High | `AdvisorViewModel` import trực tiếp `cloud_firestore`, `firebase_ai`, `firebase_core` và tự dựng Firestore/Gemini; ViewModel phụ thuộc SDK, vi phạm kiến trúc. | Accepted | Tách `AiService`/`GeminiAiService`; inject `AiService` + `FinalFirestore` qua Provider. `flutter analyze` sạch, 159 test pass. | `bd4c989` |
-| CR-16 | High | Role gate trong `main.dart` đọc role bằng SDK Firestore ngay trong widget, không đi qua service layer. | Accepted | Thêm `FirestoreService.watchUserRole` và stream trong `_MobileRoleGate`; fake service trong test cập nhật theo. | `bd4c989` |
-| CR-17 | High | `main()` await App Check/Crashlytics/Remote Config; một dịch vụ lỗi có thể chặn toàn bộ app dù không bắt buộc. | Accepted | Cô lập từng bước trong `try/catch`, log và tiếp tục; lỗi Firebase cốt lõi vẫn dẫn tới màn hình cấu hình. | `bd4c989` |
-| CR-18 | High | Sync Vault viết task "Connectivity check" để thử Firestore nhưng không xoá, để lại dữ liệu giả trong tài khoản thật. | Accepted | Ghi marker có timestamp, đọc lại, xoá đúng các bản ghi vừa tạo; không đụng task khác. | `f2b2cb0` |
-| CR-19 | Medium | Màn Thông báo chỉ có `StreamBuilder` thô, thiếu nhánh loading/empty/error và không thử lại được. | Accepted | Thêm `AnnouncementsViewModel` + 4 trạng thái chuẩn, có nút thử lại. | `f2b2cb0` |
-| CR-20 | High | Rules cho phép hồ sơ tự khai trường `admin`, không giới hạn kích thước; audit log nhận mọi trường nên có thể giả bản ghi đặc quyền. | Accepted | Chặn `admin != false`, giới hạn 40 trường; audit log chỉ `userId/action/createdAt`, action 1–100 ký tự. | `e5256c1` |
-| CR-21 | Medium | Bốn listener web khi lỗi chỉ log console, màn hình trắng không có cách phục hồi; thiếu telemetry/App Check. | Accepted | Banner lỗi + nút thử lại từng màn; thêm Analytics/Remote Config/App Check scaffolding và event nghiệp vụ. | `c9b9985` |
-| CR-22 | Medium | Remote Config template chỉ có 4 tham số trong khi app đọc 9, dễ deploy thiếu cờ AI. | Accepted | Template và defaults khớp đủ 9 tham số. | `e5256c1` |
-| CR-23 | Medium | E2E còn test từ chối email ngoài `@fpt.edu.vn`, trong khi quy tắc đó đã bị bỏ; test sẽ fail giả. | Accepted | Thay bằng case huỷ Google picker, kiểm tra thông điệp và trạng thái đăng xuất. | `bd4c989` |
-| CR-24 | Low | Tài liệu `design-traceability`, `architecture`, `analytics-plan`, `test-plan` lệch code (tên dự án, số màn hình, event, đầu mối test). | Accepted | Viết lại theo code và kết quả chạy thật. | commit tài liệu |
-| CR-25 | Low | Gói dùng chung và app còn tên cũ "Second Brain/FPTU", không thống nhất thương hiệu. | Accepted | Đổi thành `study_pilot_core` / StudyPilot; giữ nguyên `applicationId` để không phá Firebase binding. | `bd4c989` |
-| CR-26 | Medium | Fixture rules test của `experience_notes` thiếu `title` dù UI và rules bắt buộc, khiến test đỏ dù sản phẩm đúng. | Accepted | Thêm `title` hợp lệ vào fixture; chạy emulator 15/15 pass. | `e5256c1` |
-| CR-28 | Medium | `study_plan_screen` ghi `ai_request`/`ai_error`/`ai_result_accepted` bằng `logEvent` thô, thiếu tham số `feature`. | Accepted | Dùng `logAiRequest`/`logAiError`/`logAiResultAccepted` với `feature: 'study_plan'` và model từ Remote Config. | `4142399` |
-| CR-29 | Low | Chưa có test tự động cho `AnnouncementsViewModel` sau khi thêm. | Accepted | ViewModel nhận hàm `watchAnnouncements`; test phủ loading/empty/data/error/retry. Tổng 159 test. | `4142399` |
-| CR-30 | Low | Cần xác nhận `e2e_test/uv.lock` pin đúng ARTEMIS. | Resolved | `pyproject.toml` và `uv.lock` cùng ghim commit `351ca8422f7b5b54e80a9c1ce03a222e02415b6b`. | — |
+| ID | Mức | Vị trí (file:line) | Phát hiện | Quyết định | Sửa và kiểm chứng | Commit |
+|---|---|---|---|---|---|---|
+| CR-15 | High | `lib/services/ai_service.dart:10,28`; `lib/viewmodels/advisor_viewmodel.dart:192` | `AdvisorViewModel` import trực tiếp `cloud_firestore`, `firebase_ai`, `firebase_core` và tự dựng Firestore/Gemini; ViewModel phụ thuộc SDK, vi phạm kiến trúc. | Accepted | Tách `AiService`/`GeminiAiService`; inject `AiService` + `FinalFirestore` qua Provider. `flutter analyze` sạch. | `bd4c989` |
+| CR-16 | High | `lib/main.dart:565`; `lib/services/firestore_service.dart:23` | Role gate trong `main.dart` đọc role bằng SDK Firestore ngay trong widget, không đi qua service layer. | Accepted | Thêm `FirestoreService.watchUserRole` và stream trong `_MobileRoleGate`; fake service trong test cập nhật theo. | `bd4c989` |
+| CR-17 | High | `lib/main.dart:78-97` | `main()` await App Check/Crashlytics/Remote Config; một dịch vụ lỗi có thể chặn toàn bộ app dù không bắt buộc. | Accepted | Cô lập từng bước trong `try/catch`, log và tiếp tục; lỗi Firebase cốt lõi vẫn dẫn tới màn hình cấu hình. | `bd4c989` |
+| CR-18 | High | `lib/screens/sync_vault_screen.dart:72-88` | Sync Vault viết task "Connectivity check" để thử Firestore nhưng không xoá, để lại dữ liệu giả trong tài khoản thật. | Accepted | Ghi marker có timestamp, đọc lại, xoá đúng các bản ghi vừa tạo; không đụng task khác. | `f2b2cb0` |
+| CR-19 | Medium | `lib/viewmodels/announcements_viewmodel.dart:11` | Màn Thông báo chỉ có `StreamBuilder` thô, thiếu nhánh loading/empty/error và không thử lại được. | Accepted | Thêm `AnnouncementsViewModel` + 4 trạng thái chuẩn, có nút thử lại. | `f2b2cb0` |
+| CR-20 | High | `firebase/firestore.rules:101-102` | Rules cho phép hồ sơ tự khai trường `admin`, không giới hạn kích thước; audit log nhận mọi trường nên có thể giả bản ghi đặc quyền. | Accepted | Chặn `admin != false`, giới hạn 40 trường; audit log chỉ `userId/action/createdAt`, action 1–100 ký tự. | `e5256c1` |
+| CR-21 | Medium | `admin-web/app.js:592-603` | Bốn listener web khi lỗi chỉ log console, màn hình trắng không có cách phục hồi; thiếu telemetry/App Check. | Accepted | Banner lỗi + nút thử lại từng màn; thêm Analytics/Remote Config/App Check scaffolding và event nghiệp vụ. | `c9b9985` |
+| CR-22 | Medium | `lib/services/remote_config_service.dart:60`; `firebase/remote-config-evidence-template.json` | Remote Config template chỉ có 4 tham số trong khi app đọc 9, dễ deploy thiếu cờ AI. | Accepted | Template và defaults khớp đủ 9 tham số. | `e5256c1` |
+| CR-23 | Medium | `e2e_test/test_instrumentation_errors.py:11-14` | E2E còn test từ chối email ngoài `@fpt.edu.vn`, trong khi quy tắc đó đã bị bỏ; test sẽ fail giả. | Accepted | Thay bằng case huỷ Google picker, kiểm tra thông điệp và trạng thái đăng xuất. | `bd4c989` |
+| CR-24 | Low | `docs/design-traceability.md`, `docs/architecture.md`, `docs/analytics-plan.md`, `docs/test-plan.md` | Tài liệu lệch code (tên dự án, số màn hình, event, đầu mối test). | Accepted | Viết lại theo code và kết quả chạy thật. | commit tài liệu |
+| CR-25 | Low | `packages/core/pubspec.yaml:1` | Gói dùng chung và app còn tên cũ "Second Brain/FPTU", không thống nhất thương hiệu. | Accepted | Đổi thành `study_pilot_core` / StudyPilot; giữ nguyên `applicationId` để không phá Firebase binding. | `bd4c989` |
+| CR-26 | Medium | `firebase/tests/final.test.mjs:236` | Fixture rules test của `experience_notes` thiếu `title` dù UI và rules bắt buộc, khiến test đỏ dù sản phẩm đúng. | Accepted | Thêm `title` hợp lệ vào fixture; chạy emulator 16/16 pass. | `e5256c1` |
+| CR-28 | Medium | `lib/screens/study_plan_screen.dart:55,81,164` | `study_plan_screen` ghi `ai_request`/`ai_error`/`ai_result_accepted` bằng `logEvent` thô, thiếu tham số `feature`. | Accepted | Dùng `logAiRequest`/`logAiError`/`logAiResultAccepted` với `feature: 'study_plan'` và model từ Remote Config. | `4142399` |
+| CR-29 | Low | `test/viewmodels/announcements_viewmodel_test.dart:9` | Chưa có test tự động cho `AnnouncementsViewModel` sau khi thêm. | Accepted | ViewModel nhận hàm `watchAnnouncements`; test phủ loading/empty/data/error/retry. | `4142399` |
+| CR-30 | Low | `e2e_test/pyproject.toml:7`; `e2e_test/uv.lock:17` | Cần xác nhận `e2e_test/uv.lock` pin đúng ARTEMIS. | Resolved | `pyproject.toml` và `uv.lock` cùng ghim commit `351ca8422f7b5b54e80a9c1ce03a222e02415b6b`. | — |
+| CR-31 | High | `lib/services/report_export_service.dart:187-222`; `lib/screens/sync_vault_screen.dart:972-977` | Luồng xuất PDF await `saveReportMetadata` không có giới hạn thời gian; khi DNS/mạng hỏng, Future của Firestore không bao giờ hoàn tất nên UI đứng ở "Đang tải lên… 100%" dù file đã lên Cloudinary. | Accepted | Bọc `.timeout(12s)`; trả `metadataSynced=false` và hiện cảnh báo hàng đợi thay vì treo; thêm unit test với `Completer` chưa hoàn tất. `flutter analyze` sạch, 165/165 test pass. | working tree 11/11 |
 
 ### Kiểm chứng sau sửa
 
 | Kiểm tra | Kết quả |
 |---|---|
 | `flutter analyze` | No issues found |
-| `flutter test` | 159/159 pass |
+| `flutter test` | 165/165 pass (11/11/2026) |
 | `flutter build apk --debug` / `--release` | Thành công |
-| Rules emulator (`firebase emulators:exec`) | 15/15 pass |
+| Rules emulator (`firebase emulators:exec`) | 17/17 pass |
 | `node --test admin-web` | 14/14 pass |
 | `node --check admin-web/app.js` | Pass |
 

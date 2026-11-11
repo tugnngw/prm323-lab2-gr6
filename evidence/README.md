@@ -1,3 +1,5 @@
+> **Bổ sung 11/11/2026.** Luồng xuất PDF + upload Cloudinary đã tái hiện và xác minh trên máy thật; nguyên nhân lỗi cũ là Firebase Storage 404 do gói Spark. Xem mục "Bằng chứng đã xác minh" bên dưới.
+>
 > **Bổ sung 05/11/2026.** [Web admin đọc Crashlytics](firebase/crashlytics/admin-web-live-2026-11-05.json), [FCM server validate_only](firebase/fcm/server-http-v1-validation-2026-11-05.json), [ARTEMIS TC_11 trên giả lập](artemis/results-20261105T103204181722Z.md). Firebase giữ gói Spark. Cloudinary Free đã được kiểm tra trên giả lập. Lượt chấm trên điện thoại thật còn lại.
 
 # Evidence — PRM393 Lab 3
@@ -17,7 +19,15 @@
 - [Lượt chạy ARTEMIS tìm môn, kết quả từng trace và lỗi quota](artemis/2026-11-05-search-run.md)
 - [ARTEMIS TC_11 pass 3/3 lượt ngày 07/11](artemis/2026-11-07-regression.md)
 - [Web deploy live, trang đăng nhập](firebase/auth/web-deploy-signin-2026-11-10.png) — `https://prm323-lab2-gr6.web.app/`, kiểm tra 10/11.
+- [Remote Config bản live Version 3, 9 tham số — ảnh 1](firebase/remote-config/console-params-2026-11-10.png) và [ảnh 2](firebase/remote-config/console-params-2-2026-11-10.png) — publish từ `firebase/remote-config-template.json`.
+- [App Check — tab APIs](firebase/app-check-console-2026-11-10.png) và [tab Apps sau khi đổi tên StudyPilot](firebase/app-check-apps-2026-11-10.png).
+- [Crashlytics dashboard sau đổi tên](firebase/crashlytics/dashboard-2026-11-10.png) và [danh sách issue](firebase/crashlytics/issues-2026-11-10.png) — hai lỗi `reason`/`_StreamImpl.listen` được sửa cùng ngày.
+- [Analytics DebugView trên Console](firebase/analytics/debugview-console-2026-11-10.png) — chụp lúc chưa có event debug.
 - [Tổng hợp 10 ca ARTEMIS và phiên exploratory 08/11](artemis/2026-11-08-completion.md)
+- [Xuất PDF và upload Cloudinary trên máy thật 11/11](app/export-cloudinary-2026-11-11/verification.json) — consent trước upload, 37.273 byte, Firestore ghi metadata, tải lại được; kèm [ảnh màn hình upload](app/export-cloudinary-2026-11-11/upload-success.png).
+- [Tái hiện lỗi Firebase Storage 404 trên device](artemis/logs/TC-10-manual-repro-2026-11-11.log) và [chẩn đoán batch ARTEMIS 11/11](artemis/2026-11-11-diagnosis.md) — bucket không tồn tại trên gói Spark; batch dừng vì quota Gemini free tier.
+- [AI review Qoder 11/11](code-review/qoder-review-2026-11-11.md) — phát hiện CR-31 (thiếu timeout khi ghi metadata Firestore), đối chiếu CR-15…CR-30, 164/164 test pass. Không có PR độc lập; công cụ và phạm vi được ghi rõ.
+- Batch 5 ca ARTEMIS lúc 09:52 ngày 11/11 dừng ngay ca đầu vì thiết bị rớt khỏi ADB (`adb devices` trống); chưa có lượt nào được tính, sẽ chạy lại sau khi cắm lại cáp.
 
 
 Cấu trúc theo checklist §10.1. Naming guide v5: `SCR-` (màn hình), `FLW-` (flow),
@@ -36,7 +46,7 @@ screenshot/log (guide §9.3) — che trước khi lưu.
 | `firebase/remote-config/` | before/after Console, giá trị Demo Area | TC-11, TC-X-04 |
 | `firebase/fcm/` | 3 trạng thái × (banner + center) = 6 ảnh + notifications doc | TC-13, TC-X-06 |
 | `artemis/` | `TC-*_<run>.png`, `logs/*.log` (pass rate + trace ID), `exploratory-summary.md`, `FLW-01..03` | Phase E |
-| `code-review/` | PR URL, output reviewer, ảnh findings CR-01..n + fix commits | Phase F |
+| `code-review/` | Output AI review, finding CR-xx kèm `file:line` và commit sửa | Phase F |
 | `figma/` | ảnh Figma screens + dialog đã cập nhật | checklist §1.2 |
 | `report/` | `report/Lab03_<StudentID>.pdf`, `slides/Lab03_<StudentID>_slides.pdf` (bản cuối đặt trong repo) | Phase G |
 | `video/` | link + thumbnail video 5–10′ | Phase G |

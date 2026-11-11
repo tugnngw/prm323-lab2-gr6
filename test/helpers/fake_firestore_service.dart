@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:prm393_final_gr6/services/firestore_service.dart';
 
 /// Test double implementing [FirestoreService] for hermetic unit and widget
@@ -40,6 +42,10 @@ class FakeFirestoreService implements FirestoreService {
 
   /// Returned by [getUserProfile]; null means "profile not provisioned".
   Map<String, dynamic>? userProfile;
+
+  /// When set, [saveReportMetadata] awaits it first — simulates a Firestore
+  /// write that is queued locally but never acknowledged (offline/DNS outage).
+  Completer<void>? blockReportSave;
 
   bool shouldFailTaskAdd = false;
 
@@ -234,12 +240,24 @@ class FakeFirestoreService implements FirestoreService {
     if (shouldFailReportSave) {
       throw Exception('Simulated remote saveReportMetadata failure');
     }
+    if (blockReportSave != null) {
+      await blockReportSave!.future;
+    }
     reports.add({'userId': userId, ...metadata});
   }
+
+  final StreamController<List<Map<String, dynamic>>> _notificationUpdates =
+      StreamController.broadcast();
 
   @override
   Future<List<Map<String, dynamic>>> getNotifications(String userId) async =>
       List.from(notifications);
+
+  @override
+  Stream<List<Map<String, dynamic>>> watchNotifications(String userId) async* {
+    yield List.from(notifications);
+    yield* _notificationUpdates.stream;
+  }
 
   @override
   Future<void> saveNotification(
@@ -255,6 +273,7 @@ class FakeFirestoreService implements FirestoreService {
     } else {
       notifications[index] = item;
     }
+    _notificationUpdates.add(List.from(notifications));
   }
 
   @override

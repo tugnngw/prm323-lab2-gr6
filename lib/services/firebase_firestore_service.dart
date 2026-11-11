@@ -501,6 +501,22 @@ class FirebaseFirestoreService implements FirestoreService {
   }
 
   @override
+  Stream<List<Map<String, dynamic>>> watchNotifications(String userId) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('notifications')
+        .orderBy('receivedAt', descending: true)
+        .limit(50)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => {'id': doc.id, ...doc.data()})
+              .toList(),
+        );
+  }
+
+  @override
   Future<void> saveNotification(
     String userId,
     Map<String, dynamic> data, {

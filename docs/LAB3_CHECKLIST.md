@@ -12,13 +12,13 @@
 >
 > **Quy ước trạng thái:** `[ ]` Chưa làm · `[-]` Đang làm · `[x]` Hoàn thành · `[!]` Cần xử lý lại
 >
-> **Thông tin bài:** Student ID: `[CHỜ ĐIỀN STUDENT ID]` · Repository: `PRM393_Lab03_<StudentID>` · Ngày cập nhật: `04/11/2026`
+> **Thông tin bài:** Nhóm: `GR6` · Repository: `PRM393_Final_GR6` · Ngày cập nhật: `11/11/2026`
 >
 > **Trạng thái tiến độ:**
 > - **Code:** Các tính năng chính được ghi nhận là đã triển khai; đây là chỉ số nội bộ, không phải điểm rubric.
 > - **Kiểm thử local gần nhất:** `flutter test` 89/89 pass. Analyzer đã phát hiện lỗi trong helper PDF không dùng; helper đã bị gỡ và phải chạy lại analyze/build trước khi xác nhận trạng thái mới.
 > - **Rubric chính thức:** Thang 10 điểm: Functional 2.50, Firebase 2.00, Architecture 0.75, UI/UX 0.75, ARTEMIS 1.50, AI Code Review 0.50, Slides 1.00, Video 1.00. Report là tài liệu evidence bắt buộc, không có điểm riêng. Tổng điểm chưa chốt vì thiếu runtime/reviewer evidence.
-> - Report/Slides PDF hiện có 10/15 trang; vẫn còn placeholder Student ID và ảnh runtime.
+> - Báo cáo `report/PRM393_LAB3_GR6.pdf` 10 trang; slide `slides/PRM393_LAB3_GR6.pdf` 14 slide.
 
 ---
 
@@ -49,7 +49,7 @@
 - [ ] Chốt 3 personas: năm 1, năm 3 và năm cuối/ngành khác.
 - [ ] Chốt 3 User Flow chính.
 - [ ] Liệt kê các tính năng Core dùng chung cho mọi persona.
-- [ ] Chốt Student ID, tên repository và tên package/app.
+- [x] Chốt định danh nhóm GR6, repository `PRM393_Final_GR6` và tên package/app.
 - [ ] Xác định thiết bị Android dùng để demo và test.
 
 ### 1.2. Cập nhật Figma
@@ -69,7 +69,7 @@
 
 ## 2. Khởi tạo repository và cấu trúc dự án
 
-- [ ] Tạo repository public: `PRM393_Lab03_<StudentID>`. — Chờ user cung cấp Student ID và xác nhận rename remote
+- [x] Tạo repository public: `PRM393_Final_GR6`. — Đã đổi tên repo nhóm và push
 - [x] Khởi tạo hoặc kiểm tra Flutter project. — `pubspec.yaml` (Flutter 3.47.5, Dart 3.13.4, name: prm323_lab3)
 - [x] Ghim phiên bản Flutter/Dart trong README. — `README.md:14` (Flutter 3.47.5, Dart 3.13.4)
 - [x] Ghim version các package trong `pubspec.yaml`. — Pinned caret/exact versions cho mọi dependency
@@ -523,7 +523,7 @@ evidence/
 
 ### 11.1. Final Report — 8–12 trang
 
-- [x] Tạo `report/Lab03_STUDENT_ID.pdf`. — Đã tạo qua `tool/generate_report_pdf.dart`
+- [x] Tạo `report/PRM393_LAB3_GR6.pdf`. — Đã tạo qua `tool/generate_report_pdf.dart`
 - [x] Tổng quan dự án và tóm tắt Lab 2. — Mục §1 (trang 2)
 - [x] Design Traceability. — Mục §1.2 & §9 (trang 2, trang 10)
 - [x] Lý do thay đổi thiết kế. — Chuyển từ mock data sang Cloud-enabled
@@ -545,7 +545,7 @@ evidence/
 
 ### 11.2. Slides — 12–15 trang
 
-- [x] Tạo `slides/Lab03_STUDENT_ID_slides.pdf`. — Đã tạo qua `tool/generate_slides_pdf.dart`
+- [x] Tạo `slides/PRM393_LAB3_GR6.pdf` (kèm bản `.pptx`). — Slide Lab 3 của nhóm
 - [x] Mỗi slide có một thông điệp chính. — Cấu trúc tiêu đề + danh mục + footer đồng nhất
 - [x] Tổng quan sản phẩm. — Slide 1 & Slide 2
 - [x] So sánh Figma và app thật. — Slide 2 & Slide 5

@@ -101,7 +101,7 @@ Token: `lib/theme/app_colors.dart`, `app_text_styles.dart`, `app_spacing.dart`,
 | ID | Sai lệch | Lý do | Đã cập nhật Figma? |
 |---|---|---|---|
 | D-01 | Tên sản phẩm đổi từ "FPTU Second Brain Mobile" → **StudyPilot** | Tên cũ dài, trùng nghĩa "second brain" không đúng phạm vi (lộ trình, việc cần làm, ghi chú, cố vấn). Tên mới ngắn, dùng chung mobile + web. | Có — ghi chú trong `design/DESIGN.md`; ảnh export giữ tên tệp cũ |
-| D-02 | Tệp đính kèm và báo cáo PDF lưu qua **Cloudinary** (Media API) thay cho Firebase Cloud Storage | Project Firebase ở gói Spark không bật được bucket Storage; giảng viên cho phép Cloudinary/S3 thay thế. `storage.rules` vẫn giữ trong repo cho môi trường có bucket. | Không đổi UI; ghi trong `docs/architecture.md` |
+| D-02 | Tệp đính kèm và báo cáo PDF lưu qua **Cloudinary** (Media API) thay cho Firebase Cloud Storage | Đã kiểm chứng 11/11: project ở gói Spark, console báo "Storage requires a billing account (Blaze)" nên bucket `prm323-lab2-gr6.firebasestorage.app` không tồn tại; upload trả HTTP 404 (`StorageException -13010`). Giảng viên cho phép Cloudinary/S3 thay thế. `firebase/storage.rules` vẫn giữ trong repo cho môi trường có bucket. Bằng chứng: `evidence/app/export-cloudinary-2026-11-11/`, `evidence/artemis/logs/TC-10-manual-repro-2026-11-11.log`. | Không đổi UI; nhãn nút + consent tự đổi theo provider ("…lên Cloudinary"). Ghi trong `docs/architecture.md` |
 | D-03 | Bỏ ràng buộc email `@fpt.edu.vn`; mọi tài khoản Google đều đăng nhập được | Firebase Auth của project không bật domain restriction; app không tự chặn để tránh khoá nhầm tài khoản demo. Vai trò được kiểm soát ở `users/{uid}.role` (mobile) và web admin. | Có — màn hình đăng nhập không còn nhắc domain |
 | D-04 | SCR-05.05/05.06 gộp vào một màn hình kết quả, không tách local/AI | Hai màn hình chỉ khác nhãn nguồn; gộp giảm điều hướng và tránh trùng lặp state. Nhãn nguồn vẫn hiển thị. | Có — `design/screen-spec.md` ghi chú gộp |
 | D-05 | SCR-05.07 (loading) không phải route riêng | Là trạng thái `_isLoading` của `AdvisorViewModel`; route riêng sẽ tạo màn hình trống khi mạng chậm. | Có |
@@ -117,7 +117,7 @@ Token: `lib/theme/app_colors.dart`, `app_text_styles.dart`, `app_spacing.dart`,
 | Lộ trình / tìm kiếm / chi tiết | `test/viewmodels/roadmap_viewmodel_test.dart`, `test/viewmodels/roadmap_major_test.dart`, `test/screens/course_detail_tabs_test.dart` | `TC_F1_01`, `TC_F1_02`, `TC_05`, `TC_09`, `TC_14` |
 | Task | `test/viewmodels/tasks_notes_test.dart`, `test/services/firestore_tasks_regression_test.dart` | `TC_F2_01`, `TC_F2_02`, `TC_F2_05`, `TC_V1` |
 | Ghi chú / đính kèm | `test/viewmodels/note_attachment_test.dart` | `TC_F3_01`, `TC_F3_02`, `TC_F3_03` |
-| Đồng bộ / xuất PDF | `test/services/report_export_service_test.dart` | `TC_10` |
+| Đồng bộ / xuất PDF | `test/services/report_export_service_test.dart`, `test/sync_vault_flow_test.dart` (D-01_SyncConfirmation, SyncError + Thử lại, Back về Home) | `TC_10`, `TC_F2_05`, `TC_V1`, `TC_F3_03` |
 | Cố vấn AI / chiến lược | `test/viewmodels/advisor_viewmodel_test.dart`, `test/screens/strategy_sim_test.dart` | `TC_08`, `TC_F1_04` |
 | Thông báo / FCM | `test/viewmodels/notifications_test.dart`, `test/services/notification_routing_test.dart` | `TC_13`, `TC_X_06`, `TC_S_07` |
 | Remote Config | `test/services/study_plan_ai_test.dart`, `test/services/analytics_wiring_test.dart` | `TC_11`, `TC_S_06` |

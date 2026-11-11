@@ -365,8 +365,8 @@ class StudyPilotApp extends StatelessWidget {
             ),
           '/advisor': (_) => const AdvisorScreen(),
           '/strategy-sim': (_) => const StrategySimScreen(),
-          '/sync-vault': (_) =>
-              SyncVaultScreen(showLegacyMedia: _showLegacyMedia),
+          // PDF cloud upload is a Lab 3 Storage requirement, not legacy media.
+          '/sync-vault': (_) => const SyncVaultScreen(showLegacyMedia: true),
           '/notifications': (_) =>
               NotificationsScreen(showAnnouncements: _usesRealComposition),
           '/roadmap': (_) => const RoadmapScreen(),
@@ -760,46 +760,55 @@ class _AppShellState extends State<AppShell> {
     final notificationsVm = context.watch<NotificationsViewModel>();
     final tasksVm = context.watch<TasksViewModel>();
     final banner = notificationsVm.banner;
-    return Scaffold(
-      body: Stack(
-        children: [
-          IndexedStack(
-            index: _currentIndex,
-            children: [
-              HomeScreen(onNavigate: _onTabSelected),
-              const RoadmapScreen(),
-              const TasksScreen(),
-              const NotesScreen(),
-            ],
-          ),
-          if (banner != null)
-            Positioned(
-              top: MediaQuery.paddingOf(context).top + 8,
-              left: 12,
-              right: 12,
-              child: ForegroundPushBanner(
-                notification: banner,
-                onOpen: () {
-                  notificationsVm.dismissBanner();
-                  notificationsVm.markAsRead(banner.id);
-                  final route = banner.destinationRoute;
-                  if (route != null && route.isNotEmpty) {
-                    Navigator.pushNamed(
-                      context,
-                      route,
-                      arguments: banner.destinationArgument,
-                    );
-                  }
-                },
-                onDismiss: notificationsVm.dismissBanner,
-              ),
+    // System Back returns to the Home tab instead of exiting from a sub-tab.
+    return PopScope(
+      canPop: _currentIndex == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _currentIndex != 0) {
+          setState(() => _currentIndex = 0);
+        }
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            IndexedStack(
+              index: _currentIndex,
+              children: [
+                HomeScreen(onNavigate: _onTabSelected),
+                const RoadmapScreen(),
+                const TasksScreen(),
+                const NotesScreen(),
+              ],
             ),
-        ],
-      ),
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: _currentIndex,
-        onSelected: _onTabSelected,
-        dueSoonCount: tasksVm.dueSoonCount,
+            if (banner != null)
+              Positioned(
+                top: MediaQuery.paddingOf(context).top + 8,
+                left: 12,
+                right: 12,
+                child: ForegroundPushBanner(
+                  notification: banner,
+                  onOpen: () {
+                    notificationsVm.dismissBanner();
+                    notificationsVm.markAsRead(banner.id);
+                    final route = banner.destinationRoute;
+                    if (route != null && route.isNotEmpty) {
+                      Navigator.pushNamed(
+                        context,
+                        route,
+                        arguments: banner.destinationArgument,
+                      );
+                    }
+                  },
+                  onDismiss: notificationsVm.dismissBanner,
+                ),
+              ),
+          ],
+        ),
+        bottomNavigationBar: AppBottomNav(
+          currentIndex: _currentIndex,
+          onSelected: _onTabSelected,
+          dueSoonCount: tasksVm.dueSoonCount,
+        ),
       ),
     );
   }

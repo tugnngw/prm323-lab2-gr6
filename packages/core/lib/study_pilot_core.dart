@@ -15,12 +15,26 @@ class StudyPlanSubmission {
 
   StudyPlanSubmission.fromDocument(DocumentSnapshot<Map<String, dynamic>> doc)
     : id = doc.id,
-      uid = doc.data()?.containsKey('uid') == true ? doc.get('uid') as String : '',
-      semester = doc.data()?.containsKey('semester') == true ? doc.get('semester') as int : 1,
-      summary = doc.data()?.containsKey('summary') == true ? doc.get('summary') as String : '',
-      status = doc.data()?.containsKey('status') == true ? doc.get('status') as String : 'pending',
-      reason = doc.data()?.containsKey('reason') == true ? doc.get('reason') as String : '',
-      courseCode = _extractCourseCode(doc.data()?.containsKey('summary') == true ? doc.get('summary') as String : '');
+      uid = doc.data()?.containsKey('uid') == true
+          ? doc.get('uid') as String
+          : '',
+      semester = doc.data()?.containsKey('semester') == true
+          ? doc.get('semester') as int
+          : 1,
+      summary = doc.data()?.containsKey('summary') == true
+          ? doc.get('summary') as String
+          : '',
+      status = doc.data()?.containsKey('status') == true
+          ? doc.get('status') as String
+          : 'pending',
+      reason = doc.data()?.containsKey('reason') == true
+          ? doc.get('reason') as String
+          : '',
+      courseCode = _extractCourseCode(
+        doc.data()?.containsKey('summary') == true
+            ? doc.get('summary') as String
+            : '',
+      );
 
   final String id;
   final String uid;
@@ -65,23 +79,48 @@ class Announcement {
 }
 
 class ExperienceNote {
-  ExperienceNote.fromDocument(DocumentSnapshot<Map<String, dynamic>> doc)
-    : id = doc.id,
-      courseDocId = doc.get('courseDocId') as String? ?? '',
-      courseCode = doc.get('courseCode') as String? ?? '',
-      courseName = doc.get('courseName') as String? ?? '',
-      major = doc.get('major') as String? ?? '',
-      uid = doc.get('uid') as String? ?? '',
-      authorName = doc.get('authorName') as String? ?? '',
-      title = doc.get('title') as String? ?? '',
-      content = doc.get('content') as String? ?? '',
-      lecturerTip = doc.get('lecturerTip') as String? ?? '',
-      examTip = doc.get('examTip') as String? ?? '',
-      rating = (doc.get('rating') as num?)?.toInt() ?? 0,
-      status = doc.get('status') as String? ?? 'pending',
-      reason = doc.get('reason') as String? ?? '',
-      createdAt = (doc.get('createdAt') as Timestamp?)?.toDate(),
-      reviewedAt = (doc.get('reviewedAt') as Timestamp?)?.toDate();
+  factory ExperienceNote.fromDocument(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
+    final data = doc.data() ?? const <String, dynamic>{};
+    return ExperienceNote._(
+      id: doc.id,
+      courseDocId: data['courseDocId'] as String? ?? '',
+      courseCode: data['courseCode'] as String? ?? '',
+      courseName: data['courseName'] as String? ?? '',
+      major: data['major'] as String? ?? '',
+      uid: data['uid'] as String? ?? '',
+      authorName: data['authorName'] as String? ?? '',
+      title: data['title'] as String? ?? '',
+      content: data['content'] as String? ?? '',
+      lecturerTip: data['lecturerTip'] as String? ?? '',
+      examTip: data['examTip'] as String? ?? '',
+      rating: (data['rating'] as num?)?.toInt() ?? 0,
+      status: data['status'] as String? ?? 'pending',
+      reason: data['reason'] as String? ?? '',
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
+      reviewedAt: (data['reviewedAt'] as Timestamp?)?.toDate(),
+    );
+  }
+
+  const ExperienceNote._({
+    required this.id,
+    required this.courseDocId,
+    required this.courseCode,
+    required this.courseName,
+    required this.major,
+    required this.uid,
+    required this.authorName,
+    required this.title,
+    required this.content,
+    required this.lecturerTip,
+    required this.examTip,
+    required this.rating,
+    required this.status,
+    required this.reason,
+    required this.createdAt,
+    required this.reviewedAt,
+  });
 
   final String id;
   final String courseDocId;
@@ -108,12 +147,12 @@ class ExperienceNote {
 class TipRating {
   TipRating.fromDocument(DocumentSnapshot<Map<String, dynamic>> doc)
     : id = doc.id,
-      tipId = doc.get('tipId') as String? ?? '',
-      courseDocId = doc.get('courseDocId') as String? ?? '',
-      uid = doc.get('uid') as String? ?? '',
-      displayName = doc.get('displayName') as String? ?? '',
-      stars = (doc.get('stars') as num?)?.toInt() ?? 0,
-      createdAt = (doc.get('createdAt') as Timestamp?)?.toDate();
+      tipId = doc.data()?['tipId'] as String? ?? '',
+      courseDocId = doc.data()?['courseDocId'] as String? ?? '',
+      uid = doc.data()?['uid'] as String? ?? '',
+      displayName = doc.data()?['displayName'] as String? ?? '',
+      stars = (doc.data()?['stars'] as num?)?.toInt() ?? 0,
+      createdAt = (doc.data()?['createdAt'] as Timestamp?)?.toDate();
 
   final String id;
   final String tipId;
@@ -128,13 +167,13 @@ class TipRating {
 class TipComment {
   TipComment.fromDocument(DocumentSnapshot<Map<String, dynamic>> doc)
     : id = doc.id,
-      tipId = doc.get('tipId') as String? ?? '',
-      courseDocId = doc.get('courseDocId') as String? ?? '',
-      courseCode = doc.get('courseCode') as String? ?? '',
-      uid = doc.get('uid') as String? ?? '',
-      authorName = doc.get('authorName') as String? ?? '',
-      content = doc.get('content') as String? ?? '',
-      createdAt = (doc.get('createdAt') as Timestamp?)?.toDate();
+      tipId = doc.data()?['tipId'] as String? ?? '',
+      courseDocId = doc.data()?['courseDocId'] as String? ?? '',
+      courseCode = doc.data()?['courseCode'] as String? ?? '',
+      uid = doc.data()?['uid'] as String? ?? '',
+      authorName = doc.data()?['authorName'] as String? ?? '',
+      content = doc.data()?['content'] as String? ?? '',
+      createdAt = (doc.data()?['createdAt'] as Timestamp?)?.toDate();
 
   final String id;
   final String tipId;
@@ -155,9 +194,13 @@ class FinalFirestore {
     String courseDocId, {
     required String uid,
   }) {
-    final controller = StreamController<List<ExperienceNote>>();
+    // Broadcast: a course page can remount its StreamBuilders (tab switch,
+    // scroll recycle) and would otherwise hit "Stream has already been
+    // listened to" on a single-subscription controller.
+    final controller = StreamController<List<ExperienceNote>>.broadcast();
     List<ExperienceNote>? approvedNotes;
     List<ExperienceNote>? myNotes;
+    List<ExperienceNote>? latest;
     StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? approvedSub;
     StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? mineSub;
 
@@ -175,6 +218,7 @@ class FinalFirestore {
           final right = b.createdAt?.millisecondsSinceEpoch ?? 0;
           return right.compareTo(left);
         });
+      latest = list;
       controller.add(list);
     }
 
@@ -185,7 +229,9 @@ class FinalFirestore {
           .where('status', isEqualTo: 'approved')
           .snapshots()
           .listen((snapshot) {
-            approvedNotes = snapshot.docs.map(ExperienceNote.fromDocument).toList();
+            approvedNotes = snapshot.docs
+                .map(ExperienceNote.fromDocument)
+                .toList();
             emit();
           }, onError: controller.addError);
       mineSub = firestore
@@ -202,7 +248,16 @@ class FinalFirestore {
       approvedSub?.cancel();
       mineSub?.cancel();
     };
-    return controller.stream;
+    final stream = controller.stream;
+    return Stream<List<ExperienceNote>>.multi((listener) {
+      final current = latest;
+      if (current != null) listener.add(current);
+      final subscription = stream.listen(
+        listener.add,
+        onError: listener.addError,
+      );
+      listener.onCancel = subscription.cancel;
+    });
   }
 
   Future<List<ExperienceNote>> getApprovedExperienceNotes({
@@ -373,13 +428,19 @@ class FinalFirestore {
                 .toList();
             if (courseCode == null || courseCode.isEmpty) return list;
             final target = courseCode.toUpperCase();
-            return list.where((s) =>
-                s.courseCode == target ||
-                s.summary.toUpperCase().contains('[$target]') ||
-                s.summary.toUpperCase().contains(target)).toList();
+            return list
+                .where(
+                  (s) =>
+                      s.courseCode == target ||
+                      s.summary.toUpperCase().contains('[$target]') ||
+                      s.summary.toUpperCase().contains(target),
+                )
+                .toList();
           });
 
-  Future<List<StudyPlanSubmission>> getApprovedTips([String? courseCode]) async {
+  Future<List<StudyPlanSubmission>> getApprovedTips([
+    String? courseCode,
+  ]) async {
     final snapshot = await firestore
         .collection('study_plan_submissions')
         .where('status', isEqualTo: 'approved')
@@ -387,10 +448,14 @@ class FinalFirestore {
     final list = snapshot.docs.map(StudyPlanSubmission.fromDocument).toList();
     if (courseCode == null || courseCode.isEmpty) return list;
     final target = courseCode.toUpperCase();
-    return list.where((s) =>
-        s.courseCode == target ||
-        s.summary.toUpperCase().contains('[$target]') ||
-        s.summary.toUpperCase().contains(target)).toList();
+    return list
+        .where(
+          (s) =>
+              s.courseCode == target ||
+              s.summary.toUpperCase().contains('[$target]') ||
+              s.summary.toUpperCase().contains(target),
+        )
+        .toList();
   }
 
   Future<void> submit(String uid, int semester, String summary) => firestore

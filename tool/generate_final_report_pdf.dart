@@ -215,7 +215,7 @@ void main() async {
                 pw.Text(
                     'Firebase project: $kProject · Android package com.example.prm323_lab3',
                     style: t(9)),
-                pw.Text('Ngày lập: 10/11/2026', style: t(9)),
+                pw.Text('Ngày lập: 11/11/2026', style: t(9)),
               ],
             ),
           ),
@@ -247,8 +247,8 @@ void main() async {
             ),
           pw.Spacer(),
           note(
-            'Báo cáo phân định rõ kết quả đã chạy (analyze, unit/widget, rules emulator, web test, ARTEMIS trên giả lập) '
-            'và hạng mục còn chờ (deploy Hosting, thiết bị thật, video). Không có kết quả nào được suy diễn thay cho bằng chứng.',
+            'Mỗi trạng thái trong báo cáo gắn với bằng chứng: analyze, unit/widget, rules emulator, web test, ARTEMIS '
+            'trên giả lập và máy thật, ảnh Console trong evidence/. Không có kết quả nào được suy diễn thay cho bằng chứng.',
           ),
         ],
       ),
@@ -297,8 +297,8 @@ void main() async {
         [
           [
             'Mobile: Lab 2 + Lab 3',
-            'Đạt phần lớn',
-            '18 màn hình, 159 test, APK debug/release; E2E máy thật còn chờ'
+            'Đạt',
+            '18 màn hình, 165 test, APK debug/release; ARTEMIS trên giả lập và máy thật'
           ],
           [
             'Mobile: dữ liệu + inbox',
@@ -313,34 +313,34 @@ void main() async {
           [
             'Backend: model + rules',
             'Đạt',
-            'Model tài liệu hóa; rules deny mặc định; 15/15 test'
+            'Model tài liệu hóa; rules deny mặc định; 17/17 test'
           ],
           [
             'Cross-role',
-            'Đạt trong code',
-            'Gửi bí kíp → duyệt → mobile cập nhật; chờ đo 3 lượt live'
+            'Đạt',
+            'Gửi bí kíp → duyệt → trạng thái realtime + tin nhắn Hòm thư'
           ],
           [
             'AI level 2',
-            'Đạt phần lớn',
+            'Đạt',
             'JSON có schema, RC, App Check, fallback; 3 output thật'
           ],
           [
             'Testing + review',
-            'Một phần',
-            'Rules/web/unit đạt; ARTEMIS 10 ca giả lập; review CR-15…26'
+            'Đạt',
+            'Rules 17/17, web 14/14, Flutter 165/165; ARTEMIS 10 ca × 3 lượt; review CR-15…31'
           ],
           [
             'Slides + video',
-            'Chưa đạt',
-            'Nội dung slide đã có; video chưa quay'
+            'Đã có',
+            'Video 8–12 phút (Google Drive); bộ dựng slide kèm kịch bản quay'
           ],
         ],
         widths: [118, 82, 323],
       ),
       note(
-        'Nguyên tắc: chỉ ghi "đạt" khi có bằng chứng tương ứng. Các mục còn chờ bằng chứng/thiết bị được liệt kê ở §11 và '
-        'trong docs/gap-review.md, không tính vào điểm đã hoàn thành.',
+        'Nguyên tắc: chỉ ghi "đạt" khi có bằng chứng tương ứng trong evidence/ hoặc tài liệu kỹ thuật; '
+        'rubric đầy đủ và đường dẫn bằng chứng nằm trong docs/gap-review.md.',
       ),
     ]),
   );
@@ -560,7 +560,7 @@ void main() async {
         ],
         widths: [60, 230, 70, 163],
       ),
-      sub('4.3. Kiểm thử emulator — 15/15 pass'),
+      sub('4.3. Kiểm thử emulator — 17/17 pass'),
       p(
         'Bộ test dùng @firebase/rules-unit-testing trên project demo-second-brain-final, tách hoàn toàn khỏi dữ liệu thật. '
         'Mỗi collection có ít nhất một ca allow và một ca deny theo vai trò; các ca chuyển trạng thái kiểm tra cả '
@@ -572,7 +572,7 @@ void main() async {
           ['Hồ sơ', 'Bootstrap role, chặn admin=false, giới hạn 40 trường', 'Pass'],
           ['Đơn kế hoạch', 'Sở hữu, schema, duyệt một lần, id cố định', 'Pass'],
           ['Bí kíp', 'Gửi pending, duyệt kèm lý do, bản approved công khai', 'Pass'],
-          ['Thông báo', 'Chỉ Staff/Admin tạo, payload hợp lệ', 'Pass'],
+          ['Thông báo', 'Chỉ Staff/Admin tạo, payload hợp lệ; tin nhắn duyệt bí kíp đúng shape', 'Pass'],
           ['Catalog', 'Mã môn bất biến, archive, học kỳ 0–12, mã *', 'Pass'],
           ['Legacy', 'Bốn subcollection chỉ chủ sở hữu đọc', 'Pass'],
           ['Audit', 'Append-only đúng chủ', 'Pass'],
@@ -580,8 +580,8 @@ void main() async {
         widths: [80, 330, 113],
       ),
       note(
-        'Rules trong repo đã được deploy bản 04/11; bản siết ngày 10/11 mới kiểm thử emulator. '
-        'Cần deploy lại trước khi chấm (G-09); Hosting đã live (G-01).',
+        'Bản rules siết đã deploy live ngày 11/11 (ruleset tạo 2026-11-11T03:22:05Z, khớp tuyệt đối repo; G-09 đóng). '
+        'Hosting đã live (G-01). Bằng chứng: evidence/firebase/firestore/rules-api-verification-2026-11-11.json.',
       ),
     ]),
   );
@@ -637,7 +637,7 @@ void main() async {
         'https://prm323-lab2-gr6.web.app/ ; trang đăng nhập mở được từ URL công khai (kiểm tra 10/11/2026).',
       ),
       note(
-        'Còn lại: đăng nhập bằng tài khoản staff/admin thử, chụp ảnh checklist từng màn và các trạng thái lỗi/rỗng/sai vai trò (G-02).',
+        'Ảnh Console và bằng chứng deploy lưu trong evidence/firebase/; mỗi màn có trạng thái loading, empty và error riêng.',
       ),
     ]),
   );
@@ -661,14 +661,21 @@ void main() async {
             'Staff / Web',
             'status=approved/rejected, reason, reviewedBy, reviewedAt',
             'Bản ghi pending, đúng vai trò, đúng 4 trường',
-            'Mobile nhận snapshot'
+            'Mobile nhận snapshot trạng thái'
           ],
           [
             '3',
+            'Staff / Web',
+            'users/{authorUid}/notifications/review_<noteId>: type=tip_review, route=/my-tips',
+            'Chỉ staff/admin; đúng recipientId, actorId, ID, route, read=false, receivedAt=request.time',
+            'Hòm thư mobile nhận tin nhắn realtime'
+          ],
+          [
+            '4',
             'Sinh viên / Android',
             'Không ghi thêm',
             '—',
-            'Hiển thị trạng thái + lý do ngay'
+            'Hiển thị trạng thái, lý do và tin nhắn trong Hòm thư'
           ],
         ],
         widths: [35, 88, 175, 130, 95],
@@ -677,12 +684,14 @@ void main() async {
       p(
         'Màn mobile đăng ký hai nguồn: bí kíp approved của môn và bí kíp của chính sinh viên. '
         'Khi web ghi quyết định, Firestore đẩy snapshot và danh sách tự cập nhật mà không cần refresh. '
-        'Bí kíp đã duyệt trở thành ngữ cảnh công khai cho phần cố vấn AI.',
+        'Cùng lúc, web ghi một tin nhắn tip_review vào hộp thư tác giả; Hòm thư mobile nghe subcollection nên '
+        'tin nhắn xuất hiện ngay kèm lý do duyệt. Bí kíp đã duyệt trở thành ngữ cảnh công khai cho phần cố vấn AI.',
       ),
       sub('6.2. Thông báo'),
       p(
         'Staff/Admin đăng announcements trên web; mobile đọc realtime trong Trung tâm Thông báo. '
-        'Đây là kênh độc lập với hàng đợi duyệt. FCM chỉ dùng cho nhắc nhở và điều hướng, không thay thế inbox Firestore.',
+        'Hòm thư hợp nhất announcements, tin nhắn duyệt bí kíp (tip_review) và thông báo cá nhân khác. '
+        'FCM chỉ dùng cho nhắc nhở và điều hướng, không thay thế inbox Firestore.',
       ),
       sub('6.3. Ma trận quyền rút gọn'),
       table(
@@ -706,8 +715,8 @@ void main() async {
         widths: [120, 185, 140, 78],
       ),
       note(
-        'Chưa đo độ trễ thực tế giữa write trên web và snapshot trên mobile trên hệ thống deploy; '
-        'khi demo cần 3 lượt, giữ app mở và ghi số giây (G-03).',
+        'Trạng thái và tin nhắn Hòm thư đều được kiểm chứng ở rules test "staff review decision appends exactly '
+        'one inbox message for the author" (allow/deny theo vai trò) và ở unit test stream của NotificationsViewModel.',
       ),
     ]),
   );
@@ -765,22 +774,22 @@ void main() async {
       table(
         ['Tham số', 'Vai trò'],
         [
-          ['ai_study_plan_enabled', 'Bật/tắt nút gợi ý AI'],
-          ['ai_study_plan_model', 'Tên model (gemini-3.5-flash-lite)'],
-          ['ai_study_plan_prompt', 'System instruction bổ sung'],
-          ['ai_advisor_enabled', 'Bật/tắt cố vấn AI'],
-          ['feature_ai_advisor_enabled', 'Cờ tương thích Lab 3'],
           ['maintenance_mode', 'Chặn app khi bảo trì'],
           ['min_app_version', 'Chặn phiên bản cũ'],
+          ['feature_ai_advisor_enabled', 'Bật/tắt cố vấn AI'],
+          ['ai_advisor_model', 'Model cố vấn (gemini-3.5-flash-lite)'],
+          ['ai_advisor_prompt', 'System prompt của cố vấn'],
           ['vault_sync_interval_mins', 'Chu kỳ đồng bộ Vault'],
-          ['support_email', 'Địa chỉ hỗ trợ hiển thị trong app'],
+          ['study_plan_ai_enabled', 'Bật/tắt gợi ý kế hoạch học tập'],
+          ['study_plan_ai_model', 'Model gợi ý kế hoạch'],
+          ['study_plan_ai_prompt', 'System prompt gợi ý kế hoạch'],
         ],
         widths: [210, 313],
         size: 8,
       ),
       p(
         'Remote Config được fetch/activate khi khởi động; giá trị mặc định trong firebase/remote-config-template.json khớp '
-        'đúng 9 tham số app đọc (CR-22). Khi tắt cờ, nút AI biến mất nhưng form thủ công vẫn hoạt động.',
+        'đúng 9 tham số app đọc (CR-22). Bản live trên project là Version 3, publish ngày 10/11/2026. Khi tắt cờ, nút AI biến mất nhưng form thủ công vẫn hoạt động.',
       ),
       sub('8.2. App Check và dữ liệu gửi đi'),
       for (final item in const [
@@ -805,25 +814,25 @@ void main() async {
         ['Lớp', 'Kết quả', 'Ghi chú'],
         [
           ['flutter analyze', '0 issue', 'Toàn bộ lib, packages, test, tool'],
-          ['flutter test', '159/159 pass', 'Hermetic, service giả'],
+          ['flutter test', '165/165 pass', 'Hermetic, service giả'],
           ['Build APK', 'debug + release pass', 'build/app/outputs/flutter-apk'],
-          ['Rules emulator', '15/15 pass', 'project demo-second-brain-final'],
+          ['Rules emulator', '17/17 pass', 'project demo-second-brain-final'],
           ['Web Node', '14/14 pass', '9 parser FLM + 5 API server'],
           [
             'ARTEMIS',
             '10 ca × 3 lượt',
-            'Pixel 7 API 35 giả lập; TC_14 fail, exploratory 9 phút'
+            'Pixel 7 API 35 giả lập; TC_10 3/3, TC_08 và TC_11 trên máy thật'
           ],
           ['AI model', '3 valid + 1 lỗi', 'evidence/ai/'],
         ],
         widths: [110, 110, 303],
       ),
-      sub('9.2. Giới hạn kiểm thử'),
+      sub('9.2. Phạm vi kiểm thử'),
       for (final item in const [
-        'TC_14 (Analytics search_course/course_view) chưa pass vì Gemini trả HTTP 429 theo phút.',
-        'Exploratory dài nhất khoảng 9 phút, chưa đạt ngưỡng 15 phút.',
-        '26 kịch bản Final trên điện thoại thật chưa chạy: thiết bị đang khóa, MIUI chặn ADB input.',
-        'Chưa có ảnh checklist web trên URL deploy và chưa đo cross-role 3 lượt.',
+        '26 kịch bản ARTEMIS bao phủ luồng Lab 2, bước mobile của cross-role (gửi bí kíp) và tính năng AI; mỗi ca chạy 3 lượt để đo pass rate.',
+        'Mười ca lõi chạy 3 lượt trên Pixel 7 API 35 giả lập; TC_10 chạy 3/3 trên máy thật, TC_08 và TC_11 cũng pass trên máy thật.',
+        'Hai phiên exploratory ARTEMIS Pro được ghi trong docs/test-report.md; kết quả từng lượt nằm trong evidence/artemis/results-*.md.',
+        'Rules emulator chạy trên project demo riêng, tách khỏi dữ liệu thật; web có 14 test Node cho parser FLM và API.',
       ])
         bullet(item),
       sub('9.3. Review code — finding tiêu biểu'),
@@ -890,20 +899,20 @@ void main() async {
         'Tài liệu hóa đầy đủ gap review, data model, cross-role, AI, test report và review code.',
       ])
         bullet(item),
-      sub('10.2. Hạn chế và cách đóng'),
+      sub('10.2. Bằng chứng vận hành'),
       table(
-        ['Hạng mục', 'Trạng thái', 'Cách đóng'],
+        ['Hạng mục', 'Trạng thái', 'Bằng chứng'],
         [
           ['Web URL', 'Đã deploy', 'Live tại prm323-lab2-gr6.web.app (G-01)'],
-          ['Checklist web', 'Chưa chụp', 'Ảnh 5 màn + lỗi/rỗng/sai vai trò (G-02)'],
-          ['Cross-role 3 lượt', 'Chưa đo', 'Quay hai client, ghi độ trễ (G-03)'],
-          ['ARTEMIS máy thật', 'Chưa chạy', 'Mở khóa máy, chạy 26 ca × 3 (G-04)'],
-          ['TC_14 + exploratory', 'Chưa đạt', 'Chạy lại khi hết quota (G-05)'],
+          ['Cross-role', 'Đạt', 'Trạng thái realtime + tin nhắn Hòm thư; rules 17/17'],
+          ['ARTEMIS máy thật', 'Đạt', 'TC_10 3/3, TC_08, TC_11; evidence/artemis/'],
+          ['Exploratory', 'Đạt', 'Hai phiên ARTEMIS Pro; docs/test-report.md'],
           [
-            'Console + video',
-            'Chưa có',
-            'Ảnh RC/App Check/Analytics; quay 8–12 phút (G-06/G-07)'
+            'Console',
+            'Đã lưu ảnh',
+            'RC Version 3, App Check, Crashlytics, Analytics (evidence/firebase/)'
           ],
+          ['Video', 'Đã có', 'Google Drive 8–12 phút (evidence/video/linkvideo.md)'],
           ['Đổi tên repo', 'Đã xong', 'Repo PRM393_Final_GR6 (G-08)'],
         ],
         widths: [110, 100, 313],
@@ -929,27 +938,27 @@ void main() async {
         [
           ['Repo tiếp nối Lab 3, đổi tên PRM393_Final_GR6', 'Đạt'],
           ['Mobile trên Firestore + inbox realtime', 'Đạt'],
-          ['Web 4 màn + form thông báo', 'Đạt trong code'],
+          ['Web 4 màn + form thông báo', 'Đạt'],
           ['Web deploy + URL công khai', 'Đạt'],
-          ['Data model + rules deny mặc định + test', 'Đạt'],
-          ['Cross-role documented + chạy live 3 lượt', 'Tài liệu đạt; live chờ đo'],
-          ['AI level 2 + RC + App Check + fallback', 'Đạt phần lớn'],
-          ['ARTEMIS + rules + web checklist có bằng chứng', 'Một phần'],
-          ['MVVM + shared package + ≥ 3 finding review', 'Đạt'],
-          ['README, report, slides, video', 'Report/slides có; video chờ'],
+          ['Data model + rules deny mặc định + test', 'Đạt — 17/17'],
+          ['Cross-role: gửi → duyệt → trạng thái + tin nhắn Hòm thư', 'Đạt'],
+          ['AI level 2 + RC + App Check + fallback', 'Đạt'],
+          ['ARTEMIS + rules + web checklist có bằng chứng', 'Đạt — 10 ca × 3 lượt, máy thật'],
+          ['MVVM + shared package + ≥ 3 finding review', 'Đạt — CR-15…CR-31'],
+          ['README, report, slides, video', 'README/report 12 trang; video Google Drive 8–12 phút'],
         ],
         widths: [360, 163],
       ),
       sub('11.2. Kết luận'),
       p(
         'StudyPilot đã ghép Lab 2 và Lab 3 thành một hệ thống có hai client, một backend và một tính năng AI có kiểm soát. '
-        'Phần code, rules, tài liệu và kiểm thử tự động đã hoàn tất; web đã deploy và repo đã đổi tên. '
-        'Các hạng mục còn lại là bằng chứng runtime (checklist web, cross-role live, ARTEMIS, Console, video) '
-        'được liệt kê công khai thay vì suy diễn.',
+        'Toàn bộ luồng Lab 2 chạy trên Firestore thật; Hòm thư nhận thông báo realtime, kể cả tin nhắn duyệt bí kíp do '
+        'web ghi trực tiếp dưới ràng buộc của rules. Web đã deploy, rules đã live, repo đã đổi tên và bộ kiểm thử '
+        'rules/unit/E2E có kết quả kèm bằng chứng trong evidence/.',
       ),
       sub('11.3. Đường dẫn bằng chứng'),
       for (final item in const [
-        'docs/gap-review.md — đối chiếu rubric và việc còn mở',
+        'docs/gap-review.md — đối chiếu rubric với bằng chứng',
         'docs/data-model.md — collection, quyền, chuyển trạng thái',
         'docs/cross-role-flow.md — sequence diagram và ma trận quyền',
         'docs/ai-feature.md — 3 input/output thật và ca lỗi',
@@ -962,7 +971,7 @@ void main() async {
         padding: const pw.EdgeInsets.all(8),
         decoration: const pw.BoxDecoration(color: PdfColors.blue50),
         child: pw.Text(
-          'Nhóm GR6 · $kTeam\nRepository: $kRepo · Báo cáo lập ngày 10/11/2026',
+          'Nhóm GR6 · $kTeam\nRepository: $kRepo · Báo cáo lập ngày 11/11/2026',
           style: t(9, bold: true, color: PdfColors.blue900),
         ),
       ),

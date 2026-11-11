@@ -69,6 +69,6 @@ Evidence:
 - Advisor vẫn là rule engine cục bộ; GPA là sandbox, chưa có transcript/timetable thật. Course Detail chưa đủ nội dung/tab theo thiết kế gốc. Không thêm dữ liệu giả để đánh dấu đạt.
 - ARTEMIS harness còn assertions yếu/phụ thuộc thứ tự; cần khám phá các flow còn lại trước khi sửa test, pin commit/toolchain và chạy ≥3 lần/test. Chưa có lượt ARTEMIS mới được công bố PASS trong đợt này.
 - `docs/code-review.md` có findings/decisions từ Codex review source local; còn thiếu PR reviewer output và 3 commit fix có liên kết.
-- Report/slides hiện có giữ nguyên, vẫn là draft với placeholder; chưa tạo video hay điền Student ID thay người dùng.
+- Report/slides giữ nguyên theo bản nháp thời điểm đó; video và định danh nhóm được cập nhật ở các bản sau.
 
 Không dùng kết quả local để tuyên bố Lab 3 hoàn thành hoặc dự đoán điểm rubric.

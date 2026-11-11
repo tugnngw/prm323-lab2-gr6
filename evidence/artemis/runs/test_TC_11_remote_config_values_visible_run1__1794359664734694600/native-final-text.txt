@@ -1,0 +1,39 @@
+Quay lại
+ Sync Vault & Cài đặt
+ 
+ 
+ 
+ 
+ H
+haduong2222222
+[email redacted]
+Dữ liệu đồng bộ theo UID Firebase của bạn
+ 
+ Trạng thái Vault & Đồng bộ
+ 
+ 
+ 
+ 
+ Đồng bộ Cloud Firestore
+Offline persistence: Hoạt động (Unlimited cache)
+ Cloud Storage Vault
+Đường dẫn: notes/{uid}/... (Max 10MB)
+ Kích hoạt đồng bộ Vault ngay
+ Kích hoạt đồng bộ Vault ngay
+ 
+ Firebase Demo Area (PRM323 Lab 3)
+ 
+ Khu vực kiểm thử tính năng của đề bài Lab 3: Remote Config, Crashlytics, Firestore read/write.
+ 
+ 
+ 
+ Firebase Remote Config
+maintenance_mode
+false
+feature_ai_advisor_enabled
+true
+min_app_version
+1.0.0
+vault_sync_interval_mins
+30 phút
+ Tải lại config

@@ -1,0 +1,12 @@
+{
+  "session_id": "00e2615d-c191-4ac9-92f1-770844673c83",
+  "step_id": "2ffd1699-905c-4608-85a3-aa4a24f1cb32",
+  "step_number": 11,
+  "action_taken": {
+    "action": "report_task_status",
+    "args": {
+      "status": "completed",
+      "explanation": "{\"visible_text\": \"Hoàn tất! Kích thước 36.6 KB http://127.0.0.1:8788/api/reports/LERWvFiX1EhUahfAkwXD70TjTVx2/study_report_1794365002050.pdf\", \"consent_before_upload\": true, \"upload_status\": \"success\", \"download_url\": \"http://127.0.0.1:8788/api/reports/LERWvFiX1EhUahfAkwXD70TjTVx2/study_report_1794365002050.pdf\"}"
+    }
+  }
+}

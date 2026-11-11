@@ -67,7 +67,12 @@ class _CommunityTipsSectionState extends State<CommunityTipsSection> {
     _bindStreams();
     final stream = _notesStream;
     if (stream == null) {
-      return _layout(context, notes: const [], ratings: const [], comments: const []);
+      return _layout(
+        context,
+        notes: const [],
+        ratings: const [],
+        comments: const [],
+      );
     }
     return StreamBuilder<List<ExperienceNote>>(
       stream: stream,
@@ -139,10 +144,8 @@ class _CommunityTipsSectionState extends State<CommunityTipsSection> {
               label: const Text('Bí kíp của tôi'),
             ),
             FilledButton.tonalIcon(
-              onPressed: () => _openSubmitSheet(
-                context,
-                existingPending: hasPending,
-              ),
+              onPressed: () =>
+                  _openSubmitSheet(context, existingPending: hasPending),
               icon: Icon(
                 hasPending
                     ? Icons.hourglass_top_outlined
@@ -172,10 +175,7 @@ class _CommunityTipsSectionState extends State<CommunityTipsSection> {
         ],
         if (error != null) ...[
           AppCard(
-            child: Text(
-              error,
-              style: const TextStyle(color: AppColors.error),
-            ),
+            child: Text(error, style: const TextStyle(color: AppColors.error)),
           ),
           const SizedBox(height: AppSpacing.xs),
         ],
@@ -198,9 +198,8 @@ class _CommunityTipsSectionState extends State<CommunityTipsSection> {
                 Text(
                   'Hãy là người đầu tiên chia sẻ kinh nghiệm học tập, mẹo thi PE/FE '
                   'để giúp đỡ các bạn sinh viên khác!',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.onSurfaceVariant,
-                  ),
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: AppColors.onSurfaceVariant),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -225,10 +224,7 @@ class _CommunityTipsSectionState extends State<CommunityTipsSection> {
     );
   }
 
-  void _openSubmitSheet(
-    BuildContext context, {
-    required bool existingPending,
-  }) {
+  void _openSubmitSheet(BuildContext context, {required bool existingPending}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -277,6 +273,7 @@ class _SubmitTipSheetState extends State<_SubmitTipSheet> {
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
   bool _submitting = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -285,38 +282,34 @@ class _SubmitTipSheetState extends State<_SubmitTipSheet> {
     super.dispose();
   }
 
-  void _snack(String message, {bool failed = false}) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: failed ? AppColors.error : null,
-        ),
-      );
+  void _fail(String message) {
+    setState(() => _error = message);
   }
 
   Future<void> _submit() async {
     final title = _titleController.text.trim();
     final content = _contentController.text.trim();
     if (title.length < 3) {
-      _snack('Tiêu đề cần tối thiểu 3 ký tự.');
+      _fail('Tiêu đề cần tối thiểu 3 ký tự.');
       return;
     }
     if (content.length < 20) {
-      _snack('Nội dung bí kíp cần tối thiểu 20 ký tự.');
+      _fail('Nội dung bí kíp cần tối thiểu 20 ký tự.');
       return;
     }
     final store = widget.store;
     final uid = widget.currentUid;
     if (store == null || uid == null || uid.isEmpty) {
-      _snack(
+      _fail(
         'Cần đăng nhập tài khoản sinh viên và kết nối '
         'Firestore để gửi bí kíp.',
       );
       return;
     }
-    setState(() => _submitting = true);
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
     final messenger = ScaffoldMessenger.of(context);
     try {
       await store.submitExperienceNote(
@@ -341,7 +334,7 @@ class _SubmitTipSheetState extends State<_SubmitTipSheet> {
           ),
         );
     } catch (e) {
-      if (mounted) _snack('Gửi thất bại: $e', failed: true);
+      if (mounted) _fail('Gửi thất bại: $e');
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -384,9 +377,8 @@ class _SubmitTipSheetState extends State<_SubmitTipSheet> {
             Text(
               'Chỉ cần tiêu đề và nội dung. Admin duyệt trước khi công khai; '
               'bạn theo dõi trạng thái tại "Bí kíp của tôi".',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.onSurfaceVariant,
-              ),
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: AppColors.onSurfaceVariant),
             ),
             if (pending) ...[
               const SizedBox(height: AppSpacing.sm),
@@ -452,6 +444,27 @@ class _SubmitTipSheetState extends State<_SubmitTipSheet> {
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
+            if (_error != null) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: AppColors.errorContainer,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(
+                    color: AppColors.error.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: SelectableText(
+                  _error!,
+                  style: const TextStyle(
+                    color: AppColors.error,
+                    fontSize: AppFontSize.caption,
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -605,9 +618,8 @@ class _CommunityTipCardState extends State<_CommunityTipCard> {
         stars: stars,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Đã gửi đánh giá $stars sao.')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Đã gửi đánh giá $stars sao.')));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -624,10 +636,11 @@ class _CommunityTipCardState extends State<_CommunityTipCard> {
   @override
   Widget build(BuildContext context) {
     final note = widget.note;
-    final myRating = widget.ratings
-        .where((r) => r.uid == widget.currentUid)
-        .firstOrNull
-        ?.stars ??
+    final myRating =
+        widget.ratings
+            .where((r) => r.uid == widget.currentUid)
+            .firstOrNull
+            ?.stars ??
         0;
     final isAuthor = widget.currentUid == note.uid;
     final average = _average(widget.ratings);
@@ -668,9 +681,8 @@ class _CommunityTipCardState extends State<_CommunityTipCard> {
           const SizedBox(height: AppSpacing.sm),
           Text(
             note.displayTitle,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(context).textTheme.titleSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: AppSpacing.xxs),
           Text(
@@ -684,9 +696,8 @@ class _CommunityTipCardState extends State<_CommunityTipCard> {
           Text(
             note.content,
             softWrap: true,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(height: 1.4),
+            style: Theme.of(context).textTheme.bodyMedium
+                ?.copyWith(height: 1.4),
           ),
           if (note.lecturerTip.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xs),
@@ -764,7 +775,6 @@ class _CommunityTipCardState extends State<_CommunityTipCard> {
       ),
     );
   }
-
 }
 
 double _average(List<TipRating> ratings) {
@@ -852,7 +862,11 @@ class _TipCommentsState extends State<_TipComments> {
     final text = _controller.text.trim();
     final uid = widget.currentUid;
     final store = widget.store;
-    if (text.isEmpty || _sending || uid == null || uid.isEmpty || store == null) {
+    if (text.isEmpty ||
+        _sending ||
+        uid == null ||
+        uid.isEmpty ||
+        store == null) {
       return;
     }
     setState(() => _sending = true);
@@ -898,9 +912,7 @@ class _TipCommentsState extends State<_TipComments> {
         childrenPadding: EdgeInsets.zero,
         dense: true,
         title: Text(
-          sorted.isEmpty
-              ? 'Bình luận'
-              : 'Bình luận (${sorted.length})',
+          sorted.isEmpty ? 'Bình luận' : 'Bình luận (${sorted.length})',
           style: const TextStyle(
             fontSize: AppFontSize.label,
             fontWeight: FontWeight.w600,
@@ -934,10 +946,7 @@ class _TipCommentsState extends State<_TipComments> {
                       child: Text(
                         comment.authorName.isEmpty
                             ? 'S'
-                            : comment.authorName
-                                  .characters
-                                  .first
-                                  .toUpperCase(),
+                            : comment.authorName.characters.first.toUpperCase(),
                         style: const TextStyle(
                           fontSize: AppFontSize.caption,
                           fontWeight: FontWeight.bold,
@@ -961,15 +970,12 @@ class _TipCommentsState extends State<_TipComments> {
                           Text(
                             comment.content,
                             softWrap: true,
-                            style: const TextStyle(
-                              fontSize: AppFontSize.dense,
-                            ),
+                            style: const TextStyle(fontSize: AppFontSize.dense),
                           ),
                           if (comment.createdAt != null)
                             Text(
-                              DateFormat(
-                                'dd/MM/yyyy HH:mm',
-                              ).format(comment.createdAt!),
+                              DateFormat('dd/MM/yyyy HH:mm')
+                                  .format(comment.createdAt!),
                               style: const TextStyle(
                                 fontSize: AppFontSize.caption,
                                 color: AppColors.onSurfaceVariant,

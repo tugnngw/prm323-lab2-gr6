@@ -1,0 +1,7 @@
+{
+  "case": "test_TC_09_empty_search_recovery[run1]",
+  "trace_id": "9bbc558b-c8b8-481c-a646-c93180495388",
+  "device": "GQDIV8HUPJWK79XC",
+  "started_at": "2026-11-10T17:27:22.301003+00:00",
+  "instruction": "From Home open Lộ trình, clear old search and search ZZZ_NO_COURSE_20261104. Verify zero course rows and empty-state text. Clear search and verify courses return. Report both counts and literal empty message."
+}

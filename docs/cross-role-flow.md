@@ -26,15 +26,17 @@ Tài liệu mô tả ba luồng bắt buộc của Final Assignment và cách h�
 1. Web nghe `experience_notes` bằng `onSnapshot`, hiển thị hàng đợi theo trạng thái.
 2. Cán bộ mở bí kíp, nhập lý do, chọn **Duyệt** hoặc **Từ chối**.
 3. Rules chỉ cho cập nhật `status`, `reason`, `reviewedBy`, `reviewedAt` khi bản ghi `pending`; `reviewedBy` phải trùng UID người duyệt; `reviewedAt` phải là `request.time`.
-4. Mobile đang mở màn nghe snapshot gồm bí kíp `approved` của môn và bí kíp của chính mình, nên thấy trạng thái/lý do **không cần refresh**.
-5. Bí kíp đã duyệt hiển thị công khai và trở thành ngữ cảnh cho Cố vấn AI.
+4. Cùng lúc cập nhật trạng thái, web ghi **một** bản ghi vào `users/{authorUid}/notifications/review_<noteId>`: `type: tip_review`, `route: /my-tips`, `read: false`, `receivedAt: request.time`, `recipientId` là tác giả, `actorId` là người duyệt. Rules chỉ cho staff/admin tạo đúng shape này.
+5. Mobile đang mở màn nghe snapshot gồm bí kíp `approved` của môn và bí kíp của chính mình, nên thấy trạng thái/lý do **không cần refresh**; Hòm thư cũng nghe `users/{uid}/notifications` nên tin nhắn duyệt xuất hiện ngay.
+6. Bí kíp đã duyệt hiển thị công khai và trở thành ngữ cảnh cho Cố vấn AI.
 
-**Vì không có Cloud Functions**: việc duyệt không tự sinh push. Mobile phản hồi bằng snapshot Firestore; push chỉ dùng cho thông báo hệ thống hoặc hoạt động chấm bí kíp (mục 4).
+**Vì không có Cloud Functions**: cả trạng thái lẫn tin nhắn hòm thư đều do client staff ghi trực tiếp và được rules giới hạn shape; mobile phản hồi bằng snapshot Firestore. Push FCM là tùy chọn cho thông báo hệ thống.
 
 ## 4. Thông báo và hộp thư
 
 - **Announcement**: staff/admin đăng `announcements` trên web → mobile đọc realtime ở **Thông báo hệ thống**; có thể kèm FCM do server gửi.
-- **Tip activity**: khi một sinh viên chấm bí kíp, app ghi **một** notification vào hộp thư tác giả. Rules giới hạn chặt: type `tip_rating`, route `/course-tips`, `recipientId` là tác giả, `actorId` là người chấm, ID `tip_rating_<...>`.
+- **Tip review**: khi staff duyệt/từ chối, web ghi **một** notification `tip_review` vào hộp thư tác giả; mobile nghe subcollection nên tin nhắn hiện ngay, kèm lý do duyệt.
+- **Tip activity**: khi một sinh viên chấm bí kíp, app ghi **một** notification `tip_rating` vào hộp thư tác giả. Rules giới hạn chặt cả hai loại: type, route, `recipientId`, `actorId`, ID và timestamp.
 - **FCM**: token lưu `users/{uid}/tokens`; `admin-web/send-fcm.mjs` gửi HTTP v1 tới token mới nhất (kiểm tra `validate_only` trước). Tap push chỉ mở route nằm trong whitelist của `NotificationModel.destinationRoute`.
 
 ```mermaid
@@ -54,8 +56,9 @@ sequenceDiagram
     DB-->>Web: Hàng đợi realtime
     Staff->>Web: Duyệt kèm lý do
     Web->>DB: update status/reason/reviewedBy/At
-    DB-->>App: Snapshot trạng thái mới
-    App-->>Student: Bí kíp đã duyệt/từ chối
+    Web->>DB: create users/{author}/notifications/review_<noteId>
+    DB-->>App: Snapshot trạng thái mới + Hòm thư realtime
+    App-->>Student: Bí kíp đã duyệt/từ chối + tin nhắn trong Hòm thư
     Staff->>Web: Đăng thông báo
     Web->>DB: create announcements
     DB-->>App: Thông báo realtime

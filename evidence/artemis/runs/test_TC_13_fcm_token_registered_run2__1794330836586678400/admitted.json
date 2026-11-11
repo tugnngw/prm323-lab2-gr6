@@ -1,0 +1,7 @@
+{
+  "case": "test_TC_13_fcm_token_registered[run2]",
+  "trace_id": "a93ca90b-91d0-4074-8d5b-c05220dc6840",
+  "device": "GQDIV8HUPJWK79XC",
+  "started_at": "2026-11-10T17:14:04.232644+00:00",
+  "instruction": "The harness has already cold-started StudyPilot with its existing session. Observe the current Home screen and report its literal title. Do not relaunch the app or change accounts or permissions. The runner checks token registration logs."
+}

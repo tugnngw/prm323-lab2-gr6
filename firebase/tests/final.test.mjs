@@ -258,3 +258,71 @@ test('experience notes: students submit pending, staff approve, approved notes a
   await assertFails(deleteDoc(doc(db('peer'), second)));
   await assertSucceeds(deleteDoc(doc(db('student'), second)));
 });
+
+test('staff review decision appends exactly one inbox message for the author', async () => {
+  const inbox = (extra = {}) => ({
+    title: 'Bí kíp đã được duyệt',
+    body: 'PRM393 — đã được duyệt. Lý do: Nội dung hữu ích',
+    type: 'tip_review',
+    read: false,
+    receivedAt: serverTimestamp(),
+    route: '/my-tips',
+    recipientId: 'student',
+    actorId: 'staff',
+    ...extra,
+  });
+  const path = 'users/student/notifications/review_note-1';
+
+  await assertFails(setDoc(doc(db('student'), 'users/peer/notifications/review_note-1'), inbox({ recipientId: 'peer' })));
+  await assertFails(setDoc(doc(db('peer'), path), inbox({ actorId: 'peer' })));
+  await assertFails(setDoc(doc(db('staff'), path), inbox({ actorId: 'peer' })));
+  await assertFails(setDoc(doc(db('staff'), path), inbox({ recipientId: 'peer' })));
+  await assertFails(setDoc(doc(db('staff'), path), inbox({ route: '/home' })));
+  await assertFails(setDoc(doc(db('staff'), path), inbox({ type: 'system' })));
+  await assertFails(setDoc(doc(db('staff'), path), inbox({ body: 'x'.repeat(301) })));
+
+  await assertSucceeds(setDoc(doc(db('staff'), path), inbox()));
+  await assertSucceeds(getDoc(doc(db('student'), path)));
+  await assertFails(getDoc(doc(db('staff'), path)));
+  await assertFails(getDoc(doc(db('peer'), path)));
+});
+
+test('students rate and comment on tips with bound identity and timestamps', async () => {
+  const courseId = 'BIT_SE_K19B__PRM393';
+  await assertSucceeds(setDoc(doc(db('staff'), `courses/${courseId}`), {
+    code: 'PRM393', name: 'Mobile Programming', credits: 3, semester: 8,
+    major: 'BIT_SE_K19B', slots: [], labs: [], learningOutcomes: [],
+    courseMaterials: [], prerequisites: [], totalSlots: 0, completedSlots: 0,
+    overview: '',
+  }));
+
+  const rating = (extra = {}) => ({
+    tipId: 'note-1', courseDocId: courseId, uid: 'student',
+    displayName: 'Student student', stars: 4, createdAt: serverTimestamp(), ...extra,
+  });
+  const ratingPath = 'tip_ratings/note-1__student';
+  await assertFails(setDoc(doc(db('student'), 'tip_ratings/note-1__peer'), rating()));
+  await assertFails(setDoc(doc(db('student'), ratingPath), rating({ uid: 'peer' })));
+  await assertFails(setDoc(doc(db('student'), ratingPath), rating({ stars: 6 })));
+  await assertFails(setDoc(doc(db('student'), ratingPath), rating({ courseDocId: 'MISSING__PRM393' })));
+  await assertSucceeds(setDoc(doc(db('student'), ratingPath), rating()));
+  await assertSucceeds(getDoc(doc(db('peer'), ratingPath)));
+  await assertFails(updateDoc(doc(db('peer'), ratingPath), rating({ uid: 'peer' })));
+  await assertSucceeds(updateDoc(doc(db('student'), ratingPath), rating({ stars: 5 })));
+  await assertFails(deleteDoc(doc(db('peer'), ratingPath)));
+  await assertSucceeds(deleteDoc(doc(db('student'), ratingPath)));
+
+  const comment = (extra = {}) => ({
+    tipId: 'note-1', courseDocId: courseId, courseCode: 'PRM393', uid: 'student',
+    authorName: 'Student student', content: 'Thay day de hieu, slide ro rang.',
+    createdAt: serverTimestamp(), ...extra,
+  });
+  const commentPath = 'tip_comments/c1';
+  await assertFails(setDoc(doc(db('student'), commentPath), comment({ uid: 'peer' })));
+  await assertFails(setDoc(doc(db('student'), commentPath), comment({ content: '' })));
+  await assertFails(setDoc(doc(db('student'), commentPath), comment({ courseDocId: 'MISSING__PRM393' })));
+  await assertSucceeds(setDoc(doc(db('student'), commentPath), comment()));
+  await assertFails(updateDoc(doc(db('student'), commentPath), comment({ content: 'Edited' })));
+  await assertFails(deleteDoc(doc(db('peer'), commentPath)));
+  await assertSucceeds(deleteDoc(doc(db('student'), commentPath)));
+});

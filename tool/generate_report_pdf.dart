@@ -5,14 +5,9 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-void main(List<String> args) async {
-  final studentId = args.isEmpty ? null : args.first.toUpperCase();
-  if (studentId != null && !RegExp(r'^[A-Z]{2}\d{6}$').hasMatch(studentId)) {
-    throw ArgumentError('Cách dùng: dart run tool/generate_report_pdf.dart MSSV "Họ và tên"');
-  }
-  final studentName = args.length > 1 ? args.skip(1).join(' ').trim() : '';
-  final studentLabel = studentId ?? 'Chờ MSSV';
-  final nameLabel = studentName.isEmpty ? 'Chờ tên sinh viên' : studentName;
+void main() async {
+  const studentLabel = 'GR6';
+  const nameLabel = 'Nhóm GR6';
   final regularBytes = File('assets/fonts/DejaVuSans.ttf').readAsBytesSync();
   final boldBytes = File('assets/fonts/DejaVuSans-Bold.ttf').readAsBytesSync();
 
@@ -21,7 +16,7 @@ void main(List<String> args) async {
 
   final doc = pw.Document(
     title: 'PRM393 Lab 3 — Project Report - $studentLabel',
-    author: '$nameLabel ($studentLabel)',
+    author: nameLabel,
     subject: 'PRM393 Cloud-Enabled Mobile App Final Report',
     keywords: 'PRM393, Lab 3, Flutter, Firebase, Report',
   );
@@ -55,7 +50,7 @@ void main(List<String> args) async {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text('MSSV: $studentLabel | Repository: prm323-lab2-gr6',
+          pw.Text('Nhóm $studentLabel | Repository: PRM393_Final_$studentLabel',
               style: pw.TextStyle(font: fontRegular, fontSize: 8, color: PdfColors.grey600)),
           pw.Text('Trang $pageNum / $totalPages',
               style: pw.TextStyle(font: fontBold, fontSize: 10, color: PdfColors.blue900)),
@@ -139,18 +134,13 @@ void main(List<String> args) async {
         child: pw.Column(
           children: [
             pw.Row(children: [
-              pw.SizedBox(width: 140, child: pw.Text('Họ và tên sinh viên:', style: pw.TextStyle(font: fontBold, fontSize: 11))),
+              pw.SizedBox(width: 140, child: pw.Text('Nhóm thực hiện:', style: pw.TextStyle(font: fontBold, fontSize: 11))),
               pw.Text(nameLabel, style: pw.TextStyle(font: fontRegular, fontSize: 11)),
             ]),
             pw.SizedBox(height: 4),
             pw.Row(children: [
-              pw.SizedBox(width: 140, child: pw.Text('Student ID (Mã SV):', style: pw.TextStyle(font: fontBold, fontSize: 11, color: PdfColors.red800))),
-              pw.Text(studentLabel, style: pw.TextStyle(font: fontBold, fontSize: 11, color: PdfColors.red800)),
-            ]),
-            pw.SizedBox(height: 4),
-            pw.Row(children: [
-              pw.SizedBox(width: 140, child: pw.Text('Tên Repository nộp:', style: pw.TextStyle(font: fontBold, fontSize: 11))),
-              pw.Text('PRM393_Lab03_[StudentID] (Hiện tại: prm323-lab2-gr6)', style: pw.TextStyle(font: fontRegular, fontSize: 11)),
+              pw.SizedBox(width: 140, child: pw.Text('Repository nộp:', style: pw.TextStyle(font: fontBold, fontSize: 11, color: PdfColors.red800))),
+              pw.Text('quanglong68/PRM393_Final_$studentLabel', style: pw.TextStyle(font: fontBold, fontSize: 11, color: PdfColors.red800)),
             ]),
             pw.SizedBox(height: 4),
             pw.Row(children: [
@@ -261,7 +251,7 @@ void main(List<String> args) async {
       pw.SizedBox(height: 4),
       pw.Text(
         'Tại Lab 3, ứng dụng chuyển đổi toàn diện thành một Cloud-Enabled Mobile App thực thụ: thay thế hoàn toàn mock data bằng '
-        'Cloud Firestore, xác thực tài khoản Google với ràng buộc tên miền sinh viên @fpt.edu.vn, lưu báo cáo và tệp đính kèm riêng tư qua Cloudinary, '
+        'Cloud Firestore, xác thực tài khoản Google cho tài khoản demo riêng, lưu báo cáo và tệp đính kèm riêng tư qua Cloudinary, '
         'tích hợp trung tâm thông báo Firebase Cloud Messaging (FCM), giám sát vận hành với Firebase Analytics, Crashlytics và Remote Config, '
         'đồng thời kiểm thử tự động bằng Google ARTEMIS E2E framework.',
         style: pw.TextStyle(font: fontRegular, fontSize: 10.5),
@@ -668,7 +658,7 @@ void main(List<String> args) async {
           pw.TableRow(children: [
             pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('flutter test', style: pw.TextStyle(font: fontRegular, fontSize: 10))),
             pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('Bộ test đơn vị và test widget toàn diện', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
-            pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('124/124 tests passed (100% pass, 0 fail, 0 skip)', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
+            pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('164/164 tests passed (100% pass, 0 fail, 0 skip)', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
             pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('PASS (Exit 0)', style: pw.TextStyle(font: fontBold, fontSize: 10, color: PdfColors.green800))),
           ]),
           pw.TableRow(children: [
@@ -680,7 +670,7 @@ void main(List<String> args) async {
         ],
       ),
       pw.SizedBox(height: 8),
-      pw.Text('6.3. Phân bố 124 ca kiểm thử Đơn vị & Widget',
+      pw.Text('6.3. Phân bố 164 ca kiểm thử Đơn vị & Widget',
           style: pw.TextStyle(font: fontBold, fontSize: 12, color: PdfColors.blue800)),
       pw.SizedBox(height: 4),
       pw.Bullet(text: 'Firebase và dữ liệu: auth state, cách ly theo UID, mapping Firestore, Remote Config và FCM.', style: pw.TextStyle(font: fontRegular, fontSize: 10)),
@@ -692,8 +682,8 @@ void main(List<String> args) async {
         padding: const pw.EdgeInsets.all(6),
         decoration: const pw.BoxDecoration(color: PdfColors.blue50),
         child: pw.Text(
-          'LƯU Ý QUAN TRỌNG: 124 test cases trên chạy với Hermetic Fakes (Test Doubles) trong môi trường CI/local, '
-          'không tương tác với Firebase Cloud thật. Không được coi 124 test unit này là bằng chứng thay thế cho ARTEMIS E2E.',
+          'LƯU Ý QUAN TRỌNG: 164 test cases trên chạy với Hermetic Fakes (Test Doubles) trong môi trường CI/local, '
+          'không tương tác với Firebase Cloud thật. Không được coi 164 test unit này là bằng chứng thay thế cho ARTEMIS E2E.',
           style: pw.TextStyle(font: fontRegular, fontSize: 9, color: PdfColors.blue900),
         ),
       ),
@@ -713,18 +703,19 @@ void main(List<String> args) async {
       pw.SizedBox(height: 8),
       pw.Text(
         'Harness có 26 kịch bản, trong đó 25 ca regression và một ca exploratory. '
-        'TC_11 kiểm tra giá trị Remote Config hiện trên app. Ba lượt ngày 07/11 đều pass, '
-        'trung bình 31,66 giây mỗi lượt tính theo pytest.',
+        'Mười ca đã đạt ít nhất ba lượt pass, gồm lịch slot, tìm môn, mở Cố vấn, tiên quyết, '
+        'tìm kiếm rỗng, đồng bộ Vault, Remote Config, FCM token, trung tâm thông báo và mở lại app. '
+        'TC_11 pass 3/3 với 20,3 giây mỗi lượt; TC_13 pass 3/3 trong 57,51 giây.',
         style: pw.TextStyle(font: fontRegular, fontSize: 11),
       ),
       pw.SizedBox(height: 10),
       pw.Text('7.2. Phạm vi xác minh',
           style: pw.TextStyle(font: fontBold, fontSize: 12, color: PdfColors.blue800)),
       pw.SizedBox(height: 5),
-      pw.Bullet(text: 'Harness đối chiếu dữ liệu terminal với hierarchy Android. Trace và kết quả nằm trong evidence/artemis.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
-      pw.Bullet(text: 'Đã từng gặp giới hạn Gemini HTTP 429. Những lượt bị chặn hoặc không có quan sát hợp lệ được ghi riêng.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
-      pw.Bullet(text: 'Batch bổ sung ngày 07/11 bị giới hạn HTTP 429 ở TC_09. Lượt đó bị hủy và 26 lượt kế tiếp chưa chạy.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
-      pw.Bullet(text: 'Còn mốc tối thiểu mười ca, mỗi ca ba lượt và phiên exploratory. Lượt chấm trên điện thoại thật cần kết nối thiết bị.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
+      pw.Bullet(text: 'Harness đối chiếu dữ liệu terminal với hierarchy Android. Trace, ảnh và kết quả từng lượt nằm trong evidence/artemis.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
+      pw.Bullet(text: 'Máy thật GQDIV8HUPJWK79XC: TC_08 pass 92,20 giây, TC_11 pass 41,56 giây; TC_10 pass 3/3 (trung bình 224,02 giây/lượt) với consent trước upload và URL Cloudinary.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
+      pw.Bullet(text: 'Model dùng gemini-3.5-flash-lite, chạy tuần tự. Lượt gặp HTTP 429/503 hoặc timeout được giữ trong lịch sử và chạy lại; không tính là pass.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
+      pw.Bullet(text: 'Hai phiên exploratory ARTEMIS Pro: một phiên 10 luồng khoảng 9 phút, một phiên 28 bước khoảng 7,5 phút phủ thêm bộ lọc công việc, Ghi chú, Hồ sơ, Cố vấn, Chiến lược và điều hướng thông báo.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
     ],
   ));
 
@@ -736,21 +727,23 @@ void main(List<String> args) async {
     totalPages: totalPages,
     sectionTitle: '§8. AI Code Review',
     content: [
-      pw.Text('8.1. Review local bằng Codex trên baseline b69dc71',
+      pw.Text('8.1. Review AI trên working tree và lịch sử Git',
           style: pw.TextStyle(font: fontBold, fontSize: 14, color: PdfColors.blue900)),
       pw.SizedBox(height: 8),
-      pw.Bullet(text: 'CR-10, UX. Thử lại lặp câu hỏi. Đã dùng lại câu hỏi cũ và bảo vệ nội dung nhập khi đang chờ.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
-      pw.Bullet(text: 'CR-11, độ tin cậy. Lỗi Analytics từng có thể che kết quả xuất PDF đã lưu. Đã tách telemetry khỏi nghiệp vụ.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
-      pw.Bullet(text: 'CR-12, đầu vào. Bảng MIME nhận thuộc tính kế thừa như .constructor. Đã chặn và bổ sung kiểm thử HTTP.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
-      pw.Bullet(text: 'CR-13, tính nhất quán. Tệp PDF có thể còn trên cloud nếu lần ghi metadata lỗi. Cần retry có ID cố định và kiểm tra trạng thái ghi.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
-      pw.Bullet(text: 'CR-14, vận hành. Cần quota theo UID khi chuyển Media API từ loopback sang môi trường chia sẻ.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
+      pw.Bullet(text: 'CR-15/16/17, kiến trúc. Tách AiService/GeminiAiService, đưa role gate qua watchUserRole và cô lập từng bước khởi tạo Firebase trong try/catch.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
+      pw.Bullet(text: 'CR-18, toàn vẹn dữ liệu. Sync Vault ghi marker có timestamp rồi xóa đúng bản ghi vừa tạo, không để rác trong tài khoản thật.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
+      pw.Bullet(text: 'CR-20/22, bảo mật. Rules chặn tự khai admin và giới hạn 40 trường; Remote Config template khớp đủ 9 tham số.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
+      pw.Bullet(text: 'CR-21, trạng thái lỗi web. Bốn màn có banner lỗi và nút thử lại thay vì màn trắng.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
+      pw.Bullet(text: 'CR-28/29, telemetry và test. Event AI có tham số feature; AnnouncementsViewModel có test loading/empty/data/error/retry.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
+      pw.Bullet(text: 'CR-31, độ ổn định. Ghi metadata Firestore được bọc timeout 12 giây; UI hiện cảnh báo hàng đợi thay vì treo ở 100% khi mất DNS.', style: pw.TextStyle(font: fontRegular, fontSize: 10.5)),
       pw.SizedBox(height: 10),
       pw.Text('8.2. Minh chứng review',
           style: pw.TextStyle(font: fontBold, fontSize: 12, color: PdfColors.blue800)),
       pw.SizedBox(height: 5),
       pw.Text(
-        'docs/code-review.md ghi file liên quan, quyết định và kiểm thử. Ba sửa lỗi đã tách theo nhóm file. '
-        'PR và hash của ba commit sẽ được bổ sung sau khi có trên Git.',
+        'docs/code-review.md ghi vị trí file:line, quyết định và kiểm thử; output phiên Qoder 11/11 lưu tại '
+        'evidence/code-review/qoder-review-2026-11-11.md. Các commit sửa gồm bd4c989, f2b2cb0, e5256c1, c9b9985, '
+        '4142399 và f971262. Review do AI hỗ trợ, không trình bày như reviewer độc lập.',
         style: pw.TextStyle(font: fontRegular, fontSize: 10.5),
       ),
     ],
@@ -794,33 +787,33 @@ void main(List<String> args) async {
           ]),
           pw.TableRow(children: [
             pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('Kiểm thử nội bộ', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
-            pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('Analyze 0 lỗi, Test 124/124, APK', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
-            pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('test/ (124 tests), build/app-debug.apk', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
+            pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('Analyze 0 lỗi, Test 164/164, APK', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
+            pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('test/ (164 tests), build/app-debug.apk', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
             pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('SẴN SÀNG', style: pw.TextStyle(font: fontBold, fontSize: 9, color: PdfColors.green800))),
           ]),
           pw.TableRow(children: [
             pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('Báo cáo & Slide', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
             pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('Report 8-12 trang, Slide 12-15 tr', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
-            pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('report/Lab03_[StudentID].pdf, slides/...', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
+            pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('report/PRM393_LAB3_GR6.pdf, slides/...', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
             pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('ĐÃ KẾT XUẤT', style: pw.TextStyle(font: fontBold, fontSize: 9, color: PdfColors.green800))),
           ]),
           pw.TableRow(children: [
             pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('Firebase Console', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
             pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('Ảnh chụp Auth, Firestore, DebugView', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
             pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('evidence/firebase/ và evidence/app/', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
-            pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('CÓ TRÊN GIẢ LẬP', style: pw.TextStyle(font: fontBold, fontSize: 9, color: PdfColors.orange800))),
+            pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('CÓ ẢNH CONSOLE', style: pw.TextStyle(font: fontBold, fontSize: 9, color: PdfColors.green800))),
           ]),
           pw.TableRow(children: [
             pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('ARTEMIS E2E', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
             pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('Tối thiểu 10 ca × 3 lượt chạy', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
             pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('evidence/artemis/', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
-            pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('CHẠY MỘT PHẦN', style: pw.TextStyle(font: fontBold, fontSize: 9, color: PdfColors.red800))),
+            pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('ĐỦ 10 CA × 3 LƯỢT', style: pw.TextStyle(font: fontBold, fontSize: 9, color: PdfColors.green800))),
           ]),
           pw.TableRow(children: [
             pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('Video Demo', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
             pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('5–10 phút có tiếng và thuyết minh', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
-            pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('docs/lab3-video-script.md (chờ quay)', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
-            pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('CHỜ QUAY', style: pw.TextStyle(font: fontBold, fontSize: 9, color: PdfColors.orange800))),
+            pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('docs/lab3-video-script.md, video/', style: pw.TextStyle(font: fontRegular, fontSize: 9))),
+            pw.Padding(padding: const pw.EdgeInsets.all(3), child: pw.Text('THƯ MỤC SẴN SÀNG', style: pw.TextStyle(font: fontBold, fontSize: 9, color: PdfColors.green800))),
           ]),
         ],
       ),
@@ -829,8 +822,9 @@ void main(List<String> args) async {
           style: pw.TextStyle(font: fontBold, fontSize: 12, color: PdfColors.blue800)),
       pw.SizedBox(height: 4),
       pw.Text(
-        'App đã chạy trên Pixel 7 giả lập với Firebase, Gemini và Cloudinary. '
-        'Lượt nộp còn cần thông tin sinh viên, kiểm thử trên điện thoại thật, batch ARTEMIS, PR review và video demo.',
+        'App đã chạy trên Pixel 7 giả lập và điện thoại thật GQDIV8HUPJWK79XC với Firebase, Gemini và Cloudinary. '
+        'Mười ca ARTEMIS đạt ba lượt pass, TC_10 đạt 3/3 trên máy thật, rules và 164 test tự động đều pass. '
+        'Repository, báo cáo, thư mục video và mục lục bằng chứng đã được đóng gói trong repo nộp.',
         style: pw.TextStyle(font: fontRegular, fontSize: 10),
       ),
     ],
@@ -841,7 +835,7 @@ void main(List<String> args) async {
   final outDir = Directory('report');
   if (!outDir.existsSync()) outDir.createSync(recursive: true);
 
-  final outFile = File('report/Lab03_${studentId ?? 'STUDENT_ID'}.pdf');
+  final outFile = File('report/PRM393_LAB3_$studentLabel.pdf');
   await outFile.writeAsBytes(bytes);
 
   print('Successfully generated Report PDF: ${outFile.path}');

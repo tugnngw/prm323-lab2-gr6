@@ -13,10 +13,10 @@ void main() async {
   final fontBold = pw.Font.ttf(ByteData.view(boldBytes.buffer));
 
   final doc = pw.Document(
-    title: 'PRM393 Lab 3 — Presentation Slides [CHỜ ĐIỀN STUDENT ID]',
-    author: 'Student ID: [CHỜ ĐIỀN STUDENT ID]',
+    title: 'PRM393 Lab 3 — Presentation Slides — Nhóm GR6',
+    author: 'Nhóm GR6',
     subject: 'PRM393 Cloud-Enabled Mobile App Presentation Slides',
-    keywords: 'PRM393, Lab 3, Flutter, Firebase, Slides, [CHỜ ĐIỀN STUDENT ID]',
+    keywords: 'PRM393, Lab 3, Flutter, Firebase, Slides, Nhóm GR6',
   );
 
   final totalSlides = 15;
@@ -66,7 +66,7 @@ void main() async {
         children: [
           pw.Text('PRM393 Lab 3: StudyPilot — Cloud-Enabled Academic Assistant',
               style: pw.TextStyle(font: fontRegular, fontSize: 7, color: PdfColors.grey600)),
-          pw.Text('Student ID: [CHỜ ĐIỀN STUDENT ID] | Project: prm323-lab2-gr6',
+          pw.Text('Nhóm GR6 | Project: prm323-lab2-gr6',
               style: pw.TextStyle(font: fontBold, fontSize: 7, color: PdfColors.grey700)),
         ],
       ),
@@ -144,13 +144,13 @@ void main() async {
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-            pw.Text('Sinh viên thực hiện: Nguyễn Bá Thái Dương (và nhóm tác giả)',
+            pw.Text('Nhóm thực hiện: GR6',
                 style: pw.TextStyle(font: fontBold, fontSize: 10, color: PdfColors.grey900)),
             pw.SizedBox(height: 4),
-            pw.Text('Mã số sinh viên: [CHỜ ĐIỀN STUDENT ID]',
+            pw.Text('Repository: PRM393_Final_GR6',
                 style: pw.TextStyle(font: fontBold, fontSize: 10, color: PdfColors.red800)),
             pw.SizedBox(height: 4),
-            pw.Text('Repository nộp: PRM393_Lab03_[StudentID] (Gốc: prm323-lab2-gr6)',
+            pw.Text('Repository nộp: PRM393_Final_GR6 (Gốc: prm323-lab2-gr6)',
                 style: pw.TextStyle(font: fontRegular, fontSize: 9, color: PdfColors.grey700)),
           ]),
           pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
@@ -929,7 +929,7 @@ void main() async {
       ),
       pw.SizedBox(height: 6),
       pw.Text('KẾ HOẠCH HÀNH ĐỘNG CUỐI CÙNG TRƯỚC KHI NỘP: '
-          '(1) Điền Student ID; (2) Chạy ARTEMIS trên emulator khi có quota; (3) Chụp 6 màn hình Firebase Console; (4) Quay video demo 5–10 phút; (5) Đổi tên repo thành PRM393_Lab03_[StudentID].',
+          'Định danh nhóm: GR6 · Repo: PRM393_Final_GR6.',
           style: pw.TextStyle(font: fontRegular, fontSize: 7, color: PdfColors.grey800)),
     ],
   ));
@@ -939,7 +939,7 @@ void main() async {
   final outDir = Directory('slides');
   if (!outDir.existsSync()) outDir.createSync(recursive: true);
 
-  final outFile = File('slides/Lab03_STUDENT_ID_slides.pdf');
+  final outFile = File('slides/PRM393_LAB3_GR6_draft.pdf');
   await outFile.writeAsBytes(bytes);
 
   print('Successfully generated Slides PDF: ${outFile.path}');

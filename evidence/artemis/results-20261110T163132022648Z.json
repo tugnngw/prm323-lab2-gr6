@@ -1,0 +1,8 @@
+[
+  {
+    "case": "test_export_profile.py::test_TC_11_remote_config_values_visible[run1]",
+    "outcome": "passed",
+    "seconds": 41.504,
+    "reason": ""
+  }
+]

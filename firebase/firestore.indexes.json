@@ -17,13 +17,6 @@
       ]
     },
     {
-      "collectionGroup": "announcements",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "publishedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "experience_notes",
       "queryScope": "COLLECTION",
       "fields": [

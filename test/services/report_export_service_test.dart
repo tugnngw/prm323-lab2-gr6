@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prm393_final_gr6/models/course_model.dart';
 import 'package:prm393_final_gr6/models/note_model.dart';
@@ -263,6 +265,34 @@ void main() {
           .toList();
       expect((events.single['parameters'] as Map)['status'], 'failed');
     });
+
+    test(
+      'unacknowledged Firestore write is deferred instead of hanging the UI',
+      () async {
+        firestore.blockReportSave = Completer<void>();
+        final quick = ReportExportService(
+          storageService: storage,
+          firestoreService: firestore,
+          analyticsService: analytics,
+          metadataTimeout: const Duration(milliseconds: 20),
+        );
+
+        final result = await quick.exportStudyReport(
+          userId: 'uid_123',
+          courses: courses,
+          tasks: tasks,
+          notes: notes,
+        );
+
+        expect(result.metadataSynced, isFalse);
+        expect(result.downloadUrl, contains('reports/uid_123'));
+        expect(storage.uploads, hasLength(1));
+        final events = analytics.loggedEvents
+            .where((e) => e['name'] == 'export_report')
+            .toList();
+        expect((events.single['parameters'] as Map)['status'], 'success');
+      },
+    );
   });
 
   group('ReportPdfService (real generator)', () {

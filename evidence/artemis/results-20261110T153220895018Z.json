@@ -1,0 +1,8 @@
+[
+  {
+    "case": "test_export_profile.py::test_TC_11_remote_config_values_visible[run1]",
+    "outcome": "failed",
+    "seconds": 198.061,
+    "reason": "artemis = <conftest.ObservedClient object at 0x000001A6822E1970>\n\n    @require_artemis\n    async def test_TC_11_remote_config_values_visible(artemis):\n>       observed = await artemis.run(\n            'From Home open Sync Vault, scroll until Firebase Remote Config card is fully visible near the top, read it. Report exact maintenance_mode boolean, min_app_version string and AI feature flag. Do not infer from defaults and do not claim Console before/after verification.',\n            {'maintenance_mode': 'boolean', 'min_app_version': 'version string', 'feature_ai_advisor_enabled': 'boolean'},\n        )\n\ne2e_test\\test_export_profile.py:22: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\nself = <conftest.ObservedClient object at 0x000001A6822E1970>\ninstruction = 'From Home open Sync Vault, scroll until Firebase Remote Config card is fully visible near the top, read it. Report ex...app_version string and AI feature flag. Do not infer from defaults and do not claim Console before/after verification.'\nfields = {'maintenance_mode': 'boolean', 'min_app_version': 'version string', 'feature_ai_advisor_enabled': 'boolean'}\ntimeout = 390\n\n    async def run(self,"
+  }
+]

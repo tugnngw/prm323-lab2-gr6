@@ -1,0 +1,6 @@
+{
+  "phase": "native startup wait",
+  "error": "Command '['C:/Android/Sdk/platform-tools/adb.exe', '-s', 'GQDIV8HUPJWK79XC', 'shell', 'am', 'force-stop', 'com.example.prm323_lab3']' returned non-zero exit status 3221225794.",
+  "device": "GQDIV8HUPJWK79XC",
+  "artemis_task_submitted": false
+}

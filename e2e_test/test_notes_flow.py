@@ -27,7 +27,7 @@ async def test_TC_F3_02_offline_cache_branch(artemis, restore_network):
 @require_artemis
 async def test_TC_F3_03_reconnect_sync_recovery(artemis):
     observed = await artemis.run(
-        'Independently start with network enabled. Open the "Firebase Cloud & Offline Vault" card, tap Kích hoạt đồng bộ Vault ngay; wait for reload completion. Return Ghi chú and report final data/empty state and whether any sync error remains. No fixture from another case is required.',
+        'Independently start with network enabled. Open the "Firebase Cloud & Offline Vault" card, tap Kích hoạt đồng bộ Vault ngay, tap Xác nhận on the sync confirmation dialog if prompted; wait for reload completion. Return Ghi chú and report final data/empty state and whether any sync error remains. No fixture from another case is required.',
         {'notes_state': 'data or empty', 'sync_error_visible': 'boolean'},
     )
     assert observed['notes_state'] in {'data','empty'}

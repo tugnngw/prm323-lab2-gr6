@@ -77,6 +77,10 @@ abstract class FirestoreService {
 
   // ── Notification Center ──
   Future<List<Map<String, dynamic>>> getNotifications(String userId);
+
+  /// Live inbox: a staff review decision writes into this subcollection, so
+  /// the student sees the approval message without pulling to refresh.
+  Stream<List<Map<String, dynamic>>> watchNotifications(String userId);
   Future<void> saveNotification(
     String userId,
     Map<String, dynamic> data, {

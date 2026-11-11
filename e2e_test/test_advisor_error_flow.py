@@ -8,12 +8,13 @@ pytestmark = [skip_without_adb, pytest.mark.e2e]
 @require_artemis
 async def test_TC_08_advisor_course_question(artemis):
     observed = await artemis.run(
-        "From Home open Cố vấn học tập. Choose Môn học, ask 'Tư vấn môn PRM323', accept the question consent if shown. Wait for the real reply and report its exact text; it must ground credits/prerequisites in Firebase and disclose missing personal data.",
+        "From Home open Cố vấn học tập. Tap the 'Môn' level chip. Tap 'Hỏi nhanh trên thiết bị · không cần mạng' to open the quick-question sheet. Tap the 'Chọn môn' dropdown once to open its course list; 'PRM393 — Mobile Programming' is a row near the top of that list. Tap that PRM393 row directly by its visible text to select it — do not tap the dropdown field again while the list is open, and do not use element-index clicks. Then tap 'Tóm tắt môn học'. Read the resulting card and report its literal answer and source line; it must ground credits/prerequisites in Firebase and disclose missing personal data.",
         {'reply': 'literal reply text'},
     )
-    assert 'PRM323' in observed['reply']
-    assert 'tín chỉ' in observed['reply']
-    assert 'Nguồn:' in observed['reply']
+    assert 'PRM393' in observed['native_visible_text']
+    assert 'tín chỉ' in observed['native_visible_text'].casefold()
+    assert 'Nguồn:' in observed['native_visible_text']
+    assert 'PRM393' in observed['reply']
 
 @require_artemis
 async def test_TC_09_empty_search_recovery(artemis):

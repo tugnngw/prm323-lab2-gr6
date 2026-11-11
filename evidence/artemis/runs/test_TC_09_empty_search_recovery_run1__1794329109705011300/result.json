@@ -1,0 +1,19 @@
+{
+  "case": "test_TC_09_empty_search_recovery[run1]",
+  "trace_id": "ff7e6665-1a2c-4cfc-84df-1d0ede9f31fb",
+  "device": "GQDIV8HUPJWK79XC",
+  "started_at": "2026-11-10T16:45:17.398507+00:00",
+  "instruction": "From Home open Lộ trình, clear old search and search ZZZ_NO_COURSE_20261104. Verify zero course rows and empty-state text. Clear search and verify courses return. Report both counts and literal empty message.",
+  "status": "completed",
+  "error": null,
+  "output": null,
+  "duration_seconds": 180.969,
+  "output_source": "ARTEMIS session steps: final report_task_status",
+  "observation": {
+    "visible_text": "Lộ trình học tập",
+    "empty_count": 0,
+    "empty_message": "Không tìm thấy môn học khớp với \"ZZZ_NO_COURSE_20261104\".",
+    "recovered_count": 88,
+    "native_visible_text": "Lộ trình học tập\n Tải lại ngành & môn học\n Hỏi cố vấn học tập\n \n \n BIT_SE_K19B\n The Bachelor Program of Information Technology, Software Engineering Major (BIT_SE_K19B) · 88 môn · Kỳ 5: 13 môn\n \n Kiểm tra môn tiên quyết\n Kỳ 1\n Kỳ 2\n \n \n \n \n 100, ECI101\nIntroduction to Electronic Components and Circuits\nKỳ 5 · 3 tín chỉ · Slot 60/60 (100%)\nTự chọn: SE_COM*1\n \n \n 100, FER202\nFront-End web development with React\nKỳ 5 · 3 tín chỉ · Slot 60/60 (100%)\nTự chọn: SE_COM*1\nChưa đủ điều kiện: Cần học trước WED201c\n \n Trang chủ\nTab 1 of 4\n Lộ trình\nTab 2 of 4\n Việc cần làm\nTab 3 of 4\n Ghi chú\nTab 4 of 4"
+  }
+}

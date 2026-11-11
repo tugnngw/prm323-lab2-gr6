@@ -29,7 +29,7 @@ service cloud.firestore {
         notificationId.matches('^tip_rating_[A-Za-z0-9_-]{1,120}$') &&
         data.get('title', '') is string && data.title.size() > 0 && data.title.size() <= 140 &&
         data.get('body', '') is string && data.body.size() <= 300 &&
-        data.get('read', true) == false && data.get('receivedAt') == request.time &&
+        data.get('read', true) == false && data.get('receivedAt', null) == request.time &&
         data.get('route', '') == '/course-tips' &&
         data.get('routeArgument', '') is string &&
         data.routeArgument.size() >= 3 && data.routeArgument.size() <= 80;
@@ -46,6 +46,27 @@ service cloud.firestore {
 
     function validRole(role) {
       return role in ['user', 'staff', 'admin'];
+    }
+
+    // The review decision itself is client-written (no Cloud Functions), so a
+    // staff member may append exactly one inbox entry per tip review. The
+    // author reads it on their own device; every field is pinned.
+    function validReviewNotification(data, recipientId, notificationId) {
+      return isAuthenticated() &&
+        hasRole(['staff', 'admin']) &&
+        recipientId != request.auth.uid &&
+        data.keys().hasOnly([
+          'title', 'body', 'type', 'read', 'receivedAt', 'route',
+          'recipientId', 'actorId'
+        ]) &&
+        data.get('type', '') == 'tip_review' &&
+        data.get('recipientId', '') == recipientId &&
+        data.get('actorId', '') == request.auth.uid &&
+        notificationId.matches('^review_[A-Za-z0-9_-]{1,120}$') &&
+        data.get('title', '') is string && data.title.size() > 0 && data.title.size() <= 140 &&
+        data.get('body', '') is string && data.body.size() <= 300 &&
+        data.get('read', true) == false && data.get('receivedAt', null) == request.time &&
+        data.get('route', '') == '/my-tips';
     }
 
     function validPlan(data) {
@@ -135,7 +156,8 @@ service cloud.firestore {
       match /notifications/{notificationId} {
         allow read, update, delete: if isOwner(userId);
         allow create: if isOwner(userId) ||
-          validTipNotification(request.resource.data, userId, notificationId);
+          validTipNotification(request.resource.data, userId, notificationId) ||
+          validReviewNotification(request.resource.data, userId, notificationId);
       }
 
       // FCM device tokens — owner only
@@ -233,9 +255,12 @@ service cloud.firestore {
         data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80 &&
         data.get('title', '') is string && data.title.size() >= 3 && data.title.size() <= 120 &&
         data.content is string && data.content.size() >= 20 && data.content.size() <= 2000 &&
-        data.get('lecturerTip', '') is string && data.lecturerTip.size() <= 500 &&
-        data.get('examTip', '') is string && data.examTip.size() <= 500 &&
-        data.get('rating', 0) is int && data.get('rating', 0) >= 0 && data.get('rating', 0) <= 5 &&
+        (!data.keys().hasAny(['lecturerTip']) ||
+          (data.lecturerTip is string && data.lecturerTip.size() <= 500)) &&
+        (!data.keys().hasAny(['examTip']) ||
+          (data.examTip is string && data.examTip.size() <= 500)) &&
+        (!data.keys().hasAny(['rating']) ||
+          (data.rating is int && data.rating >= 0 && data.rating <= 5)) &&
         data.status == 'pending' && data.createdAt == request.time &&
         !data.keys().hasAny(['reason', 'reviewedBy', 'reviewedAt']);
     }
@@ -273,7 +298,7 @@ service cloud.firestore {
         ratingId == data.tipId + '__' + request.auth.uid &&
         data.get('displayName', '') is string && data.displayName.size() <= 80 &&
         data.get('stars', 0) is int && data.stars >= 1 && data.stars <= 5 &&
-        data.get('createdAt') == request.time;
+        data.get('createdAt', null) == request.time;
     }
 
     // One rating per student per tip: the document id is tipId__uid, so a
@@ -298,7 +323,7 @@ service cloud.firestore {
         data.get('uid', '') == request.auth.uid &&
         data.get('authorName', '') is string && data.authorName.size() >= 1 && data.authorName.size() <= 80 &&
         data.get('content', '') is string && data.content.size() >= 1 && data.content.size() <= 1000 &&
-        data.get('createdAt') == request.time;
+        data.get('createdAt', null) == request.time;
     }
 
     // Comments are deliberately unmoderated: any signed-in student may add one.

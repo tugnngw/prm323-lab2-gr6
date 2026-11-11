@@ -1,0 +1,34 @@
+Quay lại
+ Cố vấn học tập
+ Dữ liệu học tập
+ Cố vấn làm được gì?
+ AI chưa kiểm tra
+ Hỏi một câu để kiểm tra Gemini (gemini-3.5-flash-lite). Nếu lỗi, app sẽ chuyển sang trả lời trên thiết bị.
+ Chi tiết AI
+ Chọn cấp tư vấn
+ Môn
+ Kỳ
+ Chương trình
+ Điểm
+ 
+ 
+ Trên thiết bị
+•
+•
+•
+•
+•
+•
+•
+PRM393 — Mobile Programming 
+Tín chỉ: 3 · Kỳ: 8 · Ngành: BIT_SE_K19B 
+Tiên quyết: còn thiếu PRO192 
+Slot đề cương: 60 
+Đầu điểm: Practical Exam 25% · Progress Test 15% · Project 30% · Final exam 30% 
+Chuẩn đầu ra: 7 mục 
+Tài liệu: 4 đầu sách/giáo trình 
+Điểm đã nhập: chưa có trong bảng điểm 
+Nguồn: đề cương FLM và hồ sơ học tập trên thiết bị. Hỏi thêm "bài kiểm tra", "nội dung slot", "tiên quyết" hoặc "điểm". 
+ Hỏi nhanh trên thiết bị · không cần mạng
+ 
+ Gửi câu hỏi

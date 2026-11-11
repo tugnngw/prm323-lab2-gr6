@@ -1,0 +1,7 @@
+{
+  "case": "test_TC_F1_01_open_course_slots[run1]",
+  "trace_id": "1f4f2430-c752-44ee-9717-d6f24d95e79b",
+  "device": "GQDIV8HUPJWK79XC",
+  "started_at": "2026-11-11T02:52:59.970479+00:00",
+  "instruction": "From Home open Lộ trình, choose PRM393, open Lịch slot. Read all three course-tab labels. Report the number of actual detailed slots and the empty-state message when zero; do not treat total-slot defaults as slot records."
+}

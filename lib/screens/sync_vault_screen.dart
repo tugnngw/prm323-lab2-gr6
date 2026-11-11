@@ -23,6 +23,7 @@ import '../viewmodels/roadmap_viewmodel.dart';
 import '../viewmodels/tasks_viewmodel.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_components.dart';
+import 'sync_error_screen.dart';
 
 class SyncVaultScreen extends StatefulWidget {
   const SyncVaultScreen({super.key, this.showLegacyMedia = true});
@@ -162,7 +163,33 @@ class _SyncVaultScreenState extends State<SyncVaultScreen> {
     }
   }
 
+  /// D-01 SyncConfirmation overlay: sync only runs after explicit consent.
   Future<void> _triggerManualSync(AnalyticsService analytics) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Đồng bộ Vault?'),
+        content: const Text(
+          'Ứng dụng sẽ tải lại lộ trình, việc cần làm và ghi chú từ Cloud '
+          'Firestore. Dữ liệu cục bộ được giữ nguyên trong lúc đồng bộ.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Xác nhận'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await _runManualSync(analytics);
+  }
+
+  Future<void> _runManualSync(AnalyticsService analytics) async {
     setState(() {
       _isSyncing = true;
       _syncResult = null;
@@ -193,9 +220,20 @@ class _SyncVaultScreenState extends State<SyncVaultScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _syncResult = 'Đồng bộ thất bại: $e';
-      });
+      unawaited(
+        Navigator.push<void>(
+          context,
+          MaterialPageRoute(
+            builder: (errorContext) => SyncErrorScreen(
+              errorMessage: '$e',
+              onRetry: () {
+                Navigator.pop(errorContext);
+                _runManualSync(analytics);
+              },
+            ),
+          ),
+        ),
+      );
     } finally {
       if (mounted) setState(() => _isSyncing = false);
     }
@@ -931,6 +969,16 @@ class _SyncVaultScreenState extends State<SyncVaultScreen> {
                       color: AppColors.onSurfaceVariant,
                     ),
                   ),
+                  if (!_exportResult!.metadataSynced) ...[
+                    const SizedBox(height: AppSpacing.xxs),
+                    const Text(
+                      'Đã tải lên cloud nhưng chưa đồng bộ được metadata Firestore (mất mạng/DNS). Bản ghi vẫn nằm trong hàng đợi và sẽ tự lưu khi thiết bị có Internet.',
+                      style: TextStyle(
+                        fontSize: AppFontSize.caption,
+                        color: AppColors.warning,
+                      ),
+                    ),
+                  ],
                 ],
                 const SizedBox(height: AppSpacing.sm),
                 AppOutlinedButton(

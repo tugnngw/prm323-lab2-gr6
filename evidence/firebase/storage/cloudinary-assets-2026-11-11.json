@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-11",
+  "source": "Cloudinary Admin API (read-only listing)",
+  "note": "Console-equivalent file list; UID masked. Screenshot of Media Library still required for rubric evidence.",
+  "resource_type": "raw",
+  "access_type": "authenticated",
+  "count": 9,
+  "resources": [
+    {
+      "id": "reports/[uid]/study_report_1793886605613.pdf",
+      "bytes": 20321,
+      "created_at": "2026-11-05T13:50:11Z"
+    },
+    {
+      "id": "reports/[uid]/study_report_1794061336336.pdf",
+      "bytes": 20677,
+      "created_at": "2026-11-07T14:22:19Z"
+    },
+    {
+      "id": "reports/[uid]/study_report_1794361854698.pdf",
+      "bytes": 37273,
+      "created_at": "2026-11-11T01:50:57Z"
+    },
+    {
+      "id": "reports/[uid]/study_report_1794364018592.pdf",
+      "bytes": 37411,
+      "created_at": "2026-11-11T02:27:01Z"
+    },
+    {
+      "id": "reports/[uid]/study_report_1794364158213.pdf",
+      "bytes": 37413,
+      "created_at": "2026-11-11T02:29:20Z"
+    },
+    {
+      "id": "reports/[uid]/study_report_1794364385912.pdf",
+      "bytes": 37413,
+      "created_at": "2026-11-11T02:33:07Z"
+    },
+    {
+      "id": "reports/[uid]/study_report_1794365002050.pdf",
+      "bytes": 37476,
+      "created_at": "2026-11-11T02:43:25Z"
+    },
+    {
+      "id": "reports/[uid]/study_report_1794365405425.pdf",
+      "bytes": 37462,
+      "created_at": "2026-11-11T02:50:08Z"
+    },
+    {
+      "id": "reports/[uid]/study_report_1794365517852.pdf",
+      "bytes": 37464,
+      "created_at": "2026-11-11T02:52:00Z"
+    }
+  ]
+}

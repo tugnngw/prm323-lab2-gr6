@@ -1,0 +1,8 @@
+[
+  {
+    "case": "test_advisor_error_flow.py::test_TC_09_empty_search_recovery[run1]",
+    "outcome": "failed",
+    "seconds": 198.121,
+    "reason": "artemis = <conftest.ObservedClient object at 0x0000015AC3FE8170>\n\n    @require_artemis\n    async def test_TC_09_empty_search_recovery(artemis):\n>       observed = await artemis.run(\n            'From Home open Lộ trình, clear old search and search ZZZ_NO_COURSE_20261104. Verify zero course rows and empty-state text. Clear search and verify courses return. Report both counts and literal empty message.',\n            {'empty_count': 'integer', 'empty_message': 'literal empty message', 'recovered_count': 'integer'},\n        )\n\ne2e_test\\test_advisor_error_flow.py:20: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\nself = <conftest.ObservedClient object at 0x0000015AC3FE8170>\ninstruction = 'From Home open Lộ trình, clear old search and search ZZZ_NO_COURSE_20261104. Verify zero course rows and empty-state text. Clear search and verify courses return. Report both counts and literal empty message.'\nfields = {'empty_count': 'integer', 'empty_message': 'literal empty message', 'recovered_count': 'integer'}\ntimeout = 390\n\n    async def run(self, instruction, fields, timeout=390):\n        folder = EVIDENCE_DIR / 'runs' / self.case_id\n        folder.mkdir(paren"
+  }
+]

@@ -1,0 +1,34 @@
+Quay lại
+ Sync Vault & Cài đặt
+ 
+ 
+ 
+ 
+ Firebase Remote Config
+maintenance_mode
+false
+feature_ai_advisor_enabled
+true
+min_app_version
+1.0.0
+vault_sync_interval_mins
+30 phút
+ 
+ 
+ 
+ Firebase Crashlytics Test
+Ghi nhận non-fatal exception và breadcrumb log lên dashboard Crashlytics mà không làm crash ứng dụng.
+ Ghi nhận Test Exception vào Crashlytics
+ Gây test crash (đóng ứng dụng)
+ 
+ 
+ 
+ Firestore Read/Write Test
+Kiểm tra đọc và ghi dữ liệu mẫu qua FirestoreService (áp dụng Offline Persistence).
+ Chạy Test Đọc/Ghi Firestore
+ 
+ 
+ 
+http://127.0.0.1:8788/api/reports/LERWvFiX1EhUahfAkwXD70TjTVx2/study_report_1794365002050.pdf 
+ Tạo PDF trên thiết bị
+ Tạo PDF trên thiết bị

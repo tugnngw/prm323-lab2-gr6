@@ -4,7 +4,7 @@
 
 ## 01 — FPTU Second Brain
 
-- **Trên slide:** Lộ trình học, công việc, ghi chú và duyệt kế hoạch học tập. PRM393 Final · [Tên nhóm] · [MSSV].
+- **Trên slide:** Lộ trình học, công việc, ghi chú và duyệt kế hoạch học tập. PRM393 Final · Nhóm GR6.
 - **Hình:** Trang chủ Android và màn web khi đã deploy.
 - **Lời nói:** “Nhóm em nối thiết kế Lab 2 và ứng dụng Lab 3 thành một hệ thống. Sinh viên dùng Android để quản lý việc học và gửi kế hoạch. Staff dùng web để xử lý yêu cầu trên cùng dữ liệu.”
 

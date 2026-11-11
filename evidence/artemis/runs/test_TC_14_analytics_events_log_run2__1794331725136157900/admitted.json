@@ -1,0 +1,7 @@
+{
+  "case": "test_TC_14_analytics_events_log[run2]",
+  "trace_id": "d00514c7-ce00-4497-af5b-f89dae2f3291",
+  "device": "GQDIV8HUPJWK79XC",
+  "started_at": "2026-11-10T17:28:52.849831+00:00",
+  "instruction": "From Home open Lộ trình. Tap the search field before typing PRM. Wait until the field visibly contains PRM and the list shows only matching courses. If the field still shows its placeholder, tap and type again. Open PRM393 only after verifying the filter. Report the shown course code and final screen title. The runner checks the actual logs for search_course and course_view."
+}

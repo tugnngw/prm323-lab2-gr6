@@ -11,7 +11,7 @@
   (1) `ai/ai-code-log.md` theo policy, (2) đặt tên evidence `SCR-/FLW-/TC-`,
   (3) cấu trúc thư mục `evidence/{firebase,artemis,code-review,report}/`,
   (4) Data minimization + consent dialog + PII filter (một phần đã có sẵn),
-  (5) checklist tự đánh giá trước nộp, (6) yêu cầu repo `PRM393_Lab03_<StudentID>`.
+  (5) checklist tự đánh giá trước nộp, (6) yêu cầu repo `PRM393_Final_GR6`.
 - Trạng thái: **T01, T02 xong; T03 xong M1 (device), M2 (deploy rules) còn BLOCKED.**
   T04–T16 chưa làm. Guide v5 sắp xếp lại thứ tự để **mở khoá ARTEMIS sớm** và
   **gom mọi evidence vào một batch chụp** thay vì rải rác.
@@ -30,7 +30,7 @@
 | §8 Deliverables | report 8–12tr, slides 12–15tr, video 5–10′, README, public repo | T16 | ❌ README vẫn là Lab 2 design brief | Viết cuối kỳ; README thêm `flutter pub get / test / build apk` + ARTEMIS commands + link video |
 | Policy | `ai/ai-code-log.md`, data minimization, consent, PII filter | MỚI (không có trong T-list) | ⚠️ PII filter đã có trong `firebase_analytics_service.dart`; consent dialog **chưa** | Tạo `ai/ai-code-log.md`; consent dialog gộp vào T11; log mọi phiên AI |
 | Naming evidence | `SCR-`, `FLW-`, `TC-` | MỚI | ❌ chưa có `evidence/` | Áp dụng khi chụp ở T08–T16 |
-| Repo naming | `PRM393_Lab03_<StudentID>` | S-12 (audit) | ❌ repo đang là `prm323-lab2-gr6` | Quyết định sớm: rename repo trên GitHub hoặc xác nhận với thầy (ảnh hưởng link nộp bài) |
+| Repo naming | `PRM393_Final_GR6` | S-12 (audit) | ❌ repo đang là `prm323-lab2-gr6` | Quyết định sớm: rename repo trên GitHub hoặc xác nhận với thầy (ảnh hưởng link nộp bài) |
 
 ## 2. Plan tối ưu (đã đổi thứ tự so với T-list gốc)
 
@@ -114,4 +114,4 @@
 4. **AI-code log theo policy** — roadmap cũ không có task này; nay là F4 (bắt buộc, thiếu là vi phạm policy nộp bài).
 5. **Không commit credential/JSON** (§9.3) — `.gitignore` đã đúng, giữ nguyên; khi chụp evidence che project number/API key.
 6. **Checklist tự đánh giá 12 dòng** (§10) — thêm vào G5 trước khi nộp.
-7. **Repo naming `PRM393_Lab03_<StudentID>`** — guide không nêu nhưng checklist Lab cũ có (S-12); quyết ở A0/G6.
+7. **Repo naming `PRM393_Final_GR6`** — guide không nêu nhưng checklist Lab cũ có (S-12); quyết ở A0/G6.

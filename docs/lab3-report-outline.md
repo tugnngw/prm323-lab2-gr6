@@ -1,6 +1,6 @@
 # Lab 3 Report — Outline 8–12 trang (draft G2, 03/11)
 
-> Khung nội dung cho `report/Lab3_Report_<StudentID>.pdf`. Quy ước: mọi chỗ **⏳** chỉ
+> Khung nội dung cho `report/PRM393_LAB3_GR6.pdf`. Quy ước: mọi chỗ **⏳** chỉ
 > điền số liệu/ảnh SAU khi có evidence runtime thật (E3/Console) — guide §9.3, không bịa.
 > Ảnh dẫn từ `evidence/` theo tên đã đặt (`TC-*_YYYY-MM-DD`, `SCR-*`, `FLW-*`).
 

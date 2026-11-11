@@ -181,6 +181,10 @@ class MockFirestoreService implements FirestoreService {
       const [];
 
   @override
+  Stream<List<Map<String, dynamic>>> watchNotifications(String userId) =>
+      const Stream.empty();
+
+  @override
   Future<void> saveNotification(
     String userId,
     Map<String, dynamic> data, {

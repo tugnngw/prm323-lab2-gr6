@@ -1,0 +1,17 @@
+{
+  "case": "test_TC_13_fcm_token_registered[run3]",
+  "trace_id": "ede15983-2d2a-47ee-b4d5-246776232327",
+  "device": "GQDIV8HUPJWK79XC",
+  "started_at": "2026-11-10T17:20:42.293459+00:00",
+  "instruction": "The harness has already cold-started StudyPilot with its existing session. Observe the current Home screen and report its literal title. Do not relaunch the app or change accounts or permissions. The runner checks token registration logs.",
+  "status": "completed",
+  "error": null,
+  "output": null,
+  "duration_seconds": 81.156,
+  "output_source": "ARTEMIS session steps: final report_task_status",
+  "observation": {
+    "visible_text": "Chào haduong2222222 👋, Học tập hiệu quả, kể cả khi ngoại tuyến., Firebase Cloud & Offline Vault, Truy cập nhanh, Ngành học & Dữ liệu học tập, Mô phỏng GPA, Lộ trình môn học, Trang chủ, Lộ trình, Việc cần làm, Ghi chú",
+    "screen_title": "StudyPilot",
+    "native_visible_text": "StudyPilot\n Trung tâm thông báo\n Đồng bộ Vault\n Đăng xuất\n \n \n Chào haduong2222222 👋\n \n Học tập hiệu quả, kể cả khi ngoại tuyến.\n \n \n \n Firebase Cloud & Offline Vault\nĐồng bộ Firestore và xuất tài liệu lên Storage.\n \n Truy cập nhanh\n \n \n \n Ngành học & Dữ liệu học tập\nXem ngành đang học và nhập bảng điểm để tính GPA.\n \n \n \n Mô phỏng GPA\nThử kịch bản điểm — sandbox, không lưu và không sửa bảng điểm thật.\n \n \n \n Lộ trình môn học\nXem danh mục môn và kiểm tra môn tiên quyết.\n \n Trang chủ\nTab 1 of 4\n Lộ trình\nTab 2 of 4\n Việc cần làm\nTab 3 of 4\n Ghi chú\nTab 4 of 4"
+  }
+}

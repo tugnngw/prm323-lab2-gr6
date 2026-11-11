@@ -1,0 +1,7 @@
+{
+  "case": "test_TC_11_remote_config_values_visible[run1]",
+  "trace_id": "48954549-0661-4b43-add0-1e33e75f2bb2",
+  "device": "GQDIV8HUPJWK79XC",
+  "started_at": "2026-11-11T01:14:32.217344+00:00",
+  "instruction": "From Home tap the card labelled \"Firebase Cloud & Offline Vault\" (do not tap the arrow). On the Sync Vault screen scroll until the \"Firebase Remote Config\" card is fully visible near the top and read it. Report exact maintenance_mode boolean, min_app_version string and AI feature flag. Do not infer from defaults and do not claim Console before/after verification."
+}
