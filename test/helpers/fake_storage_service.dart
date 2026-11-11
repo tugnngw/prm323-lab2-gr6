@@ -1,4 +1,4 @@
-import 'package:prm323_lab3/services/storage_service.dart';
+import 'package:prm393_final_gr6/services/storage_service.dart';
 
 /// Test double for [StorageService] — records uploads, supports failures,
 /// and exercises the progress callback like the real Firebase upload does.

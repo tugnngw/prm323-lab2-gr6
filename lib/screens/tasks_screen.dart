@@ -6,144 +6,20 @@ import '../models/task_model.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../viewmodels/tasks_viewmodel.dart';
-import '../widgets/app_button.dart';
 import '../widgets/app_components.dart';
 import '../widgets/app_states.dart';
-import '../widgets/app_text_field.dart';
+import '../widgets/app_toast.dart';
+import '../widgets/task_editor_sheet.dart';
 
 class TasksScreen extends StatelessWidget {
   const TasksScreen({super.key});
 
-  /// Add-or-edit bottom sheet. [existing] non-null switches to edit mode and
-  /// pre-fills the current values (D3: task edit UI). No hardcoded persona
-  /// defaults — an empty add sheet starts blank.
-  void _showTaskSheet(
+  void _openEditor(
     BuildContext context,
     TasksViewModel vm, {
     TaskModel? existing,
   }) {
-    final titleController = TextEditingController(text: existing?.title ?? '');
-    final courseController = TextEditingController(
-      text: existing?.courseCode ?? '',
-    );
-    final dateController = TextEditingController(text: existing?.dueDate ?? '');
-    var priority = existing?.priority ?? 'medium';
-
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) => Padding(
-          padding: EdgeInsets.only(
-            left: AppSpacing.md,
-            right: AppSpacing.md,
-            top: AppSpacing.lg,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + AppSpacing.lg,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                existing == null ? 'Thêm việc cần làm mới' : 'Sửa việc cần làm',
-                style: Theme.of(ctx).textTheme.titleLarge,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              AppTextField(
-                controller: titleController,
-                label: 'Nội dung công việc',
-                hint: 'Ví dụ: Làm bài tập Lab 3...',
-                autofocus: existing == null,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Row(
-                children: [
-                  Expanded(
-                    child: AppTextField(
-                      controller: courseController,
-                      label: 'Mã môn',
-                      hint: 'PRM323',
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: AppTextField(
-                      controller: dateController,
-                      label: 'Hạn chót',
-                      hint: 'dd/MM/yyyy',
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Row(
-                children: [
-                  Text('Độ ưu tiên', style: Theme.of(ctx).textTheme.bodyMedium),
-                  const SizedBox(width: AppSpacing.sm),
-                  ChoiceChip(
-                    label: const Text('Thấp'),
-                    selected: priority == 'low',
-                    onSelected: (_) => setSheetState(() => priority = 'low'),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  ChoiceChip(
-                    label: const Text('Trung bình'),
-                    selected: priority == 'medium',
-                    onSelected: (_) => setSheetState(() => priority = 'medium'),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  ChoiceChip(
-                    label: const Text('Cao'),
-                    selected: priority == 'high',
-                    onSelected: (_) => setSheetState(() => priority = 'high'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              AppButton(
-                label: existing == null
-                    ? 'Lưu việc cần làm'
-                    : 'Cập nhật việc cần làm',
-                icon: Icons.check,
-                onPressed: () async {
-                  final title = titleController.text.trim();
-                  if (title.isEmpty) return;
-                  final ok = existing == null
-                      ? await vm.addTask(
-                          title: title,
-                          courseCode: courseController.text.trim(),
-                          dueDate: dateController.text.trim(),
-                          priority: priority,
-                        )
-                      : await vm.editTask(
-                          existing.id,
-                          title: title,
-                          courseCode: courseController.text.trim(),
-                          dueDate: dateController.text.trim(),
-                        );
-                  if (!ctx.mounted) return;
-                  if (!ok) {
-                    ScaffoldMessenger.of(ctx).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          vm.lastError ?? 'Không thể lưu việc cần làm.',
-                        ),
-                        backgroundColor: AppColors.error,
-                      ),
-                    );
-                    return;
-                  }
-                  Navigator.pop(ctx);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    showTaskEditorSheet(context, vm: vm, existing: existing);
   }
 
   @override
@@ -155,7 +31,6 @@ class TasksScreen extends StatelessWidget {
       appBar: const CustomAppBar(title: 'Việc cần làm'),
       body: Column(
         children: [
-          // Filter Chips Row
           Container(
             color: AppColors.surface,
             padding: const EdgeInsets.symmetric(
@@ -190,9 +65,8 @@ class TasksScreen extends StatelessWidget {
               ],
             ),
           ),
+          if (tasksVm.dueSoonCount > 0) _DueSoonBanner(vm: tasksVm),
           const Divider(height: 1, color: AppColors.outline),
-
-          // Task List Body
           Expanded(
             child: switch (state.state) {
               ViewState.loading => const AppLoadingState(
@@ -205,7 +79,7 @@ class TasksScreen extends StatelessWidget {
               ViewState.empty => AppEmptyState(
                 message: 'Không có việc cần làm nào.',
                 actionLabel: 'Thêm công việc',
-                onAction: () => _showTaskSheet(context, tasksVm),
+                onAction: () => _openEditor(context, tasksVm),
               ),
               ViewState.data => _buildTaskList(
                 context,
@@ -218,22 +92,21 @@ class TasksScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'tasks-add',
-        onPressed: () => _showTaskSheet(context, tasksVm),
+        onPressed: () => _openEditor(context, tasksVm),
         icon: const Icon(Icons.add),
         label: const Text('Thêm việc'),
       ),
     );
   }
 
-  /// Runs the delete and, if the remote write failed, reports it. The
-  /// ViewModel restores the item so the list never shows a silent success.
   Future<void> _toggleWithUndo(
     BuildContext context,
     TasksViewModel vm,
     TaskModel task,
   ) async {
     final uid = vm.currentUserId;
-    final ok = await vm.setTaskCompletion(task.id, !task.isCompleted);
+    final wasCompleted = task.isCompleted;
+    final ok = await vm.setTaskCompletion(task.id, !wasCompleted);
     if (!context.mounted || uid != vm.currentUserId) return;
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
@@ -246,33 +119,23 @@ class TasksScreen extends StatelessWidget {
       );
       return;
     }
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          task.isCompleted
-              ? 'Đã chuyển về chưa xong.'
-              : 'Đã hoàn thành công việc.',
-        ),
-        duration: const Duration(seconds: 8),
-        action: SnackBarAction(
-          label: 'Hoàn tác',
-          onPressed: () async {
-            if (uid != vm.currentUserId) return;
-            final restored = await vm.setTaskCompletion(
-              task.id,
-              task.isCompleted,
-            );
-            if (!restored && context.mounted && uid == vm.currentUserId) {
-              messenger.showSnackBar(
-                SnackBar(
-                  content: Text(vm.lastError ?? 'Không thể hoàn tác.'),
-                  backgroundColor: AppColors.error,
-                ),
-              );
-            }
-          },
-        ),
-      ),
+    showAppToast(
+      context,
+      message: wasCompleted
+          ? 'Đã chuyển về chưa xong.'
+          : 'Đã đánh dấu hoàn thành công việc.',
+      onAction: () async {
+        if (uid != vm.currentUserId) return;
+        final restored = await vm.setTaskCompletion(task.id, wasCompleted);
+        if (!restored && context.mounted && uid == vm.currentUserId) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(vm.lastError ?? 'Không thể hoàn tác.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      },
     );
   }
 
@@ -310,7 +173,9 @@ class TasksScreen extends StatelessWidget {
       itemCount: tasks.length,
       itemBuilder: (context, index) {
         final task = tasks[index];
-        final isHigh = task.priority == 'high';
+        final overdue = TasksViewModel.isOverdue(task);
+        final dueSoon = TasksViewModel.isDueSoon(task);
+        final days = TasksViewModel.daysUntilDue(task);
 
         return Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.xs),
@@ -325,109 +190,231 @@ class TasksScreen extends StatelessWidget {
             ),
             onDismissed: (_) => _deleteTaskWithFeedback(context, vm, task.id),
             child: AppCard(
-              onTap: () => _showTaskSheet(context, vm, existing: task),
-              child: ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Semantics(
-                  checked: task.isCompleted,
-                  label: 'Hoàn thành: ${task.title}',
-                  child: Checkbox(
-                    value: task.isCompleted,
-                    onChanged: (_) => _toggleWithUndo(context, vm, task),
-                  ),
-                ),
-                title: Text(
-                  task.title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    decoration: task.isCompleted
-                        ? TextDecoration.lineThrough
-                        : null,
-                    color: task.isCompleted
-                        ? AppColors.onSurfaceVariant
-                        : AppColors.onSurface,
-                  ),
-                ),
-                subtitle: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 1,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryContainer,
-                        borderRadius: BorderRadius.circular(AppRadius.xs),
-                      ),
-                      child: Text(
-                        task.courseCode,
-                        style: const TextStyle(
-                          color: AppColors.onPrimaryContainer,
-                          fontSize: AppFontSize.caption,
-                          fontWeight: FontWeight.w600,
+              onTap: () => _openEditor(context, vm, existing: task),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              task.title,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                decoration: task.isCompleted
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                                color: task.isCompleted
+                                    ? AppColors.onSurfaceVariant
+                                    : AppColors.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 4,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                _chip(
+                                  text: task.courseCode,
+                                  background: AppColors.primaryContainer,
+                                  foreground: AppColors.onPrimaryContainer,
+                                ),
+                                if (task.dueDate.trim().isNotEmpty)
+                                  _chip(
+                                    text:
+                                        TasksViewModel.isDueSoonOrOverdue(task)
+                                        ? TasksViewModel.dueLabel(task)
+                                        : 'Hạn: ${task.dueDate}',
+                                    background: overdue
+                                        ? AppColors.errorContainer
+                                        : dueSoon
+                                        ? AppColors.warningContainer
+                                        : AppColors.skeleton,
+                                    foreground: overdue
+                                        ? AppColors.error
+                                        : dueSoon
+                                        ? AppColors.warning
+                                        : AppColors.onSurfaceVariant,
+                                    icon: overdue
+                                        ? Icons.error_outline
+                                        : dueSoon
+                                        ? Icons.alarm
+                                        : Icons.event_outlined,
+                                  ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Text(
-                      'Hạn: ${task.dueDate}',
-                      style: TextStyle(
-                        fontSize: AppFontSize.label,
-                        color: isHigh && !task.isCompleted
-                            ? AppColors.error
-                            : AppColors.onSurfaceVariant,
-                        fontWeight: isHigh && !task.isCompleted
-                            ? FontWeight.w600
-                            : FontWeight.normal,
+                      PopupMenuButton<String>(
+                        icon: const Icon(
+                          Icons.more_vert,
+                          size: 20,
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                        onSelected: (value) {
+                          if (value == 'edit') {
+                            _openEditor(context, vm, existing: task);
+                          } else if (value == 'delete') {
+                            _deleteTaskWithFeedback(context, vm, task.id);
+                          }
+                        },
+                        itemBuilder: (_) => const [
+                          PopupMenuItem(
+                            value: 'edit',
+                            child: ListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(Icons.edit_outlined),
+                              title: Text('Sửa'),
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: ListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(
+                                Icons.delete_outline,
+                                color: AppColors.error,
+                              ),
+                              title: Text(
+                                'Xóa',
+                                style: TextStyle(color: AppColors.error),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-                trailing: PopupMenuButton<String>(
-                  icon: const Icon(
-                    Icons.more_vert,
-                    size: 20,
-                    color: AppColors.onSurfaceVariant,
+                    ],
                   ),
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      _showTaskSheet(context, vm, existing: task);
-                    } else if (value == 'delete') {
-                      _deleteTaskWithFeedback(context, vm, task.id);
-                    }
-                  },
-                  itemBuilder: (_) => const [
-                    PopupMenuItem(
-                      value: 'edit',
-                      child: ListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        leading: Icon(Icons.edit_outlined),
-                        title: Text('Sửa'),
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: ListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        leading: Icon(
-                          Icons.delete_outline,
+                  if (days != null && !task.isCompleted && overdue)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'Đã quá hạn ${-days} ngày — hãy xử lý hoặc đổi hạn.',
+                        style: const TextStyle(
+                          fontSize: AppFontSize.caption,
                           color: AppColors.error,
                         ),
-                        title: Text(
-                          'Xóa',
-                          style: TextStyle(color: AppColors.error),
-                        ),
                       ),
                     ),
-                  ],
-                ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: task.isCompleted
+                        ? TextButton.icon(
+                            onPressed: () => _toggleWithUndo(context, vm, task),
+                            icon: const Icon(
+                              Icons.undo,
+                              size: 18,
+                              color: AppColors.success,
+                            ),
+                            label: const Text(
+                              'Đã xong — hoàn tác',
+                              style: TextStyle(color: AppColors.success),
+                            ),
+                          )
+                        : FilledButton.tonalIcon(
+                            onPressed: () => _toggleWithUndo(context, vm, task),
+                            icon: const Icon(Icons.task_alt, size: 18),
+                            label: const Text('Đánh dấu đã xong'),
+                          ),
+                  ),
+                ],
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _chip({
+    required String text,
+    required Color background,
+    required Color foreground,
+    IconData? icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(AppRadius.xs),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 12, color: foreground),
+            const SizedBox(width: 3),
+          ],
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: AppFontSize.caption,
+              fontWeight: FontWeight.w600,
+              color: foreground,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DueSoonBanner extends StatelessWidget {
+  const _DueSoonBanner({required this.vm});
+
+  final TasksViewModel vm;
+
+  @override
+  Widget build(BuildContext context) {
+    final soonest = vm.dueSoonTasks.first;
+    final count = vm.dueSoonCount;
+    return Container(
+      width: double.infinity,
+      color: AppColors.warningContainer,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.alarm, color: AppColors.warning, size: 20),
+          const SizedBox(width: AppSpacing.xs),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$count việc đến hạn trong 3 ngày tới',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: AppFontSize.label,
+                    color: AppColors.warning,
+                  ),
+                ),
+                Text(
+                  'Gần nhất: ${soonest.title} · ${TasksViewModel.dueLabel(soonest)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: AppFontSize.caption),
+                ),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: () => vm.setFilter('pending'),
+            child: const Text('Xem'),
+          ),
+        ],
+      ),
     );
   }
 }

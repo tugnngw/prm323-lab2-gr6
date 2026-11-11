@@ -48,6 +48,8 @@ class NotificationModel {
       '/sync-vault',
       '/notifications',
       '/course-detail',
+      '/course-tips',
+      '/my-tips',
       '/note-editor',
       '/academic-profile',
       '/tasks',
@@ -55,7 +57,7 @@ class NotificationModel {
       '/roadmap',
     };
     if (!routes.contains(uri.path)) return '/notifications';
-    if (uri.path == '/course-detail' &&
+    if ((uri.path == '/course-detail' || uri.path == '/course-tips') &&
         (destinationArgument == null || destinationArgument!.isEmpty)) {
       return '/notifications';
     }

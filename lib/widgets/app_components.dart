@@ -47,11 +47,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.title,
     this.onBack,
     this.actions,
+    this.bottom,
   });
 
   final String title;
   final VoidCallback? onBack;
   final List<Widget>? actions;
+  final PreferredSizeWidget? bottom;
 
   @override
   Widget build(BuildContext context) => AppBar(
@@ -65,10 +67,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
     title: Text(title),
     actions: actions,
+    bottom: bottom,
   );
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize =>
+      Size.fromHeight(kToolbarHeight + (bottom?.preferredSize.height ?? 0));
 }
 
 /// In-app banner for a push received while the app is in the foreground

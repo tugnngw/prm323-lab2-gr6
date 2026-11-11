@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import 'package:prm323_lab3/main.dart';
-import 'package:prm323_lab3/screens/note_editor_screen.dart';
+import 'package:prm393_final_gr6/main.dart';
+import 'package:prm393_final_gr6/screens/note_editor_screen.dart';
 import 'helpers/mock_auth_service.dart';
 import 'helpers/mock_firestore_service.dart';
-import 'package:prm323_lab3/viewmodels/notes_viewmodel.dart';
+import 'package:prm393_final_gr6/viewmodels/notes_viewmodel.dart';
 
 import 'helpers/fake_firestore_service.dart';
 
@@ -16,7 +16,7 @@ void main() {
     final mockFirestore = MockFirestoreService();
 
     await tester.pumpWidget(
-      FptuSecondBrainApp(
+      StudyPilotApp(
         authService: mockAuth,
         firestoreService: mockFirestore,
       ),
@@ -26,7 +26,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify app title in app bar
-    expect(find.text('FPTU Second Brain'), findsOneWidget);
+    expect(find.text('StudyPilot'), findsOneWidget);
 
     // Verify 4 bottom navigation destinations
     expect(find.text('Trang chủ'), findsOneWidget);
@@ -40,7 +40,7 @@ void main() {
     final mockFirestore = MockFirestoreService();
 
     await tester.pumpWidget(
-      FptuSecondBrainApp(
+      StudyPilotApp(
         authService: mockAuth,
         firestoreService: mockFirestore,
       ),
@@ -48,7 +48,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify SignInScreen components
-    expect(find.text('FPTU Second Brain'), findsOneWidget);
+    expect(find.text('StudyPilot'), findsOneWidget);
     expect(find.text('Đăng nhập với Google'), findsOneWidget);
     expect(find.byIcon(Icons.login_rounded), findsOneWidget);
   });

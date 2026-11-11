@@ -5,6 +5,7 @@ import '../models/app_state.dart';
 import '../models/course_model.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../viewmodels/academic_viewmodel.dart';
 import '../viewmodels/roadmap_viewmodel.dart';
 import '../widgets/app_components.dart';
 import '../widgets/app_states.dart';
@@ -20,6 +21,18 @@ class RoadmapScreen extends StatefulWidget {
 class _RoadmapScreenState extends State<RoadmapScreen> {
   final _searchController = TextEditingController();
 
+  Future<void> _changeMajor(String major) async {
+    final roadmapVm = context.read<RoadmapViewModel>();
+    final academicVm = context.read<AcademicViewModel>();
+    await roadmapVm.selectMajor(major);
+    if (!mounted) return;
+    if (roadmapVm.state.state == ViewState.data) {
+      // Profile, advisor and GPA simulation read the academic view model, so
+      // it must follow the same curriculum the roadmap just downloaded.
+      await academicVm.loadData();
+    }
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -32,7 +45,21 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     final state = roadmapVm.state;
 
     return Scaffold(
-      appBar: const CustomAppBar(title: 'Lộ trình học tập'),
+      appBar: CustomAppBar(
+        title: 'Lộ trình học tập',
+        actions: [
+          IconButton(
+            tooltip: 'Tải lại ngành & môn học',
+            icon: const Icon(Icons.refresh),
+            onPressed: roadmapVm.loadData,
+          ),
+          IconButton(
+            tooltip: 'Hỏi cố vấn học tập',
+            icon: const Icon(Icons.support_agent),
+            onPressed: () => Navigator.pushNamed(context, '/advisor'),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           // Search & Filter Header
@@ -44,10 +71,79 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
             ),
             child: Column(
               children: [
-                AppSearchBar(
-                  controller: _searchController,
-                  hint: 'Tìm theo mã môn (PRM323) hoặc tên...',
-                  onChanged: (val) => roadmapVm.setSearchQuery(val),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppSearchBar(
+                        controller: _searchController,
+                        hint: 'Tìm theo mã môn (PRM323) hoặc tên...',
+                        onChanged: (val) => roadmapVm.setSearchQuery(val),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    PopupMenuButton<String>(
+                      tooltip: 'Chọn chuyên ngành',
+                      initialValue: roadmapVm.selectedMajor,
+                      onSelected: _changeMajor,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryContainer,
+                          borderRadius: BorderRadius.circular(AppRadius.xs),
+                          border: Border.all(color: AppColors.primary),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.school,
+                              size: 16,
+                              color: AppColors.onPrimaryContainer,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              roadmapVm.selectedMajor,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.onPrimaryContainer,
+                              ),
+                            ),
+                            const Icon(
+                              Icons.arrow_drop_down,
+                              size: 18,
+                              color: AppColors.onPrimaryContainer,
+                            ),
+                          ],
+                        ),
+                      ),
+                      itemBuilder: (ctx) => roadmapVm.availableMajors.map((m) => PopupMenuItem(
+                        value: m.code,
+                        child: Text('${m.code} — ${m.name} (${m.totalSemesters} kỳ)'),
+                      )).toList(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    roadmapVm.selectedMajor.isEmpty
+                        ? 'Chưa chọn ngành — bấm nút chuyên ngành ở trên.'
+                        : '${roadmapVm.selectedMajorName} (${roadmapVm.selectedMajor})'
+                              ' · ${roadmapVm.majorCourseCount} môn'
+                              ' · Kỳ ${roadmapVm.selectedSemester}: '
+                              '${roadmapVm.filteredCourses.length} môn',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: AppFontSize.label,
+                      color: AppColors.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 SingleChildScrollView(
@@ -67,30 +163,22 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                         onSelected: (_) => roadmapVm.togglePrerequisiteFilter(),
                       ),
                       const SizedBox(width: AppSpacing.xs),
-                      // Semester Filter Chips
-                      ChoiceChip(
-                        label: const Text('Kỳ 4'),
-                        selected: roadmapVm.selectedSemester == 4,
-                        onSelected: (selected) {
-                          if (selected) roadmapVm.selectSemester(4);
-                        },
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      ChoiceChip(
-                        label: const Text('Kỳ 5 (Đang xem)'),
-                        selected: roadmapVm.selectedSemester == 5,
-                        onSelected: (selected) {
-                          if (selected) roadmapVm.selectSemester(5);
-                        },
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      ChoiceChip(
-                        label: const Text('Kỳ 6'),
-                        selected: roadmapVm.selectedSemester == 6,
-                        onSelected: (selected) {
-                          if (selected) roadmapVm.selectSemester(6);
-                        },
-                      ),
+                      // Dynamic Semester Filter Chips (Semesters 1 through 9 for SE)
+                      ...roadmapVm.availableSemesters.map((sem) => Padding(
+                        padding: const EdgeInsets.only(right: AppSpacing.xs),
+                        child: ChoiceChip(
+                          key: ValueKey('semester_chip_$sem'),
+                          label: Text(
+                            sem == roadmapVm.selectedSemester
+                                ? 'Kỳ $sem (Đang xem)'
+                                : 'Kỳ $sem',
+                          ),
+                          selected: roadmapVm.selectedSemester == sem,
+                          onSelected: (selected) {
+                            if (selected) roadmapVm.selectSemester(sem);
+                          },
+                        ),
+                      )),
                     ],
                   ),
                 ),
@@ -138,12 +226,40 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     List<CourseModel> courses,
   ) {
     if (courses.isEmpty) {
+      if (vm.filterPrerequisitesOnly) {
+        return AppEmptyState(
+          message:
+              'Không có môn học nào có điều kiện tiên quyết trong Kỳ ${vm.selectedSemester}.',
+          actionLabel: 'Tắt lọc tiên quyết',
+          onAction: () => vm.togglePrerequisiteFilter(),
+        );
+      }
+      if (vm.searchQuery.isNotEmpty) {
+        return AppEmptyState(
+          message: 'Không tìm thấy môn học khớp với "${vm.searchQuery}".',
+          actionLabel: 'Xóa tìm kiếm',
+          onAction: () {
+            _searchController.clear();
+            vm.setSearchQuery('');
+          },
+        );
+      }
       return AppEmptyState(
-        message: 'Không tìm thấy môn học nào phù hợp.',
-        actionLabel: 'Xem tất cả',
+        message:
+            'Chưa có môn học cho Kỳ ${vm.selectedSemester} (Ngành ${vm.selectedMajor}).',
+        actionLabel: 'Xem kỳ có môn học',
         onAction: () {
-          _searchController.clear();
-          vm.setSearchQuery('');
+          final coursesForMajor = vm.allCourses.where(
+            (c) =>
+                vm.selectedMajor.isEmpty ||
+                c.major.isEmpty ||
+                c.major.toUpperCase() == vm.selectedMajor.toUpperCase(),
+          );
+          if (coursesForMajor.isNotEmpty) {
+            vm.selectSemester(coursesForMajor.first.semester);
+          } else if (vm.allCourses.isNotEmpty) {
+            vm.selectSemester(vm.allCourses.first.semester);
+          }
         },
       );
     }
@@ -155,6 +271,9 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
         final course = courses[index];
         final isEligible = vm.isEligibleForCourse(course);
         final missing = vm.getMissingPrerequisites(course);
+        final slotTotal = vm.slotCountOf(course);
+        final doneSlots = vm.completedSlotCount(course);
+        final slotProgress = vm.slotProgress(course);
 
         return Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -203,22 +322,52 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  course.totalSlots > 0
-                      ? '${course.credits} tín chỉ · Slot ${course.completedSlots}/${course.totalSlots} (${(course.progress * 100).toInt()}%)'
-                      : '${course.credits} tín chỉ · Chưa có dữ liệu slot',
+                  slotTotal > 0
+                      ? 'Kỳ ${course.semester} · ${course.credits} tín chỉ · Slot $doneSlots/$slotTotal (${(slotProgress * 100).toInt()}%)'
+                      : 'Kỳ ${course.semester} · ${course.credits} tín chỉ · Chưa có dữ liệu slot',
                   style: Theme.of(context).textTheme.bodyMedium
                       ?.copyWith(color: AppColors.onSurfaceVariant),
                 ),
+                if (course.electiveGroups.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.xxs),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: course.electiveGroups
+                        .map(
+                          (group) => Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.secondaryContainer,
+                              borderRadius:
+                                  BorderRadius.circular(AppRadius.xs),
+                            ),
+                            child: Text(
+                              'Tự chọn: $group',
+                              style: const TextStyle(
+                                fontSize: AppFontSize.label,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.secondary,
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.xs),
                 // Progress bar
                 ClipRRect(
                   borderRadius: BorderRadius.circular(AppRadius.xs),
                   child: LinearProgressIndicator(
-                    value: course.progress,
+                    value: slotProgress,
                     minHeight: 6,
                     backgroundColor: AppColors.skeleton,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      course.progress >= 1.0
+                      slotProgress >= 1.0
                           ? AppColors.success
                           : AppColors.primary,
                     ),
@@ -250,6 +399,29 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                             color: isEligible
                                 ? AppColors.success
                                 : AppColors.warning,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                if (course.prerequisites.isEmpty &&
+                    course.prerequisiteNote.isNotEmpty) ...[
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        size: 16,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: AppSpacing.xxs),
+                      Expanded(
+                        child: Text(
+                          'Điều kiện tiên quyết: xem ghi chú trong đề cương',
+                          style: TextStyle(
+                            fontSize: AppFontSize.label,
+                            color: AppColors.onSurfaceVariant,
                             fontWeight: FontWeight.w500,
                           ),
                         ),

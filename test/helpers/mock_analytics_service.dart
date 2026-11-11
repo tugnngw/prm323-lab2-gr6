@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart' show NavigatorObserver;
-import 'package:prm323_lab3/services/analytics_service.dart';
+import 'package:prm393_final_gr6/services/analytics_service.dart';
 
 /// In-memory mock implementation of [AnalyticsService] for hermetic testing.
 ///

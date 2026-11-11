@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prm323_lab3/models/note_attachment.dart';
-import 'package:prm323_lab3/models/note_model.dart';
-import 'package:prm323_lab3/viewmodels/notes_viewmodel.dart';
+import 'package:prm393_final_gr6/models/note_attachment.dart';
+import 'package:prm393_final_gr6/models/note_model.dart';
+import 'package:prm393_final_gr6/viewmodels/notes_viewmodel.dart';
 
 import '../helpers/fake_firestore_service.dart';
 import '../helpers/fake_storage_service.dart';

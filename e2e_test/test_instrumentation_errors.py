@@ -6,14 +6,13 @@ pytestmark = [skip_without_adb, pytest.mark.e2e]
 
 
 @require_artemis
-async def test_TC_S_01_auth_domain_reject(artemis, auth_account):
+async def test_TC_S_01_signin_cancel_message(artemis, auth_account):
     observed = await artemis.run(
-        'On this dedicated test device sign out, open native Google picker and choose its secondary non-FPT test account. If unavailable report account_available=false. Verify visible domain rejection and no private Home. Restore the dedicated FPT test account before finishing.',
-        {'account_available': 'boolean', 'domain_error': 'literal error', 'foreign_home_visible': 'boolean', 'restored': 'boolean'},
+        'Starting signed in, sign out. Tap "Đăng nhập với Google", then dismiss the native account picker with Back. Report the literal message shown on the sign-in screen and whether the sign-in button is still visible. Then restore the same dedicated test account and end on Home.',
+        {'cancel_message': 'literal message shown', 'still_signed_out': 'boolean', 'restored': 'boolean'},
     )
-    if not observed['account_available']: pytest.skip('No secondary foreign test account; not a pass')
-    assert '@fpt.edu.vn' in observed['domain_error']
-    equals(observed,'foreign_home_visible',False)
+    assert 'hủy' in observed['cancel_message'].lower() or 'huỷ' in observed['cancel_message'].lower()
+    equals(observed,'still_signed_out',True)
     equals(observed,'restored',True)
 
 @require_artemis
@@ -38,7 +37,7 @@ async def test_TC_X_06_fcm_foreground_center(artemis):
 @require_artemis
 async def test_TC_S_07_fcm_native_notification_settings(artemis):
     observed = await artemis.run(
-        'On Android open App info for FPTU Second Brain then its Notifications settings. Read the actual permission status without changing it; return to the app. Report native settings screen label, permission status and whether app renders afterwards.',
+        'On Android open App info for StudyPilot then its Notifications settings. Read the actual permission status without changing it; return to the app. Report native settings screen label, permission status and whether app renders afterwards.',
         {'native_screen': 'literal Android screen label', 'permission_state': 'allowed or denied', 'app_rendered': 'boolean'},
     )
     assert observed['native_screen']
@@ -61,8 +60,8 @@ async def test_TC_14_analytics_events_log(artemis, logcat):
 async def test_TC_13_fcm_token_registered(artemis, logcat):
     logcat.start('TC-13')
     observed = await artemis.run(
-        'The harness has already cold-started FPTU Second Brain with its existing session. Observe the current Home screen and report its literal title. Do not relaunch the app or change accounts or permissions. The runner checks token registration logs.',
+        'The harness has already cold-started StudyPilot with its existing session. Observe the current Home screen and report its literal title. Do not relaunch the app or change accounts or permissions. The runner checks token registration logs.',
         {'screen_title': 'literal title'},
     )
-    equals(observed,'screen_title','FPTU Second Brain')
+    equals(observed,'screen_title','StudyPilot')
     assert 'Registered FCM token' in logcat.stop_and_text()

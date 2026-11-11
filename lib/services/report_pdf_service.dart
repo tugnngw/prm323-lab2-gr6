@@ -40,8 +40,8 @@ class ReportPdfService {
     await _loadFonts();
 
     final doc = pw.Document(
-      title: 'FPTU Second Brain — Báo cáo học tập',
-      author: 'FPTU Second Brain',
+      title: 'StudyPilot — Báo cáo học tập',
+      author: 'StudyPilot',
     );
 
     final completedTasks = tasks.where((t) => t.isCompleted).length;
@@ -118,7 +118,7 @@ class ReportPdfService {
         alignment: pw.Alignment.centerRight,
         margin: const pw.EdgeInsets.only(bottom: 8),
         child: pw.Text(
-          'FPTU Second Brain — Báo cáo học tập',
+          'StudyPilot — Báo cáo học tập',
           style: _bodyStyle(size: 9, color: PdfColors.grey700),
         ),
       );
@@ -129,7 +129,7 @@ class ReportPdfService {
           pw.Text('Báo cáo học tập', style: _titleStyle(size: 24)),
           pw.SizedBox(height: 4),
           pw.Text(
-            'FPTU Second Brain',
+            'StudyPilot',
             style: _bodyStyle(size: 12, color: PdfColors.grey700),
           ),
           pw.SizedBox(height: 10),
@@ -327,7 +327,7 @@ class ReportPdfService {
         ),
         child: pw.Text(
           'Báo cáo được tạo tự động từ dữ liệu đang hiển thị trong ứng dụng '
-          'FPTU Second Brain. Không chứa thông tin cá nhân (email, họ tên, '
+          'StudyPilot. Không chứa thông tin cá nhân (email, họ tên, '
           'SĐT) theo quy tắc tối thiểu hóa dữ liệu.',
           style: _bodyStyle(size: 8, color: PdfColors.grey700),
         ),

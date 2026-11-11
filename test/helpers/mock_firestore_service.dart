@@ -1,7 +1,13 @@
-import 'package:prm323_lab3/services/firestore_service.dart';
+import 'package:prm393_final_gr6/services/firestore_service.dart';
 
 /// In-memory Mock implementation of [FirestoreService] for testing.
 class MockFirestoreService implements FirestoreService {
+  @override
+  Future<List<Map<String, dynamic>>> getMajors() async => [];
+
+  @override
+  Stream<String?> watchUserRole(String userId) => Stream.value('user');
+
   @override
   Future<List<Map<String, dynamic>>> getRecentReportMetadata(
     String userId,
@@ -10,6 +16,12 @@ class MockFirestoreService implements FirestoreService {
   Future<void> saveAcademicProfile(
     String userId,
     Map<String, dynamic> data,
+  ) async {}
+
+  @override
+  Future<void> saveComponentScores(
+    String userId,
+    Map<String, dynamic> componentScores,
   ) async {}
   final List<Map<String, dynamic>> _courses = [
     {
@@ -58,12 +70,27 @@ class MockFirestoreService implements FirestoreService {
       List.from(_courses);
 
   @override
+  Future<List<Map<String, dynamic>>> getCoursesForMajor(
+    String majorCode,
+  ) async {
+    final code = majorCode.trim().toUpperCase();
+    if (code.isEmpty) return [];
+    return _courses
+        .where(
+          (course) =>
+              (course['major'] ?? '').toString().toUpperCase() == code,
+        )
+        .toList();
+  }
+
+  @override
   Future<Map<String, dynamic>?> getCourse(String courseId) async => _courses
       .cast<Map<String, dynamic>?>()
       .firstWhere((c) => c?['id'] == courseId, orElse: () => null);
 
   @override
   Future<Map<String, dynamic>?> getUserProfile(String userId) async => {
+    'major': 'SE',
     'passedCourses': [
       'PRO192',
       'CSD201',
@@ -73,6 +100,24 @@ class MockFirestoreService implements FirestoreService {
       'SSG104',
     ],
   };
+
+  @override
+  Future<List<Map<String, dynamic>>> getCourseProgress(String userId) async =>
+      const [];
+
+  @override
+  Future<void> saveCourseProgress(
+    String userId,
+    String courseDocId,
+    Map<String, dynamic> data,
+  ) async {}
+
+  @override
+  Future<List<Map<String, dynamic>>> getAnnouncements() async => const [];
+
+  @override
+  Stream<List<Map<String, dynamic>>> watchAnnouncements() =>
+      const Stream.empty();
 
   @override
   Future<List<Map<String, dynamic>>> getTasks(String userId) async =>

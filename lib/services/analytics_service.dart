@@ -102,4 +102,24 @@ abstract class AnalyticsService {
   /// (they could be misread as real transcript data — PII rule).
   Future<void> logStrategyPresetApplied({required String preset}) =>
       logEvent('strategy_preset_applied', parameters: {'preset': preset});
+
+  // ──────────────────────── Final Assignment AI Events ────────────────────────
+
+  /// Final Rubric §8: AI Request logged
+  Future<void> logAiRequest({required String feature, String? model}) =>
+      logEvent('ai_request', parameters: {
+        'feature': feature,
+        'model': ?model,
+      });
+
+  /// Final Rubric §8: AI Result Accepted by user
+  Future<void> logAiResultAccepted({required String feature}) =>
+      logEvent('ai_result_accepted', parameters: {'feature': feature});
+
+  /// Final Rubric §8: AI Error handled gracefully
+  Future<void> logAiError({required String feature, required String errorType}) =>
+      logEvent('ai_error', parameters: {
+        'feature': feature,
+        'error_type': errorType,
+      });
 }

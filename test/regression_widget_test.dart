@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:prm323_lab3/main.dart';
-import 'package:prm323_lab3/screens/tasks_screen.dart';
-import 'package:prm323_lab3/services/remote_config_service.dart';
-import 'package:prm323_lab3/viewmodels/tasks_viewmodel.dart';
+import 'package:prm393_final_gr6/main.dart';
+import 'package:prm393_final_gr6/screens/tasks_screen.dart';
+import 'package:prm393_final_gr6/services/remote_config_service.dart';
+import 'package:prm393_final_gr6/viewmodels/tasks_viewmodel.dart';
 
 import 'helpers/fake_firestore_service.dart';
 import 'helpers/fake_storage_service.dart';
@@ -30,6 +30,7 @@ void main() {
   }
 
   FakeFirestoreService seededStore() => FakeFirestoreService()
+    ..userProfile = {'major': 'SE'}
     ..tasks.add({
       'id': 't1',
       'title': 'Regression task',
@@ -39,20 +40,32 @@ void main() {
     });
 
   testWidgets(
-    'task Undo remains usable at seven seconds and restores persisted state',
+    'task Undo is usable briefly and the toast dismisses itself by five seconds',
     (tester) async {
       final store = seededStore();
       final vm = await taskScreen(tester, store);
-      await tester.tap(find.byType(Checkbox));
+      await tester.tap(find.text('Đánh dấu đã xong'));
       await tester.pumpAndSettle();
       expect(vm.allTasks.single.isCompleted, isTrue);
       expect(store.tasks.single['isCompleted'], isTrue);
-      await tester.pump(const Duration(seconds: 7));
+      // The action survives a few seconds, then the timer removes it.
+      await tester.pump(const Duration(seconds: 3));
       expect(find.text('Hoàn tác'), findsOneWidget);
       await tester.tap(find.text('Hoàn tác'));
       await tester.pumpAndSettle();
       expect(vm.allTasks.single.isCompleted, isFalse);
       expect(store.tasks.single['isCompleted'], isFalse);
+
+      // An untouched toast must hide itself at five seconds, not stay forever.
+      await tester.tap(find.text('Đánh dấu đã xong'));
+      await tester.pumpAndSettle();
+      expect(find.text('Hoàn tác'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 4000));
+      expect(find.text('Hoàn tác'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+      expect(find.text('Hoàn tác'), findsNothing);
+      expect(vm.allTasks.single.isCompleted, isTrue);
     },
   );
 
@@ -61,7 +74,7 @@ void main() {
     (tester) async {
       final store = seededStore()..shouldFailTaskUpdate = true;
       final vm = await taskScreen(tester, store);
-      await tester.tap(find.byType(Checkbox));
+      await tester.tap(find.text('Đánh dấu đã xong'));
       await tester.pumpAndSettle();
       expect(vm.allTasks.single.isCompleted, isFalse);
       expect(
@@ -79,9 +92,10 @@ void main() {
       final rc = RemoteConfigService(overrides: flags);
       final auth = MockAuthService(initialUserId: 'owner-a');
       await tester.pumpWidget(
-        FptuSecondBrainApp(
+        StudyPilotApp(
           authService: auth,
-          firestoreService: FakeFirestoreService(),
+          firestoreService: FakeFirestoreService()
+            ..userProfile = {'major': 'SE'},
           remoteConfigService: rc,
         ),
       );
@@ -104,10 +118,10 @@ void main() {
     'export rejects failed source reload before consent or Storage upload',
     (tester) async {
       final auth = MockAuthService(initialUserId: 'owner-a');
-      final store = FakeFirestoreService();
+      final store = FakeFirestoreService()..userProfile = {'major': 'SE'};
       final storage = FakeStorageService();
       await tester.pumpWidget(
-        FptuSecondBrainApp(
+        StudyPilotApp(
           authService: auth,
           firestoreService: store,
           storageService: storage,
@@ -142,12 +156,26 @@ void main() {
     final auth = MockAuthService(initialUserId: 'owner-a');
     final store = seededStore()
       ..courses.addAll([
-        {'id': 'A', 'code': 'A', 'name': 'A', 'credits': 3, 'semester': 5},
-        {'id': 'B', 'code': 'B', 'name': 'B', 'credits': 2, 'semester': 5},
+        {
+          'id': 'A',
+          'code': 'A',
+          'name': 'A',
+          'credits': 3,
+          'semester': 5,
+          'major': 'SE',
+        },
+        {
+          'id': 'B',
+          'code': 'B',
+          'name': 'B',
+          'credits': 2,
+          'semester': 5,
+          'major': 'SE',
+        },
       ]);
     final storage = FakeStorageService();
     await tester.pumpWidget(
-      FptuSecondBrainApp(
+      StudyPilotApp(
         authService: auth,
         firestoreService: store,
         storageService: storage,
@@ -190,7 +218,7 @@ void main() {
     final store = seededStore();
     final storage = FakeStorageService()..shouldFailUpload = true;
     await tester.pumpWidget(
-      FptuSecondBrainApp(
+      StudyPilotApp(
         authService: auth,
         firestoreService: store,
         storageService: storage,

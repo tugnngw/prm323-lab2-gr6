@@ -1,6 +1,25 @@
-# Lab 3 Admin và máy chủ gửi FCM
+# Web quản trị học vụ, FCM server và media API
 
-Dashboard dành cho admin chạy trên máy chấm. Dev vẫn có thể xem Firebase Console. Dashboard lấy báo cáo `topIssues` từ Crashlytics REST API qua Node, sau đó hiển thị số sự kiện và số người bị ảnh hưởng. Mật khẩu web và OAuth của server là hai lớp riêng.
+## Cổng quản trị học vụ (Firebase Hosting)
+
+`admin-web/` là SPA tĩnh được deploy qua Firebase Hosting (`firebase.json` trỏ `public: admin-web`). Đăng nhập bằng Google; rules chỉ cho tài khoản `users/{uid}.role` là `staff` hoặc `admin`. Tài khoản sinh viên bị từ chối và tự đăng xuất.
+
+- **Chuyên ngành**: danh sách chuyên ngành thật từ Firestore. Nút **Thêm chuyên ngành** có hai lựa chọn: nhập thủ công (form ngành + form môn với slot/đầu điểm/LO/giáo trình) hoặc nhập file HTML FLM (1 trang chương trình + N trang đề cương, xem trước rồi lưu batch).
+- **Duyệt bí kíp**: hàng đợi realtime của `experience_notes` do sinh viên gửi từ mobile. Cán bộ nhập lý do rồi duyệt/từ chối; rules chỉ cho sửa `status/reason/reviewedBy/reviewedAt` trên bản ghi `pending`.
+- **Thông báo**: đăng `announcements` bằng UID người đăng; mobile nhận realtime.
+- **Dọn dữ liệu cũ**: gõ `XOA` để xóa `majors`, `courses`, `curriculums`. Không xóa người dùng, thông báo hay bí kíp.
+- Không có seed/mock data. Dashboard dùng `getCountFromServer` cho số liệu tổng hợp và `onSnapshot` cho bảng/biểu đồ.
+- Chạy thử cục bộ: `firebase emulators:start --only hosting,firestore,auth` rồi mở http://127.0.0.1:5000/?emulator=true (tham số này nối Auth/Firestore vào emulator). Deploy: `firebase deploy --only hosting`. Khi chạy với Firebase production trên domain khác, thêm domain đó vào **Authentication → Settings → Authorized domains**.
+
+### Cấp quyền Admin đầu tiên
+
+1. Đăng nhập web một lần bằng tài khoản Google cần cấp quyền (sẽ bị từ chối vì chưa có role).
+2. Trong Firebase Console → Firestore → `users/{uid}`, đặt `role: "admin"` (hoặc `staff`).
+3. Đăng nhập lại. Admin có thể cấp role cho tài khoản khác bằng cách sửa đúng trường `role` trên document của họ.
+
+## Dashboard Crashlytics cũ (Node, tùy chọn)
+
+Dashboard Node bên dưới vẫn dùng được cho báo cáo Crashlytics. Dev vẫn có thể xem Firebase Console. Dashboard lấy báo cáo `topIssues` từ Crashlytics REST API qua Node, sau đó hiển thị số sự kiện và số người bị ảnh hưởng. Mật khẩu web và OAuth của server là hai lớp riêng.
 
 ## Web admin
 

@@ -1,13 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_app_check/firebase_app_check.dart';
-import 'package:flutter/foundation.dart';
-import 'package:second_brain_core/second_brain_core.dart';
+import 'package:study_pilot_core/study_pilot_core.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase/firebase_options.dart';
+import 'models/app_state.dart';
 import 'screens/advisor_screen.dart';
 import 'screens/announcements_screen.dart';
 import 'screens/study_plan_screen.dart';
@@ -15,16 +14,19 @@ import 'screens/academic_profile_screen.dart';
 import 'viewmodels/academic_viewmodel.dart';
 import 'screens/course_detail_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/major_onboarding_screen.dart';
+import 'screens/my_tips_screen.dart';
 import 'screens/note_editor_screen.dart';
 import 'screens/notes_screen.dart';
 import 'screens/notifications_screen.dart';
 import 'screens/roadmap_screen.dart';
-import 'screens/schedule_screen.dart';
 import 'screens/sign_in_screen.dart';
 import 'screens/strategy_sim_screen.dart';
 import 'screens/sync_vault_screen.dart';
 import 'screens/tasks_screen.dart';
 import 'services/analytics_service.dart';
+import 'services/ai_service.dart';
+import 'services/app_check_service.dart';
 import 'services/auth_service.dart';
 import 'services/crashlytics_service.dart';
 import 'services/firebase_analytics_service.dart';
@@ -33,6 +35,7 @@ import 'services/firebase_firestore_service.dart';
 import 'services/firebase_messaging_service.dart';
 import 'services/firebase_storage_service.dart';
 import 'services/firestore_service.dart';
+import 'services/local_notification_service.dart';
 import 'services/messaging_service.dart';
 import 'services/remote_config_service.dart';
 import 'services/report_export_service.dart';
@@ -49,6 +52,8 @@ import 'viewmodels/roadmap_viewmodel.dart';
 import 'viewmodels/tasks_viewmodel.dart';
 import 'widgets/app_components.dart';
 import 'widgets/app_navigation.dart';
+import 'widgets/app_states.dart';
+import 'widgets/reminder_sync.dart';
 
 /// Captured Firebase initialization failure (T04: fail loud, never mock silently).
 /// Null means Firebase initialized OK. Tests may inject services directly.
@@ -64,27 +69,40 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    await FirebaseAppCheck.instance.activate(
-      providerAndroid: kDebugMode
-          ? const AndroidDebugProvider()
-          : const AndroidPlayIntegrityProvider(),
-      providerApple: kDebugMode
-          ? const AppleDebugProvider()
-          : const AppleAppAttestProvider(),
-    );
     debugPrint('[Firebase] Initialized successfully.');
 
-    // Initialize Crashlytics & Remote Config (single instances shared with DI).
+    // App Check is required by Firestore/AI Logic in production, but a failed
+    // activation must degrade (requests rejected + visible error) instead of
+    // blocking the whole app from starting.
+    try {
+      await AppCheckService.activate();
+    } catch (e) {
+      debugPrint('[AppCheck] Activation failed, continuing: $e');
+    }
+
+    // Crashlytics & Remote Config each fall back to their in-app defaults.
     final crashlytics = CrashlyticsService();
     final remoteConfig = RemoteConfigService();
-    await crashlytics.initialize();
-    await remoteConfig.initialize();
+    try {
+      await crashlytics.initialize();
+    } catch (e) {
+      debugPrint('[Crashlytics] Initialization failed, continuing: $e');
+    }
+    try {
+      await remoteConfig.initialize();
+    } catch (e) {
+      debugPrint('[RemoteConfig] Initialization failed, using defaults: $e');
+    }
     _sharedCrashlytics = crashlytics;
     _sharedRemoteConfig = remoteConfig;
 
     // FCM: background/terminated handler must be attached before init of any
     // messaging stream (Lab 3 T12).
     FirebaseMessaging.onBackgroundMessage(fcmBackgroundHandler);
+
+    // Local reminders (class start −15 min, task deadlines). A failure here
+    // must not block the app: initialize() swallows platform errors.
+    _sharedLocalNotifications = await LocalNotificationService.initialize();
   } catch (e) {
     _firebaseInitError = e;
     debugPrint(
@@ -93,27 +111,31 @@ Future<void> main() async {
   }
 
   runApp(
-    FptuSecondBrainApp(
+    StudyPilotApp(
       initError: _firebaseInitError,
       crashlyticsService: _sharedCrashlytics,
       remoteConfigService: _sharedRemoteConfig,
+      localNotificationService: _sharedLocalNotifications,
     ),
   );
 }
 
 CrashlyticsService? _sharedCrashlytics;
 RemoteConfigService? _sharedRemoteConfig;
+LocalNotificationService? _sharedLocalNotifications;
 
-class FptuSecondBrainApp extends StatelessWidget {
-  const FptuSecondBrainApp({
+class StudyPilotApp extends StatelessWidget {
+  const StudyPilotApp({
     super.key,
     this.authService,
     this.firestoreService,
     this.storageService,
     this.analyticsService,
+    this.aiService,
     this.messagingService,
     this.crashlyticsService,
     this.remoteConfigService,
+    this.localNotificationService,
     this.initError,
   });
 
@@ -121,12 +143,17 @@ class FptuSecondBrainApp extends StatelessWidget {
   final FirestoreService? firestoreService;
   final StorageService? storageService;
   final AnalyticsService? analyticsService;
+  final AiService? aiService;
 
   /// Push transport (Lab 3 T12). Real composition builds
   /// [FirebaseMessagingService]; widget tests inject a fake under test/.
   final MessagingService? messagingService;
   final CrashlyticsService? crashlyticsService;
   final RemoteConfigService? remoteConfigService;
+
+  /// OS-level study reminders. Null in widget tests and on unsupported
+  /// platforms, where reminders are simply disabled.
+  final LocalNotificationService? localNotificationService;
 
   /// Non-null when Firebase initialization failed in [main]. The app then shows
   /// a blocking error screen instead of silently serving mock data (T04).
@@ -163,6 +190,13 @@ class FptuSecondBrainApp extends StatelessWidget {
       Provider<StorageService>(
         create: (_) => storageService ?? FirebaseStorageService(),
       ),
+      // Shared query layer for the course-tips / announcements features.
+      // Built once here (composition root) so widgets never touch the SDK.
+      Provider<FinalFirestore?>(
+        create: (_) => _usesRealComposition && Firebase.apps.isNotEmpty
+            ? FinalFirestore(FirebaseFirestore.instance)
+            : null,
+      ),
       Provider<ReportMediaStorageService?>(
         create: (_) {
           return _usesRealComposition && _mediaUrl.isNotEmpty
@@ -172,6 +206,9 @@ class FptuSecondBrainApp extends StatelessWidget {
       ),
       Provider<AnalyticsService>(
         create: (_) => analyticsService ?? FirebaseAnalyticsService(),
+      ),
+      Provider<AiService>(
+        create: (_) => aiService ?? GeminiAiService(),
       ),
       // Push transport. Nullable on purpose: hermetic widget tests run
       // without a real Firebase app, so we must NOT construct
@@ -187,6 +224,7 @@ class FptuSecondBrainApp extends StatelessWidget {
       Provider<CrashlyticsService>(
         create: (_) => crashlyticsService ?? CrashlyticsService(),
       ),
+      Provider<LocalNotificationService?>.value(value: localNotificationService),
       ChangeNotifierProvider<RemoteConfigService>(
         create: (_) => remoteConfigService ?? RemoteConfigService(),
       ),
@@ -255,11 +293,12 @@ class FptuSecondBrainApp extends StatelessWidget {
       ),
       ChangeNotifierProvider<AdvisorViewModel>(
         create: (ctx) => AdvisorViewModel(
-          askGemini: ctx.read<ReportMediaStorageService?>()?.askAdvisor,
           academicViewModel: ctx.read<AcademicViewModel>(),
           remoteConfigService: ctx.read<RemoteConfigService>(),
           analyticsService: ctx.read<AnalyticsService>(),
           authService: ctx.read<AuthService>(),
+          aiService: ctx.read<AiService>(),
+          store: ctx.read<FinalFirestore?>(),
         ),
       ),
     ],
@@ -267,34 +306,62 @@ class FptuSecondBrainApp extends StatelessWidget {
       builder: (ctx) => MaterialApp(
         // Drop pushed private screens as well as tab state on identity change.
         key: ValueKey(ctx.watch<AuthViewModel>().currentUserId),
-        title: 'FPTU Second Brain',
+        title: 'StudyPilot',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light(),
         navigatorObservers: ctx.read<AnalyticsService>().navigatorObservers,
-        home: AuthGate(checkRole: _usesRealComposition),
+        home: ReminderSync(
+          child: AuthGate(checkRole: _usesRealComposition),
+        ),
         routes: {
           '/home': (_) => AuthGate(checkRole: _usesRealComposition),
           '/sign-in': (_) => const SignInScreen(),
-          '/course-detail': (ctx) => CourseDetailScreen(
-            courseId: ModalRoute.of(ctx)!.settings.arguments as String? ?? '',
-          ),
+          '/course-detail': (ctx) {
+            final uid = _usesRealComposition
+                ? ctx.read<AuthViewModel>().currentUserId
+                : null;
+            return CourseDetailScreen(
+              courseId: ModalRoute.of(ctx)!.settings.arguments as String? ?? '',
+              store: ctx.read<FinalFirestore?>(),
+              currentUid: uid,
+            );
+          },
+          if (_usesRealComposition)
+            '/course-tips': (ctx) {
+              final uid = ctx.read<AuthViewModel>().currentUserId;
+              return CourseDetailScreen(
+                courseId:
+                    ModalRoute.of(ctx)!.settings.arguments as String? ?? '',
+                store: ctx.read<FinalFirestore?>(),
+                currentUid: uid,
+                initialTab: 3,
+              );
+            },
+          if (_usesRealComposition)
+            '/my-tips': (ctx) {
+              final uid = ctx.read<AuthViewModel>().currentUserId;
+              if (uid == null) return const SignInScreen();
+              return MyTipsScreen(
+                store: ctx.read<FinalFirestore?>()!,
+                uid: uid,
+              );
+            },
           '/note-editor': (_) =>
               NoteEditorScreen(showLegacyMedia: _showLegacyMedia),
           '/academic-profile': (_) =>
-              AcademicProfileScreen(showStudyPlan: _usesRealComposition),
-          '/schedule': (_) => const ScheduleScreen(),
+              AcademicProfileScreen(),
           if (_usesRealComposition)
             '/study-plan': (context) {
               final uid = context.read<AuthViewModel>().currentUserId;
               if (uid == null) return const SignInScreen();
               return StudyPlanScreen(
-                store: FinalFirestore(FirebaseFirestore.instance),
+                store: ctx.read<FinalFirestore?>()!,
                 uid: uid,
               );
             },
           if (_usesRealComposition)
             '/announcements': (_) => AnnouncementsScreen(
-              store: FinalFirestore(FirebaseFirestore.instance),
+              store: ctx.read<FinalFirestore?>()!,
             ),
           '/advisor': (_) => const AdvisorScreen(),
           '/strategy-sim': (_) => const StrategySimScreen(),
@@ -321,7 +388,7 @@ class FirebaseConfigErrorApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'FPTU Second Brain',
+    title: 'StudyPilot',
     debugShowCheckedModeBanner: false,
     theme: AppTheme.light(),
     home: Scaffold(
@@ -430,31 +497,76 @@ class _AuthGateState extends State<AuthGate> {
     }
 
     final uid = authVm.currentUserId;
+    final shell = const _MajorOnboardingGate(child: AppShell());
     if (widget.checkRole && uid != null) {
-      return _MobileRoleGate(key: ValueKey(uid), uid: uid);
+      return _MobileRoleGate(key: ValueKey(uid), uid: uid, child: shell);
     }
-    return const AppShell();
+    return shell;
+  }
+}
+
+/// Blocks the student shell until a curriculum is selected. A major that no
+/// longer exists in the admin catalog is treated as "not selected" so the
+/// student can pick again instead of seeing an empty roadmap.
+class _MajorOnboardingGate extends StatelessWidget {
+  const _MajorOnboardingGate({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final academic = context.watch<AcademicViewModel>();
+    switch (academic.state.state) {
+      case ViewState.loading:
+        return const Scaffold(
+          body: AppLoadingState(message: 'Đang tải dữ liệu học tập...'),
+        );
+      case ViewState.error:
+        return Scaffold(
+          body: AppErrorState(
+            message:
+                academic.state.message ?? 'Không tải được dữ liệu học tập.',
+            onRetry: academic.loadData,
+          ),
+        );
+      case ViewState.empty:
+      case ViewState.data:
+        break;
+    }
+    final majors = academic.availableMajors;
+    final major = academic.profile.major.trim();
+    final valid = major.isNotEmpty &&
+        (majors.isEmpty ||
+            majors.any(
+              (m) => m.code.toUpperCase() == major.toUpperCase(),
+            ));
+    if (!valid) return const MajorOnboardingScreen();
+    return child;
   }
 }
 
 class _MobileRoleGate extends StatefulWidget {
-  const _MobileRoleGate({super.key, required this.uid});
+  const _MobileRoleGate({
+    super.key,
+    required this.uid,
+    required this.child,
+  });
 
   final String uid;
+  final Widget child;
 
   @override
   State<_MobileRoleGate> createState() => _MobileRoleGateState();
 }
 
 class _MobileRoleGateState extends State<_MobileRoleGate> {
-  late final _profile = FirebaseFirestore.instance
-      .collection('users')
-      .doc(widget.uid)
-      .snapshots();
+  late final Stream<String?> _role = context
+      .read<FirestoreService>()
+      .watchUserRole(widget.uid);
 
   @override
-  Widget build(BuildContext context) => StreamBuilder(
-    stream: _profile,
+  Widget build(BuildContext context) => StreamBuilder<String?>(
+    stream: _role,
     builder: (context, snapshot) {
       if (snapshot.hasError) {
         return Scaffold(
@@ -466,12 +578,12 @@ class _MobileRoleGateState extends State<_MobileRoleGate> {
           ),
         );
       }
-      final profile = snapshot.data;
-      if (profile == null) {
+      if (snapshot.connectionState == ConnectionState.waiting &&
+          !snapshot.hasData) {
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
       }
-      final role = profile.data()?['role'] ?? 'user';
-      if (role == 'user') return const AppShell();
+      final role = snapshot.data ?? 'user';
+      if (role == 'user') return widget.child;
       return Scaffold(
         body: Center(
           child: Column(
@@ -646,6 +758,7 @@ class _AppShellState extends State<AppShell> {
     // Re-evaluate on every rebuild so a tap arriving while idle routes too.
     _maybeRouteTappedNotification();
     final notificationsVm = context.watch<NotificationsViewModel>();
+    final tasksVm = context.watch<TasksViewModel>();
     final banner = notificationsVm.banner;
     return Scaffold(
       body: Stack(
@@ -686,6 +799,7 @@ class _AppShellState extends State<AppShell> {
       bottomNavigationBar: AppBottomNav(
         currentIndex: _currentIndex,
         onSelected: _onTabSelected,
+        dueSoonCount: tasksVm.dueSoonCount,
       ),
     );
   }

@@ -64,31 +64,13 @@ venv/
 .pytest_cache/
 e2e_test/results_run*.xml
 
+# Firebase CLI deploy cache
+.firebase/
+
 /admin-web/node_modules/
 /firebase/tests/node_modules/
 
 # Auxiliary tools & analysis outputs
 artemis-google/
 graphify-out/
-
-# Documentation (moved to ../../_docs/)
-# Block by file type so future pulls don't bring them back
-*.docx
-*.pdf
-*.zip
-/docs/*.md
-/design/
-/ux/
-/ai/
-/handoff/
-/slides/
-/report/
-/evidence/artemis/*.md
-/evidence/README.md
-/evidence/app/**/*.pdf
-BAO_CAO_TIEN_DO_LAB3.md
-setup-report.md
-HUONG_DAN_SETUP_ARTEMIS_PRM393_LAB3.md
-AGENTS.md
-final_assignment_report.pdf
 

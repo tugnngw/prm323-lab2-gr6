@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prm323_lab3/viewmodels/auth_viewmodel.dart';
-import 'package:prm323_lab3/viewmodels/notifications_viewmodel.dart';
+import 'package:prm393_final_gr6/viewmodels/auth_viewmodel.dart';
+import 'package:prm393_final_gr6/viewmodels/notifications_viewmodel.dart';
 
 import '../helpers/fake_firestore_service.dart';
 import '../helpers/fake_messaging_service.dart';

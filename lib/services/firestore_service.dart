@@ -4,7 +4,13 @@
 abstract class FirestoreService {
   // ── Courses / Roadmap ──
   Future<List<Map<String, dynamic>>> getCourses(String userId);
+
+  /// Only the courses belonging to [majorCode]. Students download one
+  /// curriculum, not the whole catalog.
+  Future<List<Map<String, dynamic>>> getCoursesForMajor(String majorCode);
+
   Future<Map<String, dynamic>?> getCourse(String courseId);
+  Future<List<Map<String, dynamic>>> getMajors() async => [];
 
   /// Owner's profile document (`users/{userId}`) — carries the passed-course
   /// transcript used for prerequisite checks. Null when not provisioned yet;
@@ -12,8 +18,35 @@ abstract class FirestoreService {
   /// seeded demo data.
   Future<Map<String, dynamic>?> getUserProfile(String userId);
 
-  /// Merge user-entered transcript/timetable without replacing other profile fields.
+  /// Live `users/{uid}.role` for the mobile role gate. Emits null while the
+  /// profile document does not exist yet.
+  Stream<String?> watchUserRole(String userId);
+
+  /// Merge user-entered transcript without replacing other profile fields.
   Future<void> saveAcademicProfile(String userId, Map<String, dynamic> data);
+
+  /// Replaces the whole `componentScores` field. Unlike [saveAcademicProfile]
+  /// this must not deep-merge: clearing a score has to remove the stored key.
+  Future<void> saveComponentScores(
+    String userId,
+    Map<String, dynamic> componentScores,
+  );
+
+  // ── Per-student course progress ──
+  /// `users/{userId}/courseProgress/*` — slot ticks, "course done" flag and
+  /// the lecturer the student recorded for themselves.
+  Future<List<Map<String, dynamic>>> getCourseProgress(String userId);
+  Future<void> saveCourseProgress(
+    String userId,
+    String courseDocId,
+    Map<String, dynamic> data,
+  );
+
+  // ── Announcements (server-wide) ──
+  /// School announcements written by staff. They are merged into the in-app
+  /// Notification Center because students cannot read other users' inboxes.
+  Future<List<Map<String, dynamic>>> getAnnouncements();
+  Stream<List<Map<String, dynamic>>> watchAnnouncements();
 
   // ── Tasks ──
   Future<List<Map<String, dynamic>>> getTasks(String userId);

@@ -41,7 +41,7 @@ class SignInScreen extends StatelessWidget {
 
                 // Title & Subtitle
                 Text(
-                  'FPTU Second Brain',
+                  'StudyPilot',
                   style: Theme.of(context).textTheme.headlineLarge,
                   textAlign: TextAlign.center,
                 ),
@@ -120,7 +120,7 @@ class SignInScreen extends StatelessWidget {
 
                 // Terms disclaimer
                 Text(
-                  'Bằng cách đăng nhập, bạn đồng ý với Điều khoản dịch vụ và Chính sách quyền riêng tư của FPTU Second Brain.',
+                  'Bằng cách đăng nhập, bạn đồng ý với Điều khoản dịch vụ và Chính sách quyền riêng tư của StudyPilot.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontSize: AppFontSize.label,
                         color: AppColors.onSurfaceVariant,

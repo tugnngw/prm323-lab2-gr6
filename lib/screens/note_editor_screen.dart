@@ -17,6 +17,7 @@ import '../viewmodels/notes_viewmodel.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_components.dart';
 import '../widgets/app_text_field.dart';
+import '../widgets/course_picker.dart';
 import 'note_ai_screen.dart';
 
 class NoteEditorScreen extends StatefulWidget {
@@ -32,12 +33,12 @@ class NoteEditorScreen extends StatefulWidget {
 
 class _NoteEditorScreenState extends State<NoteEditorScreen> {
   final _titleController = TextEditingController();
-  final _courseController = TextEditingController(text: 'PRM323');
+  final _courseController = TextEditingController();
+  final _courseNameController = TextEditingController();
   final _contentController = TextEditingController();
   bool _isInitialized = false;
   String? _existingNoteId;
   NoteModel? _savedNote;
-  bool _fromFlm = false;
   bool _preview = false;
   String? _attachmentName;
   String? _attachmentUrl;
@@ -62,9 +63,10 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       if (arg is NoteDraft) {
         _titleController.text = arg.title;
         _courseController.text = arg.courseCode;
+        if (arg.courseName.isNotEmpty) {
+          _courseNameController.text = arg.courseName;
+        }
         _contentController.text = arg.content;
-        _fromFlm = arg.fromFlm;
-        _preview = _fromFlm;
         if (arg.pickAttachment && widget.showLegacyMedia) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) unawaited(_attachFile());
@@ -75,8 +77,6 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
         if (existing != null) {
           _existingNoteId = existing.id;
           _savedNote = existing;
-          _fromFlm = existing.tags.contains('flm');
-          _preview = _fromFlm;
           _titleController.text = existing.title;
           _courseController.text = existing.courseCode;
           _contentController.text = existing.content;
@@ -86,10 +86,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
           if (_attachmentPath != null || _attachmentUrl != null) {
             _attachmentName = existing.attachmentName ?? 'Tệp đính kèm';
           }
-        } else if (arg.startsWith('PRM') ||
-            arg.startsWith('SWP') ||
-            arg.startsWith('SWR')) {
-          // Argument is a course code
+        } else {
+          // Deep links may pass a course code directly.
           _courseController.text = arg;
         }
       }
@@ -102,8 +100,23 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     if (!_saving) _discardStagedAttachment();
     _titleController.dispose();
     _courseController.dispose();
+    _courseNameController.dispose();
     _contentController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickCourse() async {
+    final course = await showCoursePicker(
+      context,
+      initialCourseCode: _courseController.text.trim().isEmpty
+          ? null
+          : _courseController.text.trim(),
+    );
+    if (course == null || !mounted) return;
+    setState(() {
+      _courseController.text = course.code;
+      _courseNameController.text = course.name;
+    });
   }
 
   void _discardStagedAttachment() {
@@ -126,10 +139,6 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       );
       return;
     }
-    if (_fromFlm && course.isEmpty) {
-      _showAttachmentMessage('Nhập mã môn cho syllabus FLM.', failed: true);
-      return;
-    }
 
     final notesVm = context.read<NotesViewModel>();
     final attachmentChanged =
@@ -149,7 +158,6 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
         ...?_savedNote?.tags.where(
           (tag) => tag != _savedNote?.courseCode.toLowerCase(),
         ),
-        if (_fromFlm) 'flm',
         if (course.isNotEmpty) course.toLowerCase(),
       }.toList(),
     );
@@ -315,11 +323,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: _fromFlm
-            ? 'Syllabus FLM'
-            : isEditing
-            ? 'Chỉnh sửa ghi chú'
-            : 'Soạn ghi chú mới',
+        title: isEditing ? 'Chỉnh sửa ghi chú' : 'Soạn ghi chú mới',
         onBack: () {
           if (!_saving) Navigator.pop(context);
         },
@@ -335,24 +339,34 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           children: [
-            Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: AppTextField(
-                    controller: _titleController,
-                    hint: 'Tiêu đề ghi chú...',
+            AppTextField(
+              controller: _titleController,
+              hint: 'Tiêu đề ghi chú...',
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            InkWell(
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              onTap: _pickCourse,
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Môn học (tùy chọn)',
+                  suffixIcon: Icon(Icons.search),
+                ),
+                child: Text(
+                  _courseController.text.isEmpty
+                      ? 'Chọn ngành rồi tìm môn — hoặc để trống cho ghi chú chung'
+                      : _courseNameController.text.isEmpty
+                      ? _courseController.text
+                      : '${_courseController.text} · ${_courseNameController.text}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _courseController.text.isEmpty
+                        ? AppColors.onSurfaceVariant
+                        : AppColors.onSurface,
                   ),
                 ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  flex: 1,
-                  child: AppTextField(
-                    controller: _courseController,
-                    hint: 'Mã môn',
-                  ),
-                ),
-              ],
+              ),
             ),
             const SizedBox(height: AppSpacing.sm),
 

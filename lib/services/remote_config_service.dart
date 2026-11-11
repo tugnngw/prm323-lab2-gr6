@@ -60,9 +60,11 @@ class RemoteConfigService extends ChangeNotifier {
   static const Map<String, dynamic> _defaults = {
     'study_plan_ai_enabled': false,
     'study_plan_ai_model': "gemini-3.5-flash-lite",
-    'study_plan_ai_prompt': "Gợi ý một mục tiêu học tập và từ một đến bốn hành động ngắn, chung, phù hợp với kỳ học. Không yêu cầu hoặc tạo dữ liệu cá nhân.",
+    'study_plan_ai_prompt': "Bạn là AI Tutor cho StudyPilot. Gợi ý một mục tiêu học tập và từ 1 đến 4 hành động ngắn, thiết thực phù hợp với đề cương kỳ học (tập trung vào kỹ năng then chốt và các bài thi PE/FE). Không bịa đặt thông tin (Zero-Hallucination), không yêu cầu hay tạo dữ liệu cá nhân (Zero-PII).",
     'maintenance_mode': false,
     'feature_ai_advisor_enabled': true,
+    'ai_advisor_model': 'gemini-3.5-flash-lite',
+    'ai_advisor_prompt': 'Bạn là Cố vấn học tập AI cho sinh viên Đại học FPT (chuyên ngành Kỹ thuật phần mềm SE). Tư vấn dựa trên đề cương môn học (30 slots, bài tập, chuẩn đầu ra). Trả lời tiếng Việt, súc tích, cấu trúc rõ ràng. Không yêu cầu hay tiết lộ thông tin cá nhân (Zero-PII).',
     'min_app_version': '1.0.0',
     'vault_sync_interval_mins': 30,
   };
@@ -136,6 +138,12 @@ class RemoteConfigService extends ChangeNotifier {
     'feature_ai_advisor_enabled',
     (c) => c.getBool('feature_ai_advisor_enabled'),
   );
+
+  String get aiAdvisorModel =>
+      _value('ai_advisor_model', (c) => c.getString('ai_advisor_model'));
+
+  String get aiAdvisorPrompt =>
+      _value('ai_advisor_prompt', (c) => c.getString('ai_advisor_prompt'));
 
   String get minAppVersion =>
       _value('min_app_version', (c) => c.getString('min_app_version'));

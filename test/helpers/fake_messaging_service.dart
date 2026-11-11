@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:prm323_lab3/services/messaging_service.dart';
+import 'package:prm393_final_gr6/services/messaging_service.dart';
 
 /// Test double for [MessagingService] — lives under test/ only.
 /// Tests drive the three push states by calling the emit* methods.

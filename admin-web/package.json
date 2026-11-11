@@ -6,6 +6,7 @@
     "node": ">=22"
   },
   "scripts": {
+    "dev": "npx serve -l 5000",
     "start": "node --env-file-if-exists=.env server.mjs",
     "send:fcm": "node --env-file-if-exists=.env send-fcm.mjs",
     "start:media": "node --env-file-if-exists=.env media-server.mjs",

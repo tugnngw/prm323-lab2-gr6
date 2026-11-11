@@ -64,7 +64,7 @@ void main() async {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text('PRM393 Lab 3: FPTU Second Brain — Cloud-Enabled Academic Assistant',
+          pw.Text('PRM393 Lab 3: StudyPilot — Cloud-Enabled Academic Assistant',
               style: pw.TextStyle(font: fontRegular, fontSize: 7, color: PdfColors.grey600)),
           pw.Text('Student ID: [CHỜ ĐIỀN STUDENT ID] | Project: prm323-lab2-gr6',
               style: pw.TextStyle(font: fontBold, fontSize: 7, color: PdfColors.grey700)),
@@ -134,7 +134,7 @@ void main() async {
             pw.Text('PRM393: MOBILE PROGRAMMING — LAB 3 PRESENTATION',
                 style: pw.TextStyle(font: fontBold, fontSize: 22, color: PdfColors.white)),
             pw.SizedBox(height: 6),
-            pw.Text('FPTU Second Brain: Ứng dụng Quản lý Học tập Đám mây tích hợp Firebase & Kiểm thử Tự động E2E',
+            pw.Text('StudyPilot: Ứng dụng Quản lý Học tập Đám mây tích hợp Firebase & Kiểm thử Tự động E2E',
                 style: pw.TextStyle(font: fontRegular, fontSize: 13, color: PdfColors.grey200)),
           ],
         ),
@@ -612,7 +612,7 @@ void main() async {
           ]),
           pw.TableRow(children: [
             pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('banner_message', style: pw.TextStyle(font: fontBold, fontSize: 7.5))),
-            pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('"FPTU Second Brain"', style: pw.TextStyle(font: fontRegular, fontSize: 7.5))),
+            pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('"StudyPilot"', style: pw.TextStyle(font: fontRegular, fontSize: 7.5))),
             pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('Cập nhật câu chào/thông điệp khẩn trên thanh AppBar mà không cần re-deploy app.', style: pw.TextStyle(font: fontRegular, fontSize: 7.5))),
           ]),
         ],

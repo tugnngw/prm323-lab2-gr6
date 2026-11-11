@@ -1,135 +1,196 @@
-> **PRM393 Final đang tích hợp.** [Đối chiếu yêu cầu](docs/gap-review.md) · [Hợp đồng Firestore cho web](docs/data-model.md) · [Luồng duyệt](docs/cross-role-flow.md) · [AI](docs/ai-feature.md) · [Kiểm thử](docs/test-report.md) · [Nội dung 14 slide](docs/final-slide-content.md).
->
-> Build Android mặc định dùng PDF cục bộ và Firebase AI Logic. Để bật upload Cloudinary cho bản demo, chạy Media API và thêm `--dart-define=REPORT_MEDIA_URL=http://127.0.0.1:8788`. Không dùng tài khoản cá nhân hoặc token trong tài liệu bàn giao.
+# StudyPilot — PRM393 Final (GR6)
 
-> **Demo ngày 05/11/2026.** Firebase Spark phục vụ đăng nhập và Firestore. Cloudinary Free đã được xác minh cho PDF báo cáo và tệp đính kèm trên giả lập. Khi chấm, kết nối điện thoại thật. Dev xem Firebase Console, admin xem web riêng. [Cách chạy web admin, FCM server và Media API](admin-web/README.md) · [Giải thích nguyên lý](docs/lab3-oral-defense.md) · [Minh chứng Cloudinary](evidence/app/cloudinary-2026-11-05/verification.json).
+Hệ thống học tập một backend Firebase, hai client: **ứng dụng Android cho sinh viên** và **web quản trị cho Staff/Admin**. Đề tài nối tiếp PRM323 Lab 2 (thiết kế) và Lab 3 (ứng dụng cloud), bổ sung luồng liên vai trò, inbox realtime và tính năng AI.
 
-> Cập nhật tiếp hạng mục 1–2–3 ngày 04/11/2026: xem [báo cáo xác minh mới](docs/implementation-verification-2026-11-04.md). Đã thêm nhập dữ liệu học tập riêng, Advisor/Strategy theo dữ liệu, tab môn và route FCM. Cloud evidence/E2E vẫn có blocker thực; checklist cũ không chứng minh hoàn tất.
+Nhóm GR6: Nguyễn Sỹ Thanh Tùng · Nguyễn Bá Thái Dương · Dương Quang Long · Võ Anh Duy.
 
-> Cập nhật kiểm tra 04/11/2026: 100/100 Flutter tests pass, analyzer 0 issue. Chi tiết sửa lỗi và giới hạn xác minh: [docs/fix-verification-2026-11-04.md](docs/fix-verification-2026-11-04.md). Các kết quả emulator/Firebase cũ bên dưới là snapshot, không thay thế evidence mới.
+Repo nộp: <https://github.com/quanglong68/PRM393_Final_GR6>. Web admin: <https://prm323-lab2-gr6.web.app/>.
 
-# FPTU Second Brain — PRM393 Lab 3 (Cloud-Enabled Mobile App)
+| Tài liệu | Nội dung |
+|---|---|
+| [docs/gap-review.md](docs/gap-review.md) | Đối chiếu Lab 2/Lab 3 với rubric Final, phần đã đóng và còn mở |
+| [docs/architecture.md](docs/architecture.md) | Kiến trúc mobile + web + Firebase, MVVM, package dùng chung |
+| [docs/data-model.md](docs/data-model.md) | Collection, trường, quyền theo vai trò, chuyển trạng thái |
+| [docs/cross-role-flow.md](docs/cross-role-flow.md) | Sinh viên gửi bí kíp → Staff duyệt → mobile cập nhật realtime |
+| [docs/ai-feature.md](docs/ai-feature.md) | Tính năng Gemini, Remote Config, App Check, fallback, 3 input/output thật |
+| [docs/test-report.md](docs/test-report.md) | Kết quả test, rules, review code và bằng chứng |
+| [docs/test-plan.md](docs/test-plan.md) | Ma trận 26 kịch bản E2E và điều kiện thoát |
+| [docs/code-review.md](docs/code-review.md) | Finding CR-01…CR-30, quyết định và commit sửa |
+| [report/Final_GR6.pdf](report/Final_GR6.pdf) | Báo cáo Final 10–15 trang |
+| [slides/Final_GR6_slides.pdf](slides/Final_GR6_slides.pdf) | Slide Final 12–15 trang |
 
-Ứng dụng Android Flutter (PRM323 Lab 2 → Lab 3): tra cứu chương trình/đề cương,
-quản lý deadline, ghi chú + attachment, tư vấn học vụ, **đồng bộ Firestore
-offline-first**, Google Sign-In, FCM + Notification Center, Analytics/Crashlytics/
-Remote Config, và **xuất PDF báo cáo học tập** với xác nhận trước khi upload.
-Kiến trúc fail-loud: Firebase lỗi là báo lỗi thật, không fallback mock im lặng.
+## 1. Vai trò và tài khoản demo
 
-## Build · Run · Test
+| Vai trò | Client | Quyền chính |
+|---|---|---|
+| Sinh viên (`user`) | Android | Đọc chương trình/đề cương, quản lý việc/ghi chú, gửi bí kíp và kế hoạch, dùng AI, nhận thông báo |
+| Cán bộ (`staff`) | Web admin | Quản lý chuyên ngành/môn, duyệt hoặc từ chối bí kíp kèm lý do, đăng thông báo, xem dashboard |
+| Quản trị (`admin`) | Web admin | Quyền của Staff + đổi `role` của tài khoản khác |
+
+- Vai trò lưu tại `users/{uid}.role`. Tài khoản mới luôn tạo với `role: "user"`.
+- **Admin đầu tiên** được đặt thủ công trong Firebase Console → Firestore → `users/{uid}` → `role: "admin"` (quy trình trong [admin-web/README.md](admin-web/README.md)).
+- Demo dùng **tài khoản Google test riêng** cho từng vai trò, không dùng tài khoản cá nhân. Email/UID thật không đưa vào repo; khi chấm, đăng nhập bằng bộ tài khoản demo đã chuẩn bị và kiểm tra `role` trong Console.
+- Tài khoản sai vai trò bị client từ chối kèm thông báo và tự đăng xuất.
+
+## 2. Web admin URL
+
+**Đã deploy:** <https://prm323-lab2-gr6.web.app/>
+
+Bản chạy cục bộ (không cần mạng tới production): `firebase emulators:start --only hosting,firestore,auth` rồi mở `http://127.0.0.1:5000/?emulator=true`.
+
+Khi deploy lại, chạy `firebase deploy --only hosting` và giữ domain `prm323-lab2-gr6.web.app` trong **Authentication → Settings → Authorized domains**. Đây là hạng mục G-01 trong gap review.
+
+## 3. Chạy mobile
+
+Yêu cầu: Flutter 3.47.4 (Dart 3.13), Android SDK, `google-services.json` hợp lệ đặt tại `android/app/` (gitignored).
 
 ```bash
 flutter pub get
-flutter analyze          # 0 issues
-flutter test             # 124 unit/widget tests passed
-flutter build apk --debug
-```
-
-| Hạng mục Lab 3 | Vị trí |
-| --- | --- |
-| Task map + plan A–G | [docs/lab3-task-map-v5.md](docs/lab3-task-map-v5.md) |
-| Kiến trúc | [docs/architecture.md](docs/architecture.md) |
-| Test plan (ma trận TC ↔ flow, living doc) | [docs/test-plan.md](docs/test-plan.md) |
-| Báo cáo runtime T03-M1…M11E | [docs/](docs/) |
-| Security rules + seed + RC defaults | [firebase/](firebase/) |
-| AI code log (policy) | [ai/ai-code-log.md](ai/ai-code-log.md) |
-| Evidence matrix | [evidence/README.md](evidence/README.md) — matrix và yêu cầu bằng chứng; chưa có bộ ảnh/trace hoàn chỉnh |
-| Report/slides PDFs | [report/Lab03_STUDENT_ID.pdf](report/Lab03_STUDENT_ID.pdf) (10 trang), [slides/Lab03_STUDENT_ID_slides.pdf](slides/Lab03_STUDENT_ID_slides.pdf) (15 slide); kịch bản video tại [docs/lab3-video-script.md](docs/lab3-video-script.md) |
-
-Tạo lại báo cáo với thông tin trang bìa bằng `dart run tool/generate_report_pdf.dart MSSV "Họ và tên"`. Thay `MSSV` bằng mã sinh viên. PDF được ghi trong `report/`.
-
-ARTEMIS có 26 kịch bản trong harness. TC_11 Remote Config đã pass 3/3 lượt trên Pixel 7 giả lập. Checklist yêu cầu tối thiểu 10 ca, mỗi ca chạy 3 lần, và một phiên exploratory. [Hướng dẫn chạy](e2e_test/README.md) · [Kết quả ngày 07/11](evidence/artemis/2026-11-07-regression.md).
-
-### Evidence matrix (local emulator, 2026-11-02)
-
-| Area | Evidence | Status |
-|------|----------|--------|
-| Sign-In | Emulator log: Google Sign-In successful, navigation to HomeScreen | ✅ Verified |
-| Roadmap/Firestore | Courses displayed from `courses` collection; `passedCourses` prerequisite checks work | ✅ Verified |
-| Task CRUD | Create → Firestore `users/{uid}/tasks/{taskId}`; Toggle `isCompleted` update; Delete removes test records | ✅ Verified |
-| Note CRUD | Create → Firestore `users/{uid}/notes/{noteId}`; Read verified | ✅ Verified |
-| Delete | 2 test records deleted successfully; optimistic restore on failure | ✅ Verified |
-| Manual sync | SyncReloadService reloads all 3 stores after NoteModel Timestamp fix | ✅ Verified |
-| NoteModel Timestamp | `_formatUpdatedAt` handles Firestore `Timestamp`, `DateTime`, legacy `String` | ✅ Verified |
-| NotificationModel Timestamp | `fromMap`/`fromPush` handle `Timestamp`, `DateTime`, ISO string; regression test added after a live crash | ✅ Verified |
-| Notification banner/route | Foreground push persists `route`, shows in-app banner, Notification Center tap navigates | ✅ Verified (hermetic) |
-| Maintenance mode | Remote Config `maintenance_mode=true` renders `MaintenanceScreen` instead of the shell | ✅ Verified (hermetic) |
-| Version gate | Remote Config `min_app_version` above the build blocks with `VersionBlockedScreen` before sign-in; equal/newer passes; malformed value fails open | ✅ Verified (hermetic) |
-| Tests | 89 tests pass (unit/widget hermetic + Timestamp parsing + SyncReloadService + version gate + Advisor levels/consent) | ✅ Verified |
-| Build | `flutter analyze`: 0 issues; `flutter test`: 89/89 pass; `flutter build apk --debug`: PASS | ✅ Verified |
-
-### Xác minh runtime và giới hạn
-
-- Trên giả lập đã xác minh FCM ở ba trạng thái, Crashlytics fatal/non-fatal qua web admin và Remote Config 31 → 30 trên cùng APK. [Mục lục minh chứng](evidence/README.md).
-- PDF báo cáo và tệp đính kèm đã upload/tải lại qua Cloudinary. Firestore đã đọc lại metadata của cả hai. Bản demo USB cần Media API chạy trên máy tính và `adb reverse`.
-- DebugView đã nhận tám loại event trong lượt 07/11. Cần thu các event còn thiếu, batch ARTEMIS và lượt kiểm tra trên điện thoại thật. Nhánh từ chối tài khoản ngoài `@fpt.edu.vn` cần tài khoản kiểm thử riêng.
-
-### Hướng dẫn chạy (emulator)
-
-```bash
-# Cài dependency
-flutter pub get
-
-# Phân tích code
 flutter analyze
-
-# Chạy test
 flutter test
-
-# Build APK debug (cần google-services.json out-of-band)
 flutter build apk --debug
-
-# Chạy trên emulator
-flutter emulator --create --avd <avd-name>
-flutter run -d <emulator-id>
+flutter run -d <device-id>
 ```
 
-### Giới hạn
+- `applicationId`: `com.example.prm323_lab3` (giữ nguyên từ Lab 3 để không phá liên kết Firebase).
+- App Check dùng debug token cố định cho bản sideload/demo; bản phát hành cần Play Integrity.
+- Upload tệp/PDF qua Cloudinary Media API là tùy chọn:
 
-- Kết quả runtime đã ghi nhận trên emulator với Firebase project `prm323-lab2-gr6`; `google-services.json` là file out-of-band/gitignored. APK debug build đã pass trong checkout này, nhưng clone mới cần tự cung cấp config hợp lệ.
-- Khi chấm trên Android thật, kiểm tra Play Services, thông báo, kết nối với Media API và Google Sign-In bằng tài khoản demo.
-- Repo hiện `prm323-lab2-gr6` chưa khớp mẫu tên repo ở checklist §2.1 (`PRM393_Lab03_<StudentID>`). Đổi tên repo trên GitHub khi nộp bài; checklist không yêu cầu đổi `applicationId`.
-- `@fpt.edu.vn` enforcement: code đã lọc account và hậu kiểm email; runtime rejection với tài khoản khác domain chưa kiểm chứng.
+```bash
+adb reverse tcp:8788 tcp:8788
+cd admin-web && npm run start:media
+flutter run -d <device-id> --dart-define=REPORT_MEDIA_URL=http://127.0.0.1:8788
+```
 
-### AI tools sử dụng
+## 4. Chạy web admin
 
-- Claude Code ( Anthropic ) để trợ lý phát triển, review code, và tạo documentation này.
-- firebase_analytics, firebase_core, firebase_auth, firebase_crashlytics, firebase_messaging, firebase_remote_config, cloud_firestore, firebase_storage packages.
-- Provider state management, `AsyncViewState<T>` pattern, `NoteModel.fromMap` với Timestamp parsing.
+Yêu cầu Node.js ≥ 22.
 
----
+```bash
+cd admin-web
+npm ci
+npm run dev            # http://127.0.0.1:5000, dùng Firebase production
+npm test               # 14 test parser + API server
+```
 
-## Hồ sơ thiết kế gốc (PRM323 Lab 2)
+Hoặc chạy toàn bộ emulator từ thư mục gốc:
 
-Bộ hồ sơ thiết kế UX/UI cho ứng dụng Android hỗ trợ sinh viên FPTU tra cứu chương trình/đề cương offline, quản lý deadline, ghi chú Obsidian Vault và tư vấn học vụ. Catalog học tập được thiết kế theo hướng đồng bộ lên cloud từ nguồn FLM được phép; sinh viên chọn ngành để tải về máy. Kết nối FAP là tùy chọn cho dữ liệu cá nhân. Prototype thiết kế dùng dữ liệu mẫu.
+```bash
+firebase emulators:start --only auth,firestore,hosting
+```
 
-## Tài liệu bàn giao
+## 5. Backend: rules, indexes, Remote Config
+
+```bash
+# Kiểm thử rules trên emulator (project demo, không đụng dữ liệu thật)
+cd firebase/tests
+npm ci
+npx --yes firebase-tools@13.35.1 emulators:exec --only firestore \
+  --project demo-second-brain-final "npm test"
+
+# Deploy rules/indexes/Remote Config khi có quyền project
+firebase deploy --only firestore:rules,firestore:indexes,remoteconfig
+```
+
+- Rules: `firebase/firestore.rules` — deny mặc định, phân quyền theo `users/{uid}.role`, kiểm tra schema và chuyển trạng thái.
+- Remote Config: 9 tham số trong `firebase/remote-config-template.json` (model AI, prompt, cờ bật/tắt, bảo trì, phiên bản tối thiểu…).
+- App Check bật cho Firestore và AI Logic.
+- Không dùng Cloud Functions/Cloud Storage/App Hosting theo phạm vi đề.
+
+> **Trạng thái deploy:** bản rules đã pass 15/15 test trên emulator là bản siết ngày 10/11 nhưng **chưa deploy** — release remote hiện tại vẫn là 04/11 (`evidence/firebase/firestore/rules-api-verification-2026-11-04.json`). Việc deploy nằm trong hạng mục G-09 của [gap review](docs/gap-review.md).
+
+## 6. Kiến trúc
+
+```text
+Flutter Android ─┐
+                 ├─ Firebase Auth · App Check · Firestore · AI Logic
+Web admin (SPA) ─┘        │
+                          └─ Firebase Hosting (tĩnh)
+```
+
+- MVVM + Provider ở cả hai client; widget không gọi SDK trực tiếp.
+- Model và truy cập Firestore dùng chung nằm trong [`packages/core`](packages/core) (`study_pilot_core`).
+- Trạng thái UI 4 nhánh: loading / empty / data / error, có nút thử lại.
+- Không có server tùy chỉnh; Rules và App Check quyết định quyền.
+
+Chi tiết: [docs/architecture.md](docs/architecture.md).
+
+## 7. Phiên bản
+
+| Thành phần | Phiên bản |
+|---|---|
+| Flutter / Dart | 3.47.4 / 3.13 |
+| Node.js | 24.21.0 (yêu cầu ≥ 22) |
+| firebase_core / auth / firestore | 5.1.0 / 7.0.1 / 7.1.0 |
+| firebase_ai / app_check | 5.1.0 / 0.5.1 |
+| firebase_messaging / analytics / crashlytics / remote_config | 17.0.1 / 13.0.1 / 6.0.1 / 7.0.1 |
+| firebase-tools | 13.35.1 |
+| Gemini model | `gemini-3.5-flash-lite` (dự phòng `gemini-3.7-flash`) |
+| ARTEMIS | commit `351ca8422f7b5b54e80a9c1ce03a222e02415b6b`, Python 3.12 qua `uv` |
+
+## 8. Kiểm thử
+
+| Lớp | Kết quả | Bằng chứng |
+|---|---|---|
+| `flutter analyze` | 0 issue | — |
+| `flutter test` | 159/159 pass | — |
+| Rules emulator | 15/15 pass | `firebase/tests/final.test.mjs` |
+| Web Node | 14/14 pass | `admin-web/*.test.mjs` |
+| Build APK | debug + release pass | `build/app/outputs/flutter-apk/` |
+| ARTEMIS | 10 ca × 3 lượt pass trên giả lập; TC_14 và exploratory chưa đạt | `evidence/artemis/` |
+| AI model | 3 output hợp lệ + 1 ca lỗi | `evidence/ai/` |
+
+Trạng thái đầy đủ và các mục còn chờ: [docs/test-report.md](docs/test-report.md).
+
+## 9. AI tools đã dùng
+
+- **Gemini qua Firebase AI Logic** (`gemini-3.5-flash-lite`) cho tính năng gợi ý kế hoạch học tập.
+- **Qoder / Claude Code** hỗ trợ đọc code, review, viết tài liệu và sinh báo cáo/slide; mọi finding review được ghi rõ là AI hỗ trợ trong `docs/code-review.md`.
+- **Google ARTEMIS** chạy E2E trên Android.
+- **Firebase CLI + Emulator Suite** cho rules và hosting.
+
+Không có API key hay service-account key trong repo. Khóa đặt trong `.env` (gitignored) hoặc Console.
+
+## 10. Video demo
+
+```text
+<dán link video 8–12 phút>
+```
+
+Kịch bản quay: [docs/lab3-video-script.md](docs/lab3-video-script.md) — mobile flows → từng màn web → cross-role hai màn song song → AI bật/tắt bằng Remote Config → chạy test.
+
+## 11. Cấu trúc repo
+
+```text
+├── lib/                # Mobile Flutter (screens, viewmodels, services)
+├── packages/core/      # study_pilot_core: model + Firestore service dùng chung
+├── admin-web/          # Web admin SPA + Media API + FCM script
+├── firebase/           # rules, indexes, Remote Config template, tests
+├── e2e_test/           # ARTEMIS harness
+├── test/               # Unit/widget test Flutter
+├── tool/               # Sinh báo cáo/slide PDF
+├── docs/               # Tài liệu Final
+├── evidence/           # Ảnh, JSON, trace, log
+├── report/             # Final_GR6.pdf
+└── slides/             # Final_GR6_slides.pdf
+```
+
+## 12. Ghi chú nộp bài
+
+- Repo GitHub: `PRM393_Final_GR6` (đã đổi tên, hạng mục G-08).
+- Web admin đã deploy tại <https://prm323-lab2-gr6.web.app/> (hạng mục G-01).
+- Báo cáo và slide được sinh bằng `dart run tool/generate_final_report_pdf.dart` và `dart run tool/generate_final_slides_pdf.dart`.
+- `google-services.json` và khóa bí mật không commit; clone mới cần cấu hình Firebase riêng.
+- Ảnh/log trong `evidence/` đã lọc email, UID và token trước khi lưu.
+
+## 13. Hồ sơ thiết kế Lab 2
 
 | Hạng mục | Nội dung |
-| --- | --- |
+|---|---|
 | Figma | [PRM323 Lab 2 — FPTU Second Brain](https://www.figma.com/design/0gpT8zQmaDiCmcklbFuTSq/PRM323_Lab2_FPTU_Second_Brain) |
-| Personas | [ux/persona.md](ux/persona.md) — mục lục, phạm vi, coverage và research backlog; ba hồ sơ riêng trong [ux/personas/](ux/personas/): P01, P02 (Primary), P03 |
-| User flow | [ux/user-flow.md](ux/user-flow.md) — 3 flow Lab 2 ban đầu và nhánh AI Flow 1A |
-| Academic workflows | [ux/academic-workflows.md](ux/academic-workflows.md) — Workflow 4–6, tư vấn 2.1, chiến lược 2.2, phạm vi FLM/FAP và quyền riêng tư |
-| Design brief/system | [design/DESIGN.md](design/DESIGN.md) |
-| Screen specification | [design/screen-spec.md](design/screen-spec.md) |
-| Design decisions & accessibility | [design/design-decisions.md](design/design-decisions.md) |
-| AI design log | [ai/ai-design-log.md](ai/ai-design-log.md) — Google Stitch và UX critique bằng Claude |
+| Personas | [ux/persona.md](ux/persona.md) · [ux/personas/](ux/personas/) |
+| User flow | [ux/user-flow.md](ux/user-flow.md) |
+| Academic workflows | [ux/academic-workflows.md](ux/academic-workflows.md) |
+| Design system | [design/DESIGN.md](design/DESIGN.md) · [design/screen-spec.md](design/screen-spec.md) |
+| AI design log | [ai/ai-design-log.md](ai/ai-design-log.md) |
 | Flutter handoff | [handoff/flutter-handoff.md](handoff/flutter-handoff.md) |
-| Stitch evidence | [assets/stitch](assets/stitch/) — ảnh ban đầu và ba vòng lặp |
-| Final UI exports | [assets/figma](assets/figma/) — export của 8 màn hình cốt lõi cùng dialog/biến thể lỗi, 360 × 800; các frame mở rộng xem trực tiếp trên Figma và trong screen spec |
-
-## Các trang Figma
-
-1. 01 User Flow
-2. 02 Wireframe
-3. 03 Final UI
-4. 04 Design System
-5. 05 Components
-6. 06 Prototype
-
-Prototype có 6 điểm bắt đầu: Flow 1–3 giữ nguyên các tác vụ Lab 2; Workflow 4 (thiết lập/catalog/lộ trình), Workflow 5 (tư vấn học vụ 2.1) và Workflow 6 (chiến lược học tập 2.2) mở rộng cho P01/P03. Hỏi AI giữ vai trò nhánh Flow 1A từ chi tiết môn. Các trang `03 Final UI` và `06 Prototype` dùng dữ liệu minh họa, không khẳng định đã kết nối FLM/FAP thật.
-
-## Phạm vi
-
-Android mobile-first, Material Design 3, light theme, Inter, khung Figma chính 360 × 800 dp; responsive tại 412 dp được mô tả trong `design/design-decisions.md`. Catalog ngành/đề cương được phân biệt với dữ liệu cá nhân: dữ liệu bảng điểm/lịch lưu cục bộ mặc định; AI chỉ nhận các trường đã nêu trong consent cho lần đó. Hỏi AI cần mạng.

@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:prm323_lab3/main.dart';
-import 'package:prm323_lab3/services/remote_config_service.dart';
+import 'package:prm393_final_gr6/main.dart';
+import 'package:prm393_final_gr6/services/remote_config_service.dart';
 
 import '../helpers/mock_auth_service.dart';
 import '../helpers/mock_firestore_service.dart';
@@ -99,7 +99,7 @@ void main() {
     Future<void> pumpApp(WidgetTester tester, Map<String, dynamic> overrides,
         {bool signedIn = true}) async {
       await tester.pumpWidget(
-        FptuSecondBrainApp(
+        StudyPilotApp(
           authService: MockAuthService(
             initialUserId: signedIn ? 'user_123' : null,
             initialEmail: signedIn ? 'ducnmse180000@fpt.edu.vn' : null,

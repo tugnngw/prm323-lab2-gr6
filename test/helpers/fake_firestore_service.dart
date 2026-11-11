@@ -1,4 +1,4 @@
-import 'package:prm323_lab3/services/firestore_service.dart';
+import 'package:prm393_final_gr6/services/firestore_service.dart';
 
 /// Test double implementing [FirestoreService] for hermetic unit and widget
 /// testing.
@@ -8,6 +8,17 @@ import 'package:prm323_lab3/services/firestore_service.dart';
 /// [notifications]) and inspect those lists afterwards. Failure flags arm
 /// simulated remote errors.
 class FakeFirestoreService implements FirestoreService {
+  final List<Map<String, dynamic>> majors = [];
+
+  @override
+  Future<List<Map<String, dynamic>>> getMajors() async =>
+      List.from(majors);
+
+  @override
+  Stream<String?> watchUserRole(String userId) => Stream.value(role);
+
+  String? role;
+
   @override
   Future<List<Map<String, dynamic>>> getRecentReportMetadata(
     String userId,
@@ -16,6 +27,8 @@ class FakeFirestoreService implements FirestoreService {
       .take(30)
       .toList();
   final List<Map<String, dynamic>> courses = [];
+  final List<Map<String, dynamic>> courseProgress = [];
+  final List<Map<String, dynamic>> announcements = [];
   final List<Map<String, dynamic>> tasks = [];
   final List<Map<String, dynamic>> notes = [];
   final List<Map<String, dynamic>> reports = [];
@@ -28,10 +41,6 @@ class FakeFirestoreService implements FirestoreService {
   /// Returned by [getUserProfile]; null means "profile not provisioned".
   Map<String, dynamic>? userProfile;
 
-  /// Every profile document keyed by user id, so per-user isolation can be
-  /// asserted (production keeps one document per UID).
-  final Map<String, Map<String, dynamic>> userProfiles = {};
-
   bool shouldFailTaskAdd = false;
 
   @override
@@ -39,9 +48,15 @@ class FakeFirestoreService implements FirestoreService {
     String userId,
     Map<String, dynamic> data,
   ) async {
-    final merged = {...?userProfiles[userId], ...data};
-    userProfiles[userId] = merged;
-    userProfile = merged;
+    userProfile = {...?userProfile, ...data};
+  }
+
+  @override
+  Future<void> saveComponentScores(
+    String userId,
+    Map<String, dynamic> componentScores,
+  ) async {
+    userProfile = {...?userProfile, 'componentScores': componentScores};
   }
 
   bool shouldFailTaskUpdate = false;
@@ -62,6 +77,23 @@ class FakeFirestoreService implements FirestoreService {
   }
 
   @override
+  Future<List<Map<String, dynamic>>> getCoursesForMajor(
+    String majorCode,
+  ) async {
+    if (shouldFailCourseLoad) {
+      throw Exception('Simulated course read failure');
+    }
+    final code = majorCode.trim().toUpperCase();
+    if (code.isEmpty) return [];
+    return courses
+        .where(
+          (course) =>
+              (course['major'] ?? '').toString().toUpperCase() == code,
+        )
+        .toList();
+  }
+
+  @override
   Future<Map<String, dynamic>?> getCourse(String courseId) async {
     for (final c in courses) {
       if (c['id'] == courseId) return c;
@@ -69,18 +101,43 @@ class FakeFirestoreService implements FirestoreService {
     return null;
   }
 
-  /// A seeded [userProfile] belongs to whichever UID reads it first, so later
-  /// reads and merge writes for other UIDs stay isolated.
   @override
-  Future<Map<String, dynamic>?> getUserProfile(String userId) async {
-    final existing = userProfiles[userId];
-    if (existing != null) return existing;
-    if (userProfiles.isEmpty && userProfile != null) {
-      userProfiles[userId] = userProfile!;
-      return userProfile;
+  Future<Map<String, dynamic>?> getUserProfile(String userId) async =>
+      userProfile;
+
+  @override
+  Future<List<Map<String, dynamic>>> getCourseProgress(String userId) async =>
+      List.from(courseProgress);
+
+  @override
+  Future<void> saveCourseProgress(
+    String userId,
+    String courseDocId,
+    Map<String, dynamic> data,
+  ) async {
+    final idx = courseProgress.indexWhere(
+      (p) => p['courseDocId'] == courseDocId || p['id'] == courseDocId,
+    );
+    final item = {
+      'courseDocId': courseDocId,
+      'id': courseDocId,
+      ...?idx == -1 ? null : courseProgress[idx],
+      ...data,
+    };
+    if (idx == -1) {
+      courseProgress.add(item);
+    } else {
+      courseProgress[idx] = item;
     }
-    return null;
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> getAnnouncements() async =>
+      List.from(announcements);
+
+  @override
+  Stream<List<Map<String, dynamic>>> watchAnnouncements() =>
+      Stream.value(List.from(announcements));
 
   @override
   Future<List<Map<String, dynamic>>> getTasks(String userId) async {

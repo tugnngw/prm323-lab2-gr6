@@ -49,4 +49,30 @@ class TaskModel {
         'isCompleted': isCompleted,
         'priority': priority,
       };
+
+  /// Parsed deadline. Accepts `dd/MM/yyyy`, `d/M/yyyy`, ISO-8601 and
+  /// `dd/MM/yyyy HH:mm`. Returns null for free text like
+  /// "Hạn nộp theo thông báo kỳ" so such tasks are never treated as overdue.
+  DateTime? get dueDateValue => parseDueDate(dueDate);
+
+  static DateTime? parseDueDate(String raw) {
+    final text = raw.trim();
+    if (text.isEmpty) return null;
+    final iso = DateTime.tryParse(text);
+    if (iso != null) return iso;
+    final match = RegExp(
+      r'^(\d{1,2})/(\d{1,2})/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?',
+    ).firstMatch(text);
+    if (match == null) return null;
+    final day = int.tryParse(match.group(1)!);
+    final month = int.tryParse(match.group(2)!);
+    final year = int.tryParse(match.group(3)!);
+    if (day == null || month == null || year == null) return null;
+    final hour = int.tryParse(match.group(4) ?? '') ?? 0;
+    final minute = int.tryParse(match.group(5) ?? '') ?? 0;
+    final parsed = DateTime(year, month, day, hour, minute);
+    // DateTime normalizes 31/02 into March; reject values that moved.
+    if (parsed.day != day || parsed.month != month) return null;
+    return parsed;
+  }
 }

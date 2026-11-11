@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prm323_lab3/services/study_plan_ai.dart';
+import 'package:prm393_final_gr6/services/study_plan_ai.dart';
 
 void main() {
   test('converts structured output to editable plan text', () {

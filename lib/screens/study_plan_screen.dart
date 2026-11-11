@@ -2,12 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:second_brain_core/second_brain_core.dart';
+import 'package:study_pilot_core/study_pilot_core.dart';
 
 import '../services/analytics_service.dart';
 import '../services/remote_config_service.dart';
 import '../services/study_plan_ai.dart';
 import '../theme/app_spacing.dart';
+import '../viewmodels/academic_viewmodel.dart';
 
 class StudyPlanScreen extends StatefulWidget {
   const StudyPlanScreen({super.key, required this.store, required this.uid});
@@ -50,18 +51,35 @@ class _StudyPlanScreenState extends State<StudyPlanScreen> {
       _generating = true;
       _draft = null;
     });
-    unawaited(analytics.logEvent('ai_request'));
+    unawaited(
+      analytics.logAiRequest(feature: 'study_plan', model: config.studyPlanModel),
+    );
     try {
+      String? curriculumContext;
+      try {
+        final academic = context.read<AcademicViewModel>();
+        final courses = academic.courses.where((c) => c.semester == _semester).toList();
+        if (courses.isNotEmpty) {
+          curriculumContext = courses
+              .map((c) =>
+                  '${c.code} (${c.name}, ${c.credits} tín chỉ, ${c.slots.length} slots${c.lecturer.isNotEmpty ? ', GV: ${c.lecturer}' : ''})')
+              .join('; ');
+        }
+      } catch (_) {}
+
       final draft = await generateStudyPlan(
         semester: _semester,
         model: config.studyPlanModel,
         prompt: config.studyPlanPrompt,
+        curriculumContext: curriculumContext,
       );
       if (mounted && config.isStudyPlanAiEnabled) {
         setState(() => _draft = draft);
       }
     } catch (_) {
-      unawaited(analytics.logEvent('ai_error'));
+      unawaited(
+        analytics.logAiError(feature: 'study_plan', errorType: 'generation_failed'),
+      );
       if (mounted) {
         _message('AI chưa khả dụng. Bạn vẫn có thể nhập kế hoạch trực tiếp.');
       }
@@ -141,9 +159,9 @@ class _StudyPlanScreenState extends State<StudyPlanScreen> {
                           _summary.text = draft.editableText;
                           setState(() => _draft = null);
                           unawaited(
-                            context.read<AnalyticsService>().logEvent(
-                              'ai_result_accepted',
-                            ),
+                            context
+                                .read<AnalyticsService>()
+                                .logAiResultAccepted(feature: 'study_plan'),
                           );
                         },
                   child: const Text('Dùng'),

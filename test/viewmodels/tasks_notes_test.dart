@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import '../helpers/mock_auth_service.dart';
 import '../helpers/mock_firestore_service.dart';
-import 'package:prm323_lab3/models/app_state.dart';
-import 'package:prm323_lab3/viewmodels/notes_viewmodel.dart';
-import 'package:prm323_lab3/viewmodels/tasks_viewmodel.dart';
+import 'package:prm393_final_gr6/models/app_state.dart';
+import 'package:prm393_final_gr6/viewmodels/notes_viewmodel.dart';
+import 'package:prm393_final_gr6/viewmodels/tasks_viewmodel.dart';
 
 import '../helpers/fake_firestore_service.dart';
 

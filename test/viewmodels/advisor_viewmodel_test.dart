@@ -1,11 +1,133 @@
+import 'dart:async';
+
+import 'package:firebase_ai/firebase_ai.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prm323_lab3/viewmodels/advisor_viewmodel.dart';
-import 'package:prm323_lab3/viewmodels/academic_viewmodel.dart';
+import 'package:prm393_final_gr6/utils/ai_failure_messages.dart';
+import 'package:prm393_final_gr6/viewmodels/advisor_viewmodel.dart';
+import 'package:prm393_final_gr6/viewmodels/academic_viewmodel.dart';
 
 import '../helpers/fake_firestore_service.dart';
 import '../helpers/mock_auth_service.dart';
 
 void main() {
+  test('Gemini failures are reported with their concrete cause', () {
+    expect(
+      describeAiFailure(UnsupportedUserLocation()),
+      contains('unsupported-user-location'),
+    );
+    expect(
+      describeAiFailure(
+        FirebaseException(
+          plugin: 'firebase_app_check',
+          code: 'unauthenticated',
+        ),
+      ),
+      contains('unauthenticated'),
+    );
+    expect(
+      describeAiFailure(TimeoutException('Gemini timed out')),
+      contains('timeout'),
+    );
+    expect(
+      describeAiFailure(
+        ServiceApiNotEnabled('projects/demo'),
+      ),
+      contains('AI Logic chưa được bật'),
+    );
+    expect(
+      describeAiFailure(
+        FirebaseException(
+          plugin: 'firebase_app_check',
+          code: 'unknown',
+          message:
+              '-14: Integrity API error (-14): The Play Store needs to be updated.',
+        ),
+      ),
+      allOf(contains('-14'), contains('Play Store')),
+    );
+    expect(
+      describeAiFailure(
+        FirebaseException(
+          plugin: 'firebase_app_check',
+          code: 'unknown',
+          message:
+              'Error returned from API. code: 403 body: App attestation failed.',
+        ),
+      ),
+      allOf(contains('debug token'), contains('Manage debug tokens')),
+    );
+  });
+
+  test('AI failure short-circuits later questions to local answers', () async {
+    final auth = MockAuthService(initialUserId: 'test-owner');
+    final academic = AcademicViewModel(
+      authService: auth,
+      firestoreService: FakeFirestoreService(),
+    );
+    var attempts = 0;
+    final vm = AdvisorViewModel(
+      authService: auth,
+      academicViewModel: academic,
+      askGemini: (_, _, _, _) async {
+        attempts++;
+        throw FirebaseException(
+          plugin: 'firebase_app_check',
+          code: 'unknown',
+          message: '-14: Integrity API error',
+        );
+      },
+    )..grantConsent();
+    addTearDown(auth.dispose);
+    addTearDown(academic.dispose);
+    addTearDown(vm.dispose);
+
+    await vm.askQuestion('PRM323');
+    expect(vm.aiStatus, AiStatus.unavailable);
+    await vm.askQuestion('GPA của tôi?', level: AdvisorLevel.score);
+    expect(attempts, 1);
+    expect(vm.messages.last.source, AdvisorSource.aiUnavailable);
+  });
+
+  test('Local prompt catalog answers course facts without consent', () async {
+    final auth = MockAuthService(initialUserId: 'test-owner');
+    final store = FakeFirestoreService()
+      ..courses.add({
+        'id': 'SE__PRM323',
+        'code': 'PRM323',
+        'name': 'Mobile',
+        'credits': 3,
+        'semester': 5,
+        'major': 'SE',
+        'labs': [
+          {'id': 'lab', 'title': 'Lab 1', 'weight': 30},
+          {'id': 'exam', 'title': 'Final', 'weight': 70},
+        ],
+      })
+      ..userProfile = {'major': 'SE'};
+    final academic = AcademicViewModel(
+      authService: auth,
+      firestoreService: store,
+    );
+    await academic.loadData();
+    final vm = AdvisorViewModel(
+      authService: auth,
+      academicViewModel: academic,
+    );
+    addTearDown(auth.dispose);
+    addTearDown(academic.dispose);
+    addTearDown(vm.dispose);
+
+    await vm.askLocalPrompt(
+      LocalQuestionKind.courseAssessments,
+      courseCode: 'PRM323',
+    );
+    expect(vm.hasConsent, isFalse);
+    expect(vm.messages.last.source, AdvisorSource.local);
+    expect(vm.messages.last.text, contains('Lab 1'));
+    expect(vm.messages.last.text, contains('30%'));
+  });
+
   test(
     'retry keeps one question and replaces its error with the answer',
     () async {
@@ -29,6 +151,12 @@ void main() {
 
       await vm.askQuestion('PRM323');
       expect(vm.errorMessage, isNotNull);
+      expect(
+        vm.messages[vm.messages.length - 2].text,
+        contains('Không cần mạng'),
+      );
+      expect(vm.messages.last.source, AdvisorSource.local);
+      expect(vm.aiStatus, AiStatus.unavailable);
       await vm.retryLastQuestion();
       expect(
         vm.messages.where((message) => message.sender == 'user'),
@@ -47,13 +175,15 @@ void main() {
       final auth = MockAuthService(initialUserId: 'test-owner');
       final store = FakeFirestoreService()
         ..courses.add({
-          'id': 'PRM323',
+          'id': 'SE__PRM323',
           'code': 'PRM323',
           'name': 'Mobile',
           'credits': 3,
           'semester': 5,
+          'major': 'SE',
           'currentGrade': 9.875,
-        });
+        })
+        ..userProfile = {'major': 'SE'};
       final academic = AcademicViewModel(
         authService: auth,
         firestoreService: store,
@@ -107,7 +237,8 @@ void main() {
             'semester': 5,
             'major': 'SE',
           },
-        ]);
+        ])
+        ..userProfile = {'major': 'SE'};
       final academic = AcademicViewModel(
         authService: auth,
         firestoreService: store,
@@ -163,7 +294,7 @@ void main() {
       expect(lastMsg.sender, equals('ai'));
       expect(lastMsg.text, contains('SWP391'));
       // 5 credits — highest weight in Semester 5; strategy copy mentions it.
-      expect(lastMsg.text, contains('tín chỉ'));
+      expect(lastMsg.text, contains('**Tín chỉ:** 5'));
     });
 
     test('Exposes the four rubric §6.4 consultation levels', () {

@@ -36,7 +36,7 @@ void main(List<String> args) async {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text('FPTU Second Brain — PRM393 Lab 3 Report',
+          pw.Text('StudyPilot — PRM393 Lab 3 Report',
               style: pw.TextStyle(font: fontRegular, fontSize: 10, color: PdfColors.grey700)),
           pw.Text(sectionTitle,
               style: pw.TextStyle(font: fontBold, fontSize: 10, color: PdfColors.blue900)),
@@ -124,7 +124,7 @@ void main(List<String> args) async {
             pw.Text('PRM393: MOBILE PROGRAMMING — LAB 3 REPORT',
                 style: pw.TextStyle(font: fontBold, fontSize: 18, color: PdfColors.white)),
             pw.SizedBox(height: 4),
-            pw.Text('FPTU Second Brain: Cloud-Enabled Academic Assistant App with Firebase & ARTEMIS E2E',
+            pw.Text('StudyPilot: Cloud-Enabled Academic Assistant App with Firebase & ARTEMIS E2E',
                 style: pw.TextStyle(font: fontRegular, fontSize: 14, color: PdfColors.grey200)),
           ],
         ),
@@ -253,7 +253,7 @@ void main(List<String> args) async {
           style: pw.TextStyle(font: fontBold, fontSize: 14, color: PdfColors.blue900)),
       pw.SizedBox(height: 6),
       pw.Text(
-        'FPTU Second Brain được phát triển nhằm giải quyết nhu cầu quản lý học tập cá nhân hóa cho sinh viên Đại học FPT. '
+        'StudyPilot được phát triển nhằm giải quyết nhu cầu quản lý học tập cá nhân hóa cho sinh viên Đại học FPT. '
         'Tại Lab 2, ứng dụng đã hoàn thành bản mẫu thiết kế giao diện (Figma Prototype), xác lập 3 personas, thiết kế các màn hình tĩnh '
         'và điều hướng cục bộ với dữ liệu mẫu (mock data).',
         style: pw.TextStyle(font: fontRegular, fontSize: 10.5),

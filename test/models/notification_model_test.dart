@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prm323_lab3/models/notification_model.dart';
+import 'package:prm393_final_gr6/models/notification_model.dart';
 
 void main() {
   group('NotificationModel.fromMap receivedAt', () {

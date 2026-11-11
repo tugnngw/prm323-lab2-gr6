@@ -8,7 +8,7 @@ pytestmark = [skip_without_adb, pytest.mark.e2e]
 @require_artemis
 async def test_TC_01_google_signin_native(artemis, auth_account):
     observed = await artemis.run(
-        'From Home sign out and sign in through the native Google picker using the configured dedicated @fpt.edu.vn account already on this device. Do not enter credentials. End at Home and report the actual tab labels and whether the account picker was shown.',
+        'From Home sign out and sign in through the native Google picker using the configured dedicated test account already on this device. Do not enter credentials. End at Home and report the actual tab labels and whether the account picker was shown.',
         {'picker_seen': 'boolean', 'tabs': 'array of literal tab labels'},
     )
     equals(observed, 'picker_seen', True)

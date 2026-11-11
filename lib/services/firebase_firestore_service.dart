@@ -50,6 +50,40 @@ class FirebaseFirestoreService implements FirestoreService {
   }
 
   @override
+  Future<List<Map<String, dynamic>>> getCoursesForMajor(
+    String majorCode,
+  ) async {
+    final code = majorCode.trim();
+    if (code.isEmpty) return [];
+    try {
+      final snapshot = await _firestore
+          .collection('courses')
+          .where('major', isEqualTo: code)
+          .get(const GetOptions(source: Source.serverAndCache));
+      final courses = snapshot.docs
+          .where((doc) => doc.data()['archived'] != true)
+          .map((doc) => {'id': doc.id, ...doc.data()})
+          .toList()
+        ..sort((a, b) {
+          final semesterA = (a['semester'] as num?)?.toInt() ?? 0;
+          final semesterB = (b['semester'] as num?)?.toInt() ?? 0;
+          final bySemester = semesterA.compareTo(semesterB);
+          if (bySemester != 0) return bySemester;
+          return (a['code'] ?? '')
+              .toString()
+              .compareTo((b['code'] ?? '').toString());
+        });
+      debugPrint(
+        '[Firestore] Major $code returned ${courses.length} course documents.',
+      );
+      return courses;
+    } catch (e) {
+      debugPrint('[Firestore] getCoursesForMajor error: $e');
+      rethrow;
+    }
+  }
+
+  @override
   Future<Map<String, dynamic>?> getCourse(String courseId) async {
     try {
       final doc = await _firestore
@@ -62,6 +96,38 @@ class FirebaseFirestoreService implements FirestoreService {
     } catch (e) {
       debugPrint('[Firestore] getCourse error: $e');
       rethrow;
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getMajors() async {
+    try {
+      final snapshot = await _firestore
+          .collection('majors')
+          .get(const GetOptions(source: Source.serverAndCache));
+      final activeMajors = snapshot.docs
+          .where((doc) => doc.data()['archived'] != true)
+          .toList();
+      if (activeMajors.isNotEmpty) {
+        return activeMajors
+            .map((doc) => {'code': doc.id, ...doc.data()})
+            .toList();
+      }
+      final curSnapshot = await _firestore
+          .collection('curriculums')
+          .get(const GetOptions(source: Source.serverAndCache));
+      final activeCurricula = curSnapshot.docs
+          .where((doc) => doc.data()['archived'] != true)
+          .toList();
+      if (activeCurricula.isNotEmpty) {
+        return activeCurricula
+            .map((doc) => {'code': doc.id, ...doc.data()})
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('[Firestore] getMajors error: $e');
+      return [];
     }
   }
 
@@ -80,6 +146,85 @@ class FirebaseFirestoreService implements FirestoreService {
     }
   }
 
+  @override
+  Stream<String?> watchUserRole(String userId) => _firestore
+      .collection('users')
+      .doc(userId)
+      .snapshots()
+      .map((doc) => doc.data()?['role'] as String?);
+
+  // ──────────────────── Per-student course progress ────────────────────
+
+  @override
+  Future<List<Map<String, dynamic>>> getCourseProgress(String userId) async {
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('courseProgress')
+          .get(const GetOptions(source: Source.serverAndCache));
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          ...data,
+          'courseDocId': data['courseDocId'] ?? doc.id,
+          'id': doc.id,
+        };
+      }).toList();
+    } catch (e) {
+      debugPrint('[Firestore] getCourseProgress error: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> saveCourseProgress(
+    String userId,
+    String courseDocId,
+    Map<String, dynamic> data,
+  ) async {
+    if (userId.isEmpty) throw ArgumentError('Missing owner UID');
+    if (courseDocId.isEmpty) throw ArgumentError('Missing course document ID');
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('courseProgress')
+        .doc(courseDocId)
+        .set({
+          ...data,
+          'courseDocId': courseDocId,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+  }
+
+  // ──────────────────────── Announcements ────────────────────────
+
+  @override
+  Future<List<Map<String, dynamic>>> getAnnouncements() async {
+    try {
+      final snapshot = await _firestore
+          .collection('announcements')
+          .orderBy('publishedAt', descending: true)
+          .limit(50)
+          .get(const GetOptions(source: Source.serverAndCache));
+      return snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+    } catch (e) {
+      debugPrint('[Firestore] getAnnouncements error: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Stream<List<Map<String, dynamic>>> watchAnnouncements() => _firestore
+      .collection('announcements')
+      .orderBy('publishedAt', descending: true)
+      .limit(50)
+      .snapshots()
+      .map(
+        (snapshot) =>
+            snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList(),
+      );
+
   // ──────────────────────── Tasks ────────────────────────
 
   @override
@@ -95,13 +240,37 @@ class FirebaseFirestoreService implements FirestoreService {
   }
 
   @override
+  Future<void> saveComponentScores(
+    String userId,
+    Map<String, dynamic> componentScores,
+  ) async {
+    if (userId.isEmpty) throw ArgumentError('Missing owner UID');
+    final ref = _firestore.collection('users').doc(userId);
+    await _firestore.runTransaction((transaction) async {
+      final snapshot = await transaction.get(ref);
+      final payload = <String, dynamic>{
+        'componentScores': componentScores,
+        'academicDataSource': 'user_entered',
+        'academicUpdatedAt': FieldValue.serverTimestamp(),
+      };
+      if (snapshot.exists) {
+        transaction.update(ref, payload);
+      } else {
+        transaction.set(ref, payload);
+      }
+    });
+  }
+
+  @override
   Future<List<Map<String, dynamic>>> getTasks(String userId) async {
     try {
+      // No server-side dueDate ordering: stored dates are display strings
+      // (`dd/MM/yyyy` or free text), so lexicographic order is wrong and a
+      // missing field would drop the task. The ViewModel sorts by parsed date.
       final snapshot = await _firestore
           .collection('users')
           .doc(userId)
           .collection('tasks')
-          .orderBy('dueDate', descending: false)
           .get(const GetOptions(source: Source.serverAndCache));
 
       // Prefer the actual Firestore document ID as the canonical task ID.

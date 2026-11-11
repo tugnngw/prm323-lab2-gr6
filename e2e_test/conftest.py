@@ -79,7 +79,7 @@ def wait_for_app_entry(timeout=60):
         try:
             labels = current_ui_text()
             assert "isn't responding" not in labels, 'Android ANR at startup; do not dismiss and count as pass'
-            if ('FPTU Second Brain' in labels and 'Trang chủ' in labels) or 'Đăng nhập bằng Google' in labels:
+            if ('StudyPilot' in labels and 'Trang chủ' in labels) or 'Đăng nhập bằng Google' in labels:
                 return
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired, ET.ParseError):
             pass
@@ -186,8 +186,8 @@ def pro_artemis(request, case_id):
 @pytest.fixture
 def auth_account():
     account = os.getenv('TEST_ACCOUNT_EMAIL', '')
-    if not account.endswith('@fpt.edu.vn') or os.getenv('E2E_ALLOW_AUTH_CHANGES') != '1':
-        pytest.skip('Requires dedicated @fpt.edu.vn account and E2E_ALLOW_AUTH_CHANGES=1; do not sign out a personal restored session')
+    if not account or os.getenv('E2E_ALLOW_AUTH_CHANGES') != '1':
+        pytest.skip('Requires a dedicated TEST_ACCOUNT_EMAIL and E2E_ALLOW_AUTH_CHANGES=1; never sign out a personal session')
     return account
 
 

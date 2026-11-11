@@ -50,19 +50,73 @@ class TasksViewModel extends BaseViewModel<List<TaskModel>> {
   String get currentFilter => _filter;
   List<TaskModel> get allTasks => List.unmodifiable(_allTasks);
 
+  /// Deadline first, undated last, completed last — so the top of the list is
+  /// always the task the student should act on next.
+  static int compareByDeadline(TaskModel a, TaskModel b) {
+    if (a.isCompleted != b.isCompleted) return a.isCompleted ? 1 : -1;
+    final aDue = a.dueDateValue;
+    final bDue = b.dueDateValue;
+    if (aDue == null && bDue == null) return 0;
+    if (aDue == null) return 1;
+    if (bDue == null) return -1;
+    return aDue.compareTo(bDue);
+  }
+
   List<TaskModel> get filteredTasks {
-    switch (_filter) {
-      case 'pending':
-        return _allTasks.where((t) => !t.isCompleted).toList();
-      case 'completed':
-        return _allTasks.where((t) => t.isCompleted).toList();
-      default:
-        return List.unmodifiable(_allTasks);
-    }
+    final list = switch (_filter) {
+      'pending' => _allTasks.where((t) => !t.isCompleted).toList(),
+      'completed' => _allTasks.where((t) => t.isCompleted).toList(),
+      _ => List<TaskModel>.from(_allTasks),
+    };
+    list.sort(compareByDeadline);
+    return list;
   }
 
   int get pendingCount => _allTasks.where((t) => !t.isCompleted).length;
   int get completedCount => _allTasks.where((t) => t.isCompleted).length;
+
+  /// Calendar days from today to the task deadline (negative = overdue).
+  static int? daysUntilDue(TaskModel task, {DateTime? now}) {
+    final due = task.dueDateValue;
+    if (due == null) return null;
+    final today = now ?? DateTime.now();
+    return DateTime(due.year, due.month, due.day)
+        .difference(DateTime(today.year, today.month, today.day))
+        .inDays;
+  }
+
+  static bool isOverdue(TaskModel task, {DateTime? now}) {
+    final days = daysUntilDue(task, now: now);
+    return !task.isCompleted && days != null && days < 0;
+  }
+
+  static bool isDueSoon(TaskModel task, {DateTime? now}) {
+    final days = daysUntilDue(task, now: now);
+    return !task.isCompleted && days != null && days >= 0 && days <= 3;
+  }
+
+  static bool isDueSoonOrOverdue(TaskModel task, {DateTime? now}) =>
+      isDueSoon(task, now: now) || isOverdue(task, now: now);
+
+  /// Pending tasks due within three days, soonest first.
+  List<TaskModel> get dueSoonTasks {
+    final list = _allTasks.where((t) => isDueSoon(t)).toList()
+      ..sort(compareByDeadline);
+    return list;
+  }
+
+  int get dueSoonCount => dueSoonTasks.length;
+
+  /// Short Vietnamese label shown next to each deadline chip.
+  static String dueLabel(TaskModel task, {DateTime? now}) {
+    if (task.isCompleted) return 'Đã xong';
+    final days = daysUntilDue(task, now: now);
+    if (days == null) return 'Không có hạn';
+    if (days < 0) return 'Quá hạn ${-days} ngày';
+    if (days == 0) return 'Hạn hôm nay';
+    if (days == 1) return 'Còn 1 ngày';
+    return 'Còn $days ngày';
+  }
 
   @override
   Future<void> loadData() async {

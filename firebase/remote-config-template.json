@@ -1,50 +1,53 @@
 {
   "parameters": {
     "maintenance_mode": {
-      "defaultValue": {
-        "value": "false"
-      },
+      "defaultValue": { "value": "false" },
       "valueType": "BOOLEAN",
-      "description": "Show maintenance gate when enabled."
-    },
-    "feature_ai_advisor_enabled": {
-      "defaultValue": {
-        "value": "true"
-      },
-      "valueType": "BOOLEAN",
-      "description": "Enable the academic advisor feature."
+      "description": "Blocks the signed-in shell with a maintenance screen."
     },
     "min_app_version": {
+      "defaultValue": { "value": "1.0.0" },
+      "valueType": "STRING",
+      "description": "Oldest supported build; lower versions are blocked before sign-in."
+    },
+    "feature_ai_advisor_enabled": {
+      "defaultValue": { "value": "true" },
+      "valueType": "BOOLEAN",
+      "description": "Shows the AI academic advisor and allows Gemini calls; false falls back to on-device answers."
+    },
+    "ai_advisor_model": {
+      "defaultValue": { "value": "gemini-3.5-flash-lite" },
+      "valueType": "STRING",
+      "description": "Gemini model used by the advisor and note Q&A."
+    },
+    "ai_advisor_prompt": {
       "defaultValue": {
-        "value": "1.0.0"
+        "value": "Bạn là Cố vấn học tập AI cho sinh viên Đại học FPT (chuyên ngành Kỹ thuật phần mềm SE). Tư vấn dựa trên đề cương môn học (30 slots, bài tập, chuẩn đầu ra). Trả lời tiếng Việt, súc tích, cấu trúc rõ ràng. Không yêu cầu hay tiết lộ thông tin cá nhân (Zero-PII)."
       },
       "valueType": "STRING",
-      "description": "Minimum supported app version."
+      "description": "System prompt for the advisor; matches the in-app default."
     },
     "vault_sync_interval_mins": {
-      "defaultValue": {
-        "value": "30"
-      },
+      "defaultValue": { "value": "30" },
       "valueType": "NUMBER",
-      "description": "Vault sync interval displayed by the app, in minutes."
+      "description": "Sync Vault refresh interval shown in the app, in minutes."
     },
     "study_plan_ai_enabled": {
-      "defaultValue": {
-        "value": "false"
-      },
-      "valueType": "BOOLEAN"
+      "defaultValue": { "value": "false" },
+      "valueType": "BOOLEAN",
+      "description": "Feature flag for AI study-plan suggestions on the Study Plan screen."
     },
     "study_plan_ai_model": {
-      "defaultValue": {
-        "value": "gemini-3.5-flash-lite"
-      },
-      "valueType": "STRING"
+      "defaultValue": { "value": "gemini-3.5-flash-lite" },
+      "valueType": "STRING",
+      "description": "Gemini model used for study-plan suggestions."
     },
     "study_plan_ai_prompt": {
       "defaultValue": {
-        "value": "Gợi ý một mục tiêu học tập và từ một đến bốn hành động ngắn, chung, phù hợp với kỳ học. Không yêu cầu hoặc tạo dữ liệu cá nhân."
+        "value": "Bạn là AI Tutor cho StudyPilot. Gợi ý một mục tiêu học tập và từ 1 đến 4 hành động ngắn, thiết thực phù hợp với đề cương kỳ học (tập trung vào kỹ năng then chốt và các bài thi PE/FE). Không bịa đặt thông tin (Zero-Hallucination), không yêu cầu hay tạo dữ liệu cá nhân (Zero-PII)."
       },
-      "valueType": "STRING"
+      "valueType": "STRING",
+      "description": "System prompt for study-plan suggestions; matches the in-app default."
     }
   },
   "conditions": []

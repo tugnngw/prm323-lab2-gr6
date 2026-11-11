@@ -3,7 +3,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prm323_lab3/services/firebase_firestore_service.dart';
+import 'package:prm393_final_gr6/services/firebase_firestore_service.dart';
 
 class _Firestore extends Fake implements FirebaseFirestore {
   _Firestore(this.rows);

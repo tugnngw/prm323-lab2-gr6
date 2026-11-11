@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../models/announcement_model.dart';
 import '../models/app_state.dart';
 import '../models/notification_model.dart';
 import '../services/analytics_service.dart';
@@ -36,8 +37,23 @@ class NotificationsViewModel extends BaseViewModel<List<NotificationModel>> {
   StreamSubscription<Map<String, dynamic>>? _foregroundSub;
   StreamSubscription<Map<String, dynamic>>? _tapSub;
   StreamSubscription<bool>? _authSub;
+  StreamSubscription<List<Map<String, dynamic>>>? _announcementSub;
   int _loadVersion = 0;
   String? _loadedUid;
+
+  /// Staff/admin broadcasts live in a shared collection; the student's read
+  /// state is a list of ids on their own profile.
+  List<AnnouncementModel> _announcements = [];
+  Set<String> _readAnnouncementIds = {};
+  List<AnnouncementModel> get announcements =>
+      List.unmodifiable(_announcements);
+  int get unreadAnnouncementCount => _announcements
+      .where((a) => !_readAnnouncementIds.contains(a.id))
+      .length;
+  bool isAnnouncementRead(String id) => _readAnnouncementIds.contains(id);
+
+  /// Prefix used when an announcement is routed through [markAsRead].
+  static const announcementIdPrefix = 'announcement_';
 
   /// Set when the user taps a notification while the app runs — the shell
   /// reads and clears it to navigate to the notification's destination route.
@@ -51,7 +67,8 @@ class NotificationsViewModel extends BaseViewModel<List<NotificationModel>> {
 
   List<NotificationModel> _items = [];
   List<NotificationModel> get notifications => List.unmodifiable(_items);
-  int get unreadCount => _items.where((n) => n.isUnread).length;
+  int get unreadCount =>
+      _items.where((n) => n.isUnread).length + unreadAnnouncementCount;
 
   String? get currentUserId {
     final uid = authService?.currentUserId;
@@ -70,6 +87,10 @@ class NotificationsViewModel extends BaseViewModel<List<NotificationModel>> {
       final firestore = firestoreService;
       if (firestore == null || uid == null) {
         _items = [];
+        _announcements = [];
+        _readAnnouncementIds = {};
+        _announcementSub?.cancel();
+        _announcementSub = null;
         setState(const AsyncViewState.empty());
         return;
       }
@@ -77,7 +98,26 @@ class NotificationsViewModel extends BaseViewModel<List<NotificationModel>> {
       if (isDisposed || version != _loadVersion || uid != currentUserId) return;
       _items = docs.map(NotificationModel.fromMap).toList();
 
-      if (_items.isEmpty) {
+      // Announcements + read markers are secondary: a failure here must not
+      // hide the student's personal notifications.
+      try {
+        final profile = await firestore.getUserProfile(uid);
+        _readAnnouncementIds =
+            (profile?['readAnnouncementIds'] as List? ?? const [])
+                .map((e) => e.toString())
+                .where((e) => e.isNotEmpty)
+                .toSet();
+        final rows = await firestore.getAnnouncements();
+        if (isDisposed || version != _loadVersion || uid != currentUserId) {
+          return;
+        }
+        _setAnnouncements(rows);
+      } catch (_) {
+        // Keep whatever we already had instead of clearing the bell.
+      }
+      _subscribeAnnouncements(uid, version);
+
+      if (_items.isEmpty && _announcements.isEmpty) {
         setState(const AsyncViewState.empty());
       } else {
         setState(AsyncViewState.data(_items));
@@ -86,6 +126,40 @@ class NotificationsViewModel extends BaseViewModel<List<NotificationModel>> {
       if (isDisposed || version != _loadVersion || uid != currentUserId) return;
       setState(AsyncViewState.error('Không thể tải thông báo: $e'));
     }
+  }
+
+  void _setAnnouncements(List<Map<String, dynamic>> rows) {
+    final items = rows.map(AnnouncementModel.fromMap).toList()
+      ..sort((a, b) {
+        final aTime = a.publishedAt;
+        final bTime = b.publishedAt;
+        if (aTime == null && bTime == null) return 0;
+        if (aTime == null) return 1;
+        if (bTime == null) return -1;
+        return bTime.compareTo(aTime);
+      });
+    _announcements = items;
+  }
+
+  /// Keeps the bell in sync when staff publish while the app is open.
+  void _subscribeAnnouncements(String uid, int version) {
+    _announcementSub?.cancel();
+    _announcementSub = null;
+    final firestore = firestoreService;
+    if (firestore == null) return;
+    try {
+      _announcementSub = firestore.watchAnnouncements().listen((rows) {
+        if (isDisposed || version != _loadVersion || uid != currentUserId) {
+          return;
+        }
+        _setAnnouncements(rows);
+        setState(
+          _items.isEmpty && _announcements.isEmpty
+              ? const AsyncViewState.empty()
+              : AsyncViewState.data(_items),
+        );
+      }, onError: (_) {});
+    } catch (_) {}
   }
 
   void _bindPushStreams() {
@@ -192,6 +266,12 @@ class NotificationsViewModel extends BaseViewModel<List<NotificationModel>> {
   /// skip the remote write — the doc does not exist under that id yet.
   Future<void> markAsRead(String? notificationId) async {
     if (notificationId == null || notificationId.isEmpty) return;
+    if (notificationId.startsWith(announcementIdPrefix)) {
+      await markAnnouncementRead(
+        notificationId.substring(announcementIdPrefix.length),
+      );
+      return;
+    }
     final idx = _items.indexWhere((n) => n.id == notificationId);
     if (idx != -1) {
       _items[idx] = _items[idx].copyWith(read: true);
@@ -206,6 +286,30 @@ class NotificationsViewModel extends BaseViewModel<List<NotificationModel>> {
       } catch (e) {
         setLastError('Không thể đánh dấu đã đọc: $e');
       }
+    }
+  }
+
+  /// Marks a broadcast read for this student. Read ids are stored on the user
+  /// profile because the announcement document itself is shared.
+  Future<void> markAnnouncementRead(String announcementId) async {
+    if (announcementId.isEmpty ||
+        _readAnnouncementIds.contains(announcementId)) {
+      return;
+    }
+    final uid = currentUserId;
+    final previous = Set<String>.from(_readAnnouncementIds);
+    _readAnnouncementIds = {..._readAnnouncementIds, announcementId};
+    notifyListeners();
+    if (uid == null || firestoreService == null) return;
+    try {
+      await firestoreService!.saveAcademicProfile(uid, {
+        'readAnnouncementIds': _readAnnouncementIds.toList(),
+      });
+    } catch (e) {
+      if (isDisposed || uid != currentUserId) return;
+      _readAnnouncementIds = previous;
+      notifyListeners();
+      setLastError('Không thể đánh dấu đã đọc thông báo.');
     }
   }
 
@@ -225,6 +329,7 @@ class NotificationsViewModel extends BaseViewModel<List<NotificationModel>> {
     _foregroundSub?.cancel();
     _tapSub?.cancel();
     _authSub?.cancel();
+    _announcementSub?.cancel();
     super.dispose();
   }
 }

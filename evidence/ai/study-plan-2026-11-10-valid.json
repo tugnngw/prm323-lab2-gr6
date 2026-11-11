@@ -1,0 +1,61 @@
+{
+  "models_tried": [
+    "gemini-3.5-flash-lite",
+    "gemini-3.7-flash"
+  ],
+  "source": "Gemini Developer API, same lesson-plan prompt style as lib/services/study_plan_ai.dart",
+  "captured_at": "2026-11-10T21:37:47+0700",
+  "cases": [
+    {
+      "semester": 3,
+      "context": "PRF192 (Lập trình C, 3 tín chỉ, 30 slots); MAE101 (Toán cho kỹ thuật, 3 tín chỉ, 30 slots); CEA201 (Cơ sở điện toán, 3 tín chỉ, 30 slots)",
+      "model": "gemini-3.5-flash-lite",
+      "status": "ok",
+      "attempts": 3,
+      "app_schema_valid": true,
+      "parsed": {
+        "goal": "Hoàn thành xuất sắc 3 môn PRF192, MAE101 và CEA201 trong kỳ học này.",
+        "actions": [
+          "Lập lịch ôn tập code C hàng ngày cho môn PRF192.",
+          "Luyện tập các dạng bài tập toán kỹ thuật cho môn MAE101.",
+          "Nghiên cứu kỹ kiến trúc máy tính và phần cứng cho môn CEA201."
+        ]
+      },
+      "raw_output": "{\n  \"goal\": \"Hoàn thành xuất sắc 3 môn PRF192, MAE101 và CEA201 trong kỳ học này.\",\n  \"actions\": [\n    \"Lập lịch ôn tập code C hàng ngày cho môn PRF192.\",\n    \"Luyện tập các dạng bài tập toán kỹ thuật cho môn MAE101.\",\n    \"Nghiên cứu kỹ kiến trúc máy tính và phần cứng cho môn CEA201.\"\n  ]\n}"
+    },
+    {
+      "semester": 5,
+      "context": "PRJ301 (Java Web, 3 tín chỉ, 30 slots, có PE); SWE201c (Kỹ thuật phần mềm, 3 tín chỉ, 30 slots); DBI202 (Cơ sở dữ liệu, 3 tín chỉ, 30 slots)",
+      "model": "gemini-3.5-flash-lite",
+      "status": "ok",
+      "attempts": 1,
+      "app_schema_valid": true,
+      "parsed": {
+        "goal": "Hoàn thành xuất sắc học kỳ 5 với ba môn trọng tâm gồm PRJ301, SWE201c và DBI202.",
+        "actions": [
+          "Lên lịch ôn tập cơ sở dữ liệu DBI202 và chuẩn bị cho bài kiểm tra thực hành PE của PRJ301.",
+          "Tham gia đầy đủ các buổi học kỹ thuật phần mềm SWE201c và làm bài tập nhóm đúng hạn.",
+          "Thực hành code Java Web thường xuyên để đạt kết quả cao trong môn PRJ301."
+        ]
+      },
+      "raw_output": "{\n  \"goal\": \"Hoàn thành xuất sắc học kỳ 5 với ba môn trọng tâm gồm PRJ301, SWE201c và DBI202.\",\n  \"actions\": [\n    \"Lên lịch ôn tập cơ sở dữ liệu DBI202 và chuẩn bị cho bài kiểm tra thực hành PE của PRJ301.\",\n    \"Tham gia đầy đủ các buổi học kỹ thuật phần mềm SWE201c và làm bài tập nhóm đúng hạn.\",\n    \"Thực hành code Java Web thường xuyên để đạt kết quả cao trong môn PRJ301.\"\n  ]\n}"
+    },
+    {
+      "semester": 8,
+      "context": "PRM393 (Lập trình di động, 3 tín chỉ, 30 slots, có PE); SWD392 (Kiến trúc phần mềm, 3 tín chỉ, 30 slots); PRU213 (Xác suất thống kê, 3 tín chỉ, 30 slots)",
+      "model": "gemini-3.5-flash-lite",
+      "status": "ok",
+      "attempts": 1,
+      "app_schema_valid": true,
+      "parsed": {
+        "goal": "Hoàn thành xuất sắc học kỳ 8 với các môn chuyên ngành và xác suất thống kê",
+        "actions": [
+          "Lập lịch ôn tập PE và bài tập cho môn PRM393",
+          "Nghiên cứu tài liệu kiến trúc phần mềm cho SWD392",
+          "Giải các dạng bài tập xác suất thống kê của PRU213"
+        ]
+      },
+      "raw_output": "{\n  \"goal\": \"Hoàn thành xuất sắc học kỳ 8 với các môn chuyên ngành và xác suất thống kê\",\n  \"actions\": [\n    \"Lập lịch ôn tập PE và bài tập cho môn PRM393\",\n    \"Nghiên cứu tài liệu kiến trúc phần mềm cho SWD392\",\n    \"Giải các dạng bài tập xác suất thống kê của PRU213\"\n  ]\n}"
+    }
+  ]
+}

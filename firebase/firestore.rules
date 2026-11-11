@@ -13,9 +13,35 @@ service cloud.firestore {
     }
 
     // Final data contracts are documented in docs/data-model.md.
-    function hasRole(roles) {
+    // A rater may write exactly one activity notification into the tip
+    // author's inbox. Everything about the document is fixed: type, route,
+    // recipient/actor, fresh timestamp and a deterministic id.
+    function validTipNotification(data, recipientId, notificationId) {
       return isAuthenticated() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') in roles;
+        recipientId != request.auth.uid &&
+        data.keys().hasOnly([
+          'title', 'body', 'type', 'read', 'receivedAt', 'route',
+          'routeArgument', 'recipientId', 'actorId'
+        ]) &&
+        data.get('type', '') == 'tip_rating' &&
+        data.get('recipientId', '') == recipientId &&
+        data.get('actorId', '') == request.auth.uid &&
+        notificationId.matches('^tip_rating_[A-Za-z0-9_-]{1,120}$') &&
+        data.get('title', '') is string && data.title.size() > 0 && data.title.size() <= 140 &&
+        data.get('body', '') is string && data.body.size() <= 300 &&
+        data.get('read', true) == false && data.get('receivedAt') == request.time &&
+        data.get('route', '') == '/course-tips' &&
+        data.get('routeArgument', '') is string &&
+        data.routeArgument.size() >= 3 && data.routeArgument.size() <= 80;
+    }
+
+    function hasRole(roles) {
+      return isAuthenticated() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '') in roles) ||
+        request.auth.token.get('role', '') in roles ||
+        request.auth.token.get('admin', false) == true
+      );
     }
 
     function validRole(role) {
@@ -46,7 +72,7 @@ service cloud.firestore {
 
     match /study_plan_submissions/{id} {
       allow read: if isAuthenticated() &&
-        (resource.data.uid == request.auth.uid || hasRole(['staff', 'admin']));
+        (resource.data.uid == request.auth.uid || resource.data.status == 'approved' || hasRole(['staff', 'admin']));
       allow create: if hasRole(['user']) && validPlan(request.resource.data) &&
         request.resource.data.uid == request.auth.uid &&
         id == request.auth.uid + '_' + ['1','2','3','4','5','6','7','8','9','10','11','12'][request.resource.data.semester - 1] &&
@@ -57,19 +83,23 @@ service cloud.firestore {
         request.resource.data.reviewedBy == request.auth.uid &&
         request.resource.data.reviewedAt == request.time &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'reason', 'reviewedBy', 'reviewedAt']);
+      allow delete: if hasRole(['admin']);
     }
 
     match /announcements/{id} {
       allow read: if isAuthenticated();
       allow create: if hasRole(['staff', 'admin']) && validAnnouncement(request.resource.data);
+      allow delete: if hasRole(['admin']);
     }
 
     // ──────────────────────── User Profile & Private Data ────────────────────────
     match /users/{userId} {
-      // Existing profiles contain private academic data and may lack a role.
-      allow read: if isOwner(userId);
+      // Owner reads their own profile; only Admin may inspect other profiles.
+      allow read: if isOwner(userId) || hasRole(['admin']);
       allow create: if isOwner(userId) &&
-        request.resource.data.get('role', 'user') == 'user';
+        request.resource.data.get('role', 'user') == 'user' &&
+        request.resource.data.get('admin', false) == false &&
+        request.resource.data.size() <= 40;
       allow update: if (isOwner(userId) &&
         request.resource.data.get('role', 'user') == resource.data.get('role', 'user') &&
         (request.resource.data.keys().hasAny(['role']) ||
@@ -93,9 +123,19 @@ service cloud.firestore {
         allow read, write: if isOwner(userId);
       }
 
-      // Notification Center store — owner only
-      match /notifications/{notificationId} {
+      // Per-student course progress (slot ticks, course done, personal
+      // lecturer). Never shared with the catalog.
+      match /courseProgress/{courseDocId} {
         allow read, write: if isOwner(userId);
+      }
+
+      // Notification Center store — owner reads/updates. A tip author may
+      // receive one client-written activity entry from the rater because this
+      // build has no Cloud Functions; the shape is locked down below.
+      match /notifications/{notificationId} {
+        allow read, update, delete: if isOwner(userId);
+        allow create: if isOwner(userId) ||
+          validTipNotification(request.resource.data, userId, notificationId);
       }
 
       // FCM device tokens — owner only
@@ -104,35 +144,185 @@ service cloud.firestore {
       }
     }
 
+    // A course document can be global (id == code) or scoped to one major
+    // (id == major + "__" + code), because the same subject appears in several
+    // curricula with different semesters/credits.
+    function courseDocIdMatches(data, id) {
+      return data.code is string &&
+        (id == data.code || id == data.major + '__' + data.code);
+    }
+
     function validCourse(data, id) {
-      return data.code is string && data.code == id && data.code.matches('^[A-Z0-9]{2,16}$') &&
-        data.name is string && data.name.size() > 0 && data.name.size() <= 120 &&
+      return courseDocIdMatches(data, id) &&
+        data.code.matches('^[A-Za-z][A-Za-z0-9_.*-]{1,23}$') &&
+        data.name is string && data.name.size() > 0 && data.name.size() <= 200 &&
         data.credits is int && data.credits >= 0 && data.credits <= 30 &&
-        data.semester is int && data.semester >= 1 && data.semester <= 12 &&
-        data.major is string && data.major.size() > 0 && data.major.size() <= 40 &&
+        data.semester is int && data.semester >= 0 && data.semester <= 12 &&
+        data.major is string && data.major.matches('^[A-Za-z0-9_.-]{2,30}$') &&
+        data.get('archived', false) is bool &&
+        data.get('slots', []) is list &&
+        data.get('labs', []) is list &&
+        data.get('learningOutcomes', []) is list &&
+        data.get('courseMaterials', []) is list &&
+        data.get('constructiveQuestions', []) is list &&
+        data.get('prerequisites', []) is list &&
+        data.get('totalSlots', 0) is int &&
+        data.get('completedSlots', 0) is int &&
+        data.get('overview', '') is string &&
+        data.get('nameVi', '') is string &&
+        data.get('studentTasks', '') is string &&
+        data.get('tools', '') is string &&
+        data.get('degreeLevel', '') is string &&
+        data.get('timeAllocation', '') is string &&
+        data.get('scoringScale', '') is string &&
+        data.get('minAvgMarkToPass', '') is string &&
+        data.get('learningTeachingMethod', '') is string &&
+        data.get('note', '') is string &&
+        data.get('decisionNo', '') is string &&
+        data.get('approvedDate', '') is string &&
+        data.get('electiveGroups', []) is list &&
+        data.get('syllabusId', '') is string &&
+        data.get('syllabusStatus', 'metadata') in ['complete', 'partial', 'metadata', 'manual'] &&
+        data.get('link', '') is string &&
+        data.get('resourceLinks', {}) is map;
+    }
+
+    // Courses collection — all authenticated students can read course information
+    // Staff/admin can create, update full syllabus fields, or archive
+    match /courses/{courseId} {
+      allow read: if isAuthenticated();
+      allow create, update: if hasRole(['staff', 'admin']) && validCourse(request.resource.data, courseId);
+      allow delete: if hasRole(['staff', 'admin']);
+    }
+
+    function validMajor(data, id) {
+      return data.code is string && data.code == id && data.code.matches('^[A-Za-z0-9_.-]{2,30}$') &&
+        data.name is string && data.name.size() > 0 && data.name.size() <= 200 &&
+        data.get('totalSemesters', 9) is int && data.get('totalSemesters', 9) >= 1 && data.get('totalSemesters', 9) <= 12 &&
+        data.get('description', '') is string &&
+        data.get('nameEn', '') is string &&
+        data.get('source', 'manual') is string &&
         data.get('archived', false) is bool;
     }
 
-    // Catalog editing preserves the seeded syllabus and other legacy fields.
-    // Courses collection — all authenticated students can read course information
-    match /courses/{courseId} {
+    // Majors collection — authenticated users can read, staff/admin can manage
+    match /majors/{majorId} {
       allow read: if isAuthenticated();
-      allow create: if hasRole(['staff', 'admin']) && validCourse(request.resource.data, courseId) &&
-        request.resource.data.keys().hasOnly(['code', 'name', 'credits', 'semester', 'major', 'archived']);
-      allow update: if hasRole(['staff', 'admin']) && validCourse(request.resource.data, courseId) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'credits', 'semester', 'major', 'archived']);
+      allow create, update: if hasRole(['staff', 'admin']) && validMajor(request.resource.data, majorId);
+      allow delete: if hasRole(['staff', 'admin']);
     }
 
-    // Curriculums collection — all authenticated students can read curriculum data
+    // Curriculums collection — legacy read-only store; staff/admin may clean it up
     match /curriculums/{curriculumId} {
       allow read: if isAuthenticated();
-      allow write: if false; // Admin only
+      allow delete: if hasRole(['staff', 'admin']);
+      allow create, update: if false;
+    }
+
+    // ──────────────────────── Experience notes (review queue) ────────────────────────
+    function validExperienceNoteCreate(data) {
+      return data.keys().hasAll([
+        'courseDocId', 'courseCode', 'courseName', 'major', 'uid', 'authorName',
+        'title', 'content', 'status', 'createdAt'
+      ]) &&
+        data.get('courseDocId', '') is string && data.courseDocId.size() >= 3 && data.courseDocId.size() <= 80 &&
+        data.get('courseCode', '') is string && data.courseCode.size() >= 1 && data.courseCode.size() <= 24 &&
+        data.get('courseName', '') is string && data.courseName.size() >= 1 && data.courseName.size() <= 200 &&
+        data.get('major', '') is string && data.major.size() >= 2 && data.major.size() <= 30 &&
+        data.uid == request.auth.uid &&
+        data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80 &&
+        data.get('title', '') is string && data.title.size() >= 3 && data.title.size() <= 120 &&
+        data.content is string && data.content.size() >= 20 && data.content.size() <= 2000 &&
+        data.get('lecturerTip', '') is string && data.lecturerTip.size() <= 500 &&
+        data.get('examTip', '') is string && data.examTip.size() <= 500 &&
+        data.get('rating', 0) is int && data.get('rating', 0) >= 0 && data.get('rating', 0) <= 5 &&
+        data.status == 'pending' && data.createdAt == request.time &&
+        !data.keys().hasAny(['reason', 'reviewedBy', 'reviewedAt']);
+    }
+
+    match /experience_notes/{noteId} {
+      allow read: if isAuthenticated() &&
+        (resource.data.status == 'approved' ||
+         resource.data.uid == request.auth.uid ||
+         hasRole(['staff', 'admin']));
+      allow create: if isAuthenticated() &&
+        validExperienceNoteCreate(request.resource.data) &&
+        exists(/databases/$(database)/documents/courses/$(request.resource.data.courseDocId));
+      allow update: if hasRole(['staff', 'admin']) &&
+        resource.data.status == 'pending' &&
+        request.resource.data.status in ['approved', 'rejected'] &&
+        request.resource.data.reason is string &&
+        request.resource.data.reason.size() > 0 && request.resource.data.reason.size() <= 300 &&
+        request.resource.data.reviewedBy == request.auth.uid &&
+        request.resource.data.reviewedAt == request.time &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'reason', 'reviewedBy', 'reviewedAt']);
+      allow delete: if isAuthenticated() &&
+        ((resource.data.uid == request.auth.uid && resource.data.status == 'pending') ||
+         hasRole(['admin']));
+    }
+
+    // ──────────────────────── Community ratings & comments ────────────────────────
+    function validTipRating(data, ratingId) {
+      return data.keys().hasOnly([
+          'tipId', 'courseDocId', 'uid', 'displayName', 'stars', 'createdAt'
+        ]) &&
+        data.get('tipId', '') is string && data.tipId.size() >= 1 && data.tipId.size() <= 120 &&
+        data.get('courseDocId', '') is string && data.courseDocId.size() >= 3 && data.courseDocId.size() <= 80 &&
+        exists(/databases/$(database)/documents/courses/$(data.courseDocId)) &&
+        data.get('uid', '') == request.auth.uid &&
+        ratingId == data.tipId + '__' + request.auth.uid &&
+        data.get('displayName', '') is string && data.displayName.size() <= 80 &&
+        data.get('stars', 0) is int && data.stars >= 1 && data.stars <= 5 &&
+        data.get('createdAt') == request.time;
+    }
+
+    // One rating per student per tip: the document id is tipId__uid, so a
+    // second tap updates that student's rating instead of adding another.
+    match /tip_ratings/{ratingId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && validTipRating(request.resource.data, ratingId);
+      allow update: if isAuthenticated() &&
+        resource.data.uid == request.auth.uid &&
+        validTipRating(request.resource.data, ratingId);
+      allow delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
+    }
+
+    function validTipComment(data) {
+      return data.keys().hasOnly([
+          'tipId', 'courseDocId', 'courseCode', 'uid', 'authorName', 'content', 'createdAt'
+        ]) &&
+        data.get('tipId', '') is string && data.tipId.size() >= 1 && data.tipId.size() <= 120 &&
+        data.get('courseDocId', '') is string && data.courseDocId.size() >= 3 && data.courseDocId.size() <= 80 &&
+        exists(/databases/$(database)/documents/courses/$(data.courseDocId)) &&
+        data.get('courseCode', '') is string && data.courseCode.size() >= 1 && data.courseCode.size() <= 24 &&
+        data.get('uid', '') == request.auth.uid &&
+        data.get('authorName', '') is string && data.authorName.size() >= 1 && data.authorName.size() <= 80 &&
+        data.get('content', '') is string && data.content.size() >= 1 && data.content.size() <= 1000 &&
+        data.get('createdAt') == request.time;
+    }
+
+    // Comments are deliberately unmoderated: any signed-in student may add one.
+    match /tip_comments/{commentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && validTipComment(request.resource.data);
+      allow update: if false;
+      allow delete: if isAuthenticated() &&
+        (resource.data.uid == request.auth.uid || hasRole(['admin']));
     }
 
     // ──────────────────────── Audit & System Logs ────────────────────────
-    // Audit logs can be written by authenticated users (append only)
+    // Audit logs can be appended by the signed-in user for their own actions
+    // only; the shape is fixed so a client cannot forge a privileged record.
     match /audit_logs/{logId} {
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() &&
+        request.resource.data.keys().hasOnly(['userId', 'action', 'createdAt']) &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.action is string &&
+        request.resource.data.action.size() > 0 &&
+        request.resource.data.action.size() <= 100 &&
+        (!request.resource.data.keys().hasAny(['createdAt']) ||
+          request.resource.data.createdAt == request.time) &&
+        request.resource.data.size() <= 3;
       allow read, update, delete: if false;
     }
 

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prm323_lab3/models/course_model.dart';
-import 'package:prm323_lab3/viewmodels/advisor_viewmodel.dart';
-import 'package:prm323_lab3/viewmodels/roadmap_viewmodel.dart';
+import 'package:prm393_final_gr6/models/course_model.dart';
+import 'package:prm393_final_gr6/viewmodels/advisor_viewmodel.dart';
+import 'package:prm393_final_gr6/viewmodels/roadmap_viewmodel.dart';
 
 import '../helpers/fake_firestore_service.dart';
 import '../helpers/mock_analytics_service.dart';
@@ -24,6 +24,7 @@ void main() {
       firestore = FakeFirestoreService()
         ..userProfile = {
           'id': 'user_1',
+          'major': 'SE',
           'passedCourses': ['PRO192', 'CSD201', 'MAD101'],
         }
         ..courses.add({

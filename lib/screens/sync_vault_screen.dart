@@ -68,8 +68,9 @@ class _SyncVaultScreenState extends State<SyncVaultScreen> {
     }
 
     try {
+      final marker = 'Connectivity check ${DateTime.now().millisecondsSinceEpoch}';
       final testTask = {
-        'title': 'Test Sync Roundtrip ${DateTime.now().second}',
+        'title': marker,
         'courseCode': 'PRM323',
         'dueDate': '15/12/2024',
         'userId': uid,
@@ -77,9 +78,19 @@ class _SyncVaultScreenState extends State<SyncVaultScreen> {
       await firestore.addTask(testTask);
       final tasks = await firestore.getTasks(uid);
 
+      // Remove the probe document so the demo area never leaves fake data in
+      // the student's real task list.
+      final written = tasks.where((task) => task['title'] == marker).toList();
+      for (final task in written) {
+        final id = task['id']?.toString();
+        if (id != null && id.isNotEmpty) {
+          await firestore.deleteTask(uid, id);
+        }
+      }
+
       setState(() {
         _firestoreTestResult =
-            'Thành công! Firestore đã đọc/ghi ${tasks.length} mục.';
+            'Thành công! Đã ghi/đọc ${tasks.length} mục và dọn bản ghi thử.';
       });
     } catch (e) {
       setState(() {
@@ -102,7 +113,7 @@ class _SyncVaultScreenState extends State<SyncVaultScreen> {
         'Người dùng kích hoạt test Crashlytics từ Firebase Demo Area',
       );
       await crashlytics.recordError(
-        Exception('Non-fatal test exception từ FPTU Second Brain Demo Area'),
+        Exception('Non-fatal test exception từ StudyPilot Demo Area'),
         StackTrace.current,
         reason: 'Firebase Demo Area manual test trigger',
       );

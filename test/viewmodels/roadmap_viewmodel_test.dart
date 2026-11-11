@@ -1,9 +1,24 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prm323_lab3/models/course_model.dart';
-import 'package:prm323_lab3/viewmodels/roadmap_viewmodel.dart';
+import 'package:prm393_final_gr6/models/course_model.dart';
+import 'package:prm393_final_gr6/viewmodels/roadmap_viewmodel.dart';
 
 import '../helpers/mock_auth_service.dart';
 import '../helpers/mock_firestore_service.dart';
+
+class _DeniedFirestore extends MockFirestoreService {
+  @override
+  Future<void> saveCourseProgress(
+    String userId,
+    String courseDocId,
+    Map<String, dynamic> data,
+  ) async {
+    throw FirebaseException(
+      plugin: 'cloud_firestore',
+      code: 'permission-denied',
+    );
+  }
+}
 
 void main() {
   group('RoadmapViewModel Tests', () {
@@ -76,5 +91,42 @@ void main() {
 
       expect(course.progress, closeTo(0.5, 0.001));
     });
+
+    test('Prerequisite matching ignores case for FLM suffix codes', () {
+      final passed = RoadmapViewModel.parsePassedCourses({
+        'transcript': [
+          {
+            'courseCode': 'dms301m',
+            'credits': 3,
+            'grade': 8,
+            'semester': 1,
+            'passed': true,
+          },
+        ],
+      });
+      expect(passed, contains('DMS301M'));
+    });
+
+    test(
+      'failed progress write reverts and names the Firestore error code',
+      () async {
+        final auth = MockAuthService();
+        final firestore = _DeniedFirestore();
+        final vm = RoadmapViewModel(
+          authService: auth,
+          firestoreService: firestore,
+        );
+        await vm.loadData();
+        addTearDown(auth.dispose);
+        addTearDown(vm.dispose);
+
+        final course = vm.allCourses.first;
+        final ok = await vm.setSlotCompleted(course, 1, completed: true);
+
+        expect(ok, isFalse);
+        expect(vm.completedSlotsFor(course), isEmpty);
+        expect(vm.lastError, contains('permission-denied'));
+      },
+    );
   });
 }

@@ -38,7 +38,7 @@ async def test_TC_V1_update_existing_task(artemis, auth_account, unique_name, lo
 @require_artemis
 async def test_TC_F2_05_add_task_id_consistency(artemis, auth_account, unique_name):
     observed = await artemis.run(
-        'Create your own task {fixture}. Open Sync Vault and Kích hoạt đồng bộ Vault ngay, confirm if prompted, wait for sync result, return to Tasks. Report that task title and occurrence count after reload.'.replace("{fixture}", unique_name),
+        'Create your own task {fixture}. Open the "Firebase Cloud & Offline Vault" card and tap Kích hoạt đồng bộ Vault ngay, confirm if prompted, wait for sync result, return to Tasks. Report that task title and occurrence count after reload.'.replace("{fixture}", unique_name),
         {'task_title': 'literal title', 'occurrence_count': 'integer'},
     )
     equals(observed,'task_title',unique_name)
